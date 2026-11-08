@@ -1075,7 +1075,7 @@ function watchWindow(id) {
 
 // ---------- self-update ----------
 // The client can replace itself with a newer copy from a web address you set in Settings.
-var APP_VERSION = 27;
+var APP_VERSION = 28;
 
 // ---------- drag the borderless window by its title bar ----------
 var dragOn = false, dragDX = 0, dragDY = 0;
@@ -1480,6 +1480,7 @@ window.onload = function () {
   setTimeout(trySilentLogin, 300);
   setTimeout(loadVersions, 900);
   setTimeout(function () { checkUpdate(false); }, 1800);
+  setInterval(function () { if (!busy && !pendingUpdate) checkUpdate(false); }, 60000);   // look for a new version every minute
 };
 window.onresize = function () { try { buildScene(); } catch (e) {} };
 </script>
