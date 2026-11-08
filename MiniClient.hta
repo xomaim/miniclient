@@ -1020,7 +1020,7 @@ function watchWindow(id) {
 
 // ---------- self-update ----------
 // The client can replace itself with a newer copy from a web address you set in Settings.
-var APP_VERSION = 22;
+var APP_VERSION = 23;
 
 // ---------- drag the borderless window by its title bar ----------
 var dragOn = false, dragDX = 0, dragDY = 0;
@@ -1042,12 +1042,10 @@ function verOf(text) {
   var m = /var APP_VERSION = (\d+);/.exec(text);
   return m ? parseInt(m[1], 10) : 0;
 }
+var UPDATE_URL = "https://raw.githubusercontent.com/xomaim/miniclient/refs/heads/main/MiniClient.hta";
 function checkUpdate(manual) {
-  var url = $("updurl").value.replace(/^\s+|\s+$/g, "");
-  if (!url) { if (manual) setStatus("Paste your update address in Settings first.", true); return; }
-  if (url.toLowerCase().indexOf("https://") != 0) { if (manual) setStatus("The update address must start with https://", true); return; }
+  var url = UPDATE_URL;
   try {
-    cfg.updateUrl = url; saveCfg();
     var r = http("GET", url + (url.indexOf("?") < 0 ? "?" : "&") + "t=" + new Date().getTime(), {});
     if (r.status != 200) {
       log("Update check: HTTP " + r.status);
@@ -1087,7 +1085,6 @@ function applyUpdate() {
 // ---------- settings ----------
 function cfgBool(k, def) { return (typeof cfg != "object" || cfg[k] === undefined) ? def : !!cfg[k]; }
 function applySettingsToUI() {
-  $("updurl").value = cfg.updateUrl || "";
   $("s_ram").value = String(cfg.ram || "2");
   $("s_size").value = cfg.size || "default";
   $("s_full").checked = cfgBool("fullscreen", false);
@@ -1606,10 +1603,9 @@ window.onresize = function () { try { buildScene(); } catch (e) {} };
         <div class="card">
           <div class="label">Maintenance</div>
           <button class="btn small" onclick="clearFast()">Re-check game files</button>
-          <div class="label" style="margin-top:22px">Updates &middot; this is v21</div>
-          <input type="text" id="updurl" />
-          <button class="btn small" style="margin-top:12px" onclick="checkUpdate(true)">Check for updates</button>
-          <div class="hint">Paste the web address of the newest MiniClient file. The client checks it when it opens and can replace itself in one click.</div>
+          <div class="label" style="margin-top:22px">Updates</div>
+          <button class="btn small" onclick="checkUpdate(true)">Check for updates</button>
+          <div class="hint">Mini Client checks for a new version when it opens and can replace itself in one click.</div>
         </div>
       </div>
     </div>
