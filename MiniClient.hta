@@ -30,30 +30,64 @@
   #tbclose { position:absolute; right:0; top:0; width:46px; height:34px; line-height:32px; color:#dd979d; font-size:20px; cursor:pointer; }
   #tbclose:hover { background:#c42b1c; color:#ffffff; }
 
-  #nav { position:absolute; left:0; right:0; top:34px; height:64px; padding:0 48px; }
-  #brand { position:absolute; left:44px; top:17px; font-size:19px; font-weight:700; color:#ffffff; letter-spacing:0.3px; }
-  #brand img { width:28px; height:28px; vertical-align:middle; margin:-4px 9px 0 0; -ms-interpolation-mode:bicubic; }
-  #links { position:absolute; left:230px; top:20px; }
-  .nav { display:inline-block; padding:5px 14px; margin-right:2px; border-radius:6px; color:#dd979d; cursor:pointer; font-size:13px; }
-  .nav:hover { color:#ffffff; }
-  .nav.on { color:#ffffff; background:rgba(255,255,255,0.09); }
-  #navbtn { position:absolute; right:48px; top:15px; }
+  /* ---------- left sidebar ---------- */
+  #side { position:absolute; left:0; top:34px; bottom:0; width:84px; background:rgba(28,0,4,0.62); border-right:1px solid rgba(255,255,255,0.07); z-index:4; }
+  #slogo { height:84px; text-align:center; padding-top:18px; }
+  #slogo img { width:46px; height:46px; -ms-interpolation-mode:bicubic; }
+  .sn { position:relative; height:66px; margin:2px 8px; border-radius:12px; text-align:center; color:#dd979d; cursor:pointer; padding-top:11px; }
+  .sn svg { width:24px; height:24px; display:block; margin:0 auto 5px auto; stroke:#dd979d; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+  .sn span { font-size:11px; font-weight:600; letter-spacing:0.2px; }
+  .sn:hover { background:rgba(255,255,255,0.07); color:#ffffff; }
+  .sn:hover svg { stroke:#ffffff; }
+  .sn.on { background:rgba(245,18,39,0.22); color:#ffffff; }
+  .sn.on svg { stroke:#ff6a78; }
+  .sn.on:before { content:""; position:absolute; left:-8px; top:16px; width:4px; height:34px; border-radius:2px; background:#ff2d41; }
+  #sver { position:absolute; bottom:12px; left:0; right:0; text-align:center; font-size:10px; color:#a85b62; }
 
-  .page { display:none; position:absolute; left:0; right:0; top:98px; bottom:0; }
+  .page { display:none; position:absolute; left:84px; right:0; top:34px; bottom:0; }
 
-  /* ---------- hero ---------- */
-  #hero { position:absolute; left:70px; top:70px; width:470px; }
-  .pill { display:inline-block; padding:5px 12px; border-radius:14px; background:rgba(255,255,255,0.07);
-          border:1px solid rgba(255,255,255,0.08); font-size:12px; color:#f5afb6; margin-bottom:22px; }
-  h1 { font-size:54px; line-height:1.03; font-weight:700; margin:0 0 22px 0; letter-spacing:-1.5px; color:#ffffff; }
-  h1 span { color:#ff5161; }
-  .lead { font-size:15px; line-height:1.6; color:#e6a4aa; margin:0 0 28px 0; width:440px; }
+  /* ---------- play page ---------- */
+  #phead { position:absolute; left:34px; right:34px; top:22px; height:56px; }
+  #ptitle { font-size:30px; font-weight:700; color:#ffffff; letter-spacing:-0.8px; line-height:32px; }
+  #ptitle span { color:#ff5161; }
+  #psub { font-size:12px; color:#dc8f96; margin-top:3px; }
+  #pright { position:absolute; right:0; top:2px; white-space:nowrap; }
+  #pright > * { display:inline-block; vertical-align:middle; }
+  #chip { height:44px; padding:4px 16px 4px 5px; border-radius:22px; background:rgba(28,0,4,0.7); border:1px solid rgba(255,255,255,0.10); margin-left:8px; }
+  #chip #avatar { float:left; width:34px; height:34px; border-radius:17px; margin-right:10px; font-size:16px; line-height:34px; overflow:hidden; }
+  #chip #avatar img { width:34px; height:34px; }
+  #chip #acctText { overflow:hidden; padding-top:0; }
+  #chip #who { font-size:13px; line-height:18px; }
+  #chip #email { font-size:10px; margin-top:0; height:13px; line-height:13px; max-width:150px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+  .pill { display:inline-block; padding:5px 12px; border-radius:14px; background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.08); font-size:12px; color:#f5afb6; }
+  #vhead { position:absolute; left:34px; top:96px; font-size:11px; font-weight:700; letter-spacing:1.4px; color:#dc8f96; }
+  #vgrid { position:absolute; left:34px; top:120px; width:540px; }
+  .vc { float:left; width:250px; height:142px; margin:0 14px 14px 0; border-radius:14px; border:2px solid rgba(255,255,255,0.10); cursor:pointer; position:relative; overflow:hidden; background-color:#50030a; }
+  .vc:hover { border-color:rgba(255,255,255,0.35); }
+  .vc.on { border-color:#ff2d41; }
+  .vc .vtag { position:absolute; left:10px; top:10px; padding:3px 10px; border-radius:11px; font-size:11px; font-weight:600; background:rgba(28,0,4,0.72); color:#ffd7db; }
+  .vc .vband { position:absolute; left:0; right:0; bottom:0; height:50px; background:rgba(28,0,4,0.58); }
+  .vc .vname { position:absolute; left:14px; bottom:8px; font-size:22px; font-weight:700; color:#ffffff; letter-spacing:-0.6px; }
+  .vc .vsub { position:absolute; right:14px; bottom:16px; font-size:11px; color:#f5afb6; }
+  #vpanel { position:absolute; right:34px; top:96px; width:300px; padding:0; overflow:hidden; }
+  #vart { height:140px; background-color:#50030a; }
+  #vbody { padding:16px 20px 20px 20px; }
+  #vtitle { font-size:22px; font-weight:700; color:#ffffff; letter-spacing:-0.4px; }
+  #vtags { margin:8px 0 10px 0; }
+  .vt { display:inline-block; margin:0 6px 6px 0; padding:2px 10px; border-radius:10px; font-size:11px; background:rgba(255,255,255,0.09); color:#f5afb6; }
+  .vt.hot { background:rgba(245,18,39,0.28); color:#ffa4ac; }
+  #vdesc { font-size:12px; line-height:1.55; color:#e6a4aa; min-height:56px; }
+  .vrow { overflow:hidden; font-size:12px; color:#dc8f96; padding:9px 0; border-top:1px solid rgba(255,255,255,0.07); }
+  .vrow b { float:right; color:#ffffff; font-weight:600; }
+  #vpanel #badge { float:right; margin:0; }
+  #vsel { margin-top:6px; }
+  #vsel select { height:34px; }
+  #playbtn { width:100%; height:50px; margin-top:12px; font-size:15px; font-weight:700; letter-spacing:1.2px; background:#f51227; color:#ffffff; }
+  #playbtn:hover { background:#ff2d41; }
+  #playbtn[disabled] { background:rgba(255,255,255,0.10); color:#a85b62; cursor:default; }
   .row { margin-bottom:16px; }
 
   button { font-family:"Segoe UI", Arial, sans-serif; cursor:pointer; border:0; border-radius:8px; }
-  #playbtn { height:50px; padding:0 30px; font-size:15px; font-weight:600; background:#f51227; color:#ffffff; margin-right:10px; }
-  #playbtn:hover { background:#ff2d41; }
-  #playbtn[disabled] { background:rgba(255,255,255,0.10); color:#a85b62; cursor:default; }
   .btn { height:50px; padding:0 24px; font-size:15px; background:rgba(255,255,255,0.09); color:#ffd7db; }
   .btn:hover { background:rgba(255,255,255,0.16); }
   .btn.small { height:34px; padding:0 16px; font-size:13px; }
@@ -61,7 +95,6 @@
 
   /* ---------- cards ---------- */
   .card { background:rgba(46,0,4,0.88); border:1px solid rgba(255,255,255,0.09); border-radius:16px; padding:22px 24px; }
-  #acctCard { position:absolute; right:70px; top:62px; width:370px; }
   .label { font-size:12px; color:#c4767d; margin-bottom:14px; }
 
   #avatar { float:left; width:56px; height:56px; border-radius:28px; background:#f51227; color:#ffffff;
@@ -129,8 +162,8 @@
   .btn.small { margin-right:8px; }
 
   /* ---------- status ---------- */
-  #bar { position:absolute; left:24px; bottom:12px; z-index:5; padding:6px 14px; border-radius:14px;
-         background:rgba(28,0,3,0.78); font-size:12px; color:#f5afb6; max-width:700px; }
+  #bar { position:absolute; left:100px; bottom:12px; z-index:5; padding:6px 14px; border-radius:14px;
+         background:rgba(28,0,3,0.78); font-size:12px; color:#f5afb6; max-width:620px; }
   #status.bad { color:#ff9f98; }
 </style>
 <script language="JScript">
@@ -250,7 +283,7 @@ function show(name) {
   for (var i = 0; i < pages.length; i++) {
     var on = (pages[i] == name);
     $("page_" + pages[i]).style.display = on ? "block" : "none";
-    $("nav_" + pages[i]).className = on ? "nav on" : "nav";
+    $("nav_" + pages[i]).className = on ? "sn on" : "sn";
   }
   if (name == "mods") loadMods();
   if (name == "saves") loadSaves();
@@ -463,7 +496,7 @@ function pick() {
   var i = $("accounts").selectedIndex;
   if (i < 0 || !found[i]) return;
   $("who").innerText = found[i].name;
-  $("avatar").innerText = found[i].name.charAt(0).toUpperCase();
+  $("avatar").innerHTML = '<img src="https://mc-heads.net/avatar/' + encodeURIComponent(found[i].name) + '/64" onerror="this.parentNode.innerText=\'' + found[i].name.charAt(0).toUpperCase() + '\'" />';
   $("email").innerText = found[i].email;
   $("playbtn").disabled = false;
   renderBadge();
@@ -713,6 +746,60 @@ function fail(msg) {
   setStatus(msg, true);
 }
 
+// ---------- version cards + selected-version panel ----------
+var CARD_POS = ["0% 0%", "100% 0%", "0% 100%", "100% 100%", "50% 20%", "30% 80%", "80% 40%"];
+function isModVer(id) { return /^1\.21(\.\d+)?$/.test(id); }
+function artStyle(i, w) {
+  return "background-image:url(" + BG_DATA + ");background-repeat:no-repeat;background-size:" + w + "% auto;background-position:" + CARD_POS[i % CARD_POS.length] + ";";
+}
+function renderCards() {
+  try {
+    var sel = $("versions"), box = $("vgrid"), cur = sel.value, ids = [], i, k;
+    box.innerHTML = "";
+    var opts = {}; for (i = 0; i < sel.options.length; i++) opts[sel.options[i].text] = 1;
+    function add(id) { if (!id || !opts[id]) return; for (var j = 0; j < ids.length; j++) if (ids[j] == id) return; ids.push(id); }
+    if (cur) add(cur);
+    if (sel.options.length) add(sel.options[0].text);
+    var pref = ["1.21.11", "1.21.7", "1.21.4", "1.21.1", "1.20.1", "1.19.4"];
+    for (k = 0; k < pref.length && ids.length < 6; k++) add(pref[k]);
+    for (i = 0; i < ids.length; i++) {
+      var d = document.createElement("div");
+      d.className = "vc" + (ids[i] == cur ? " on" : "");
+      d.style.cssText = artStyle(i, 260 + (i % 3) * 40);
+      d.setAttribute("data-v", ids[i]);
+      d.onclick = (function (id) { return function () { pickVersion(id); }; })(ids[i]);
+      d.innerHTML = '<div class="vtag">' + (isModVer(ids[i]) ? "Fabric" : "Vanilla") + '</div><div class="vband"></div><div class="vname">' + ids[i] + '</div><div class="vsub">' + (isModVer(ids[i]) ? "Mods ready" : "Plain game") + '</div>';
+      box.appendChild(d);
+    }
+  } catch (e) { log("Could not draw version cards: " + e.message); }
+}
+function renderSelected() {
+  try {
+    var v = $("versions").value || "", tags = "", desc;
+    $("vtitle").innerText = v ? "Minecraft " + v : "Minecraft";
+    $("vart").style.cssText = artStyle(3, 300);
+    var mod = isModVer(v);
+    tags += '<span class="vt hot">' + (mod ? "Fabric" : "Vanilla") + '</span>';
+    if (mod && cfgBool("builtinOn", false)) tags += '<span class="vt">HUD+</span><span class="vt">Sodium</span>';
+    if (cfgBool("capeOn", false) && CAPE_VERSIONS.indexOf("," + v + ",") >= 0) tags += '<span class="vt">Capes</span>';
+    $("vtags").innerHTML = tags;
+    if (mod) desc = cfgBool("builtinOn", false) ? "Fabric with your built-in mods. In game, press Right Shift to move the FPS and CPS counters." : "Built-in mods are off. Turn them on in Settings to get FPS and CPS counters.";
+    else desc = "Plain Minecraft. The built-in mods need a 1.21 version.";
+    $("vdesc").innerText = desc;
+    $("vram").innerText = (cfg.ram || "2") + " GB";
+    $("sver").innerText = "v" + APP_VERSION;
+  } catch (e) {}
+}
+function pickVersion(id) {
+  try {
+    var sel = $("versions");
+    for (var i = 0; i < sel.options.length; i++) if (sel.options[i].text == id) sel.selectedIndex = i;
+    cfg.version = id;
+    updateModWarn();
+    renderCards();
+  } catch (e) {}
+}
+
 // ---------- version list ----------
 function loadVersions() {
   try {
@@ -732,6 +819,7 @@ function loadVersions() {
     sel.selectedIndex = want;
     if (useFabric() && !modVersionOk(sel.value)) preferModVersion();
     updateModWarn();
+    renderCards();
   } catch (e) {
     log("Could not load version list: " + e.message);
     setStatus("Could not load the Minecraft version list. Check your internet.", true);
@@ -1072,7 +1160,7 @@ function watchWindow(id) {
 
 // ---------- self-update ----------
 // The client can replace itself with a newer copy from a web address you set in Settings.
-var APP_VERSION = 31;
+var APP_VERSION = 32;
 
 // ---------- drag the borderless window by its title bar ----------
 var dragOn = false, dragDX = 0, dragDY = 0;
@@ -1163,6 +1251,7 @@ function saveSettings() {
     else msg = "Settings saved. No listed version works with all your mods, so some will be skipped.";
   }
   updateModWarn();
+  renderCards();
   setStatus(msg);
 }
 // Built-in mods only exist for some Minecraft versions.
@@ -1190,6 +1279,7 @@ function updateModWarn() {
     if (useFabric() && !modVersionOk($("versions").value))
       warn = "Not every mod you turned on works on this version, so some will be skipped.";
     $("modwarn").innerText = warn;
+    renderSelected();
   } catch (e) {}
 }
 function modsEnabledUI() {
@@ -1507,51 +1597,54 @@ window.onresize = function () { try { buildScene(); } catch (e) {} };
 
   <div id="ui">
 
-    <div id="nav">
-      <div id="brand"><img src="data:image/png;base64,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" />Mini Client</div>
-      <div id="links">
-        <span class="nav on" id="nav_play"     onclick="show('play')">Play</span>
-        <span class="nav"    id="nav_mods"     onclick="show('mods')">Mods</span>
-        <span class="nav"    id="nav_saves"    onclick="show('saves')">Saves</span>
-        <span class="nav"    id="nav_account"  onclick="show('account')">Account</span>
-        <span class="nav"    id="nav_settings" onclick="show('settings')">Settings</span>
-        <span class="nav"    id="nav_log"      onclick="show('log')">Log</span>
-      </div>
-      <button class="btn small" id="navbtn" onclick="checkAccount()">Check again</button>
+    <div id="side">
+      <div id="slogo"><img src="data:image/png;base64,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" /></div>
+      <div class="sn on" id="nav_play" onclick="show('play')"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Play</span></div>
+      <div class="sn" id="nav_mods" onclick="show('mods')"><svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg><span>Mods</span></div>
+      <div class="sn" id="nav_saves" onclick="show('saves')"><svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg><span>Saves</span></div>
+      <div class="sn" id="nav_account" onclick="show('account')"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Account</span></div>
+      <div class="sn" id="nav_settings" onclick="show('settings')"><svg viewBox="0 0 24 24"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg><span>Settings</span></div>
+      <div class="sn" id="nav_log" onclick="show('log')"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg><span>Log</span></div>
+      <div id="sver"></div>
     </div>
 
-    <!-- PLAY / HERO -->
+    <!-- PLAY -->
     <div class="page" id="page_play" style="display:block">
-      <div id="hero">
-        <div id="updbar" class="pill" style="display:none; margin-right:8px;"><span id="updtext"></span> <button class="btn small" onclick="applyUpdate()">Update now</button></div>
-        <div class="pill">Minecraft: Java Edition &nbsp;&middot;&nbsp; Microsoft account</div>
-        <h1 style="font-size:84px; letter-spacing:-3px; margin-bottom:14px;">Mini<span>craft</span></h1>
-        <p class="lead">Minecraft, your way. Built-in FPS and CPS counters, mods and one-click play.</p>
-        <div class="row">
-          <button id="playbtn" onclick="play()">Play Minecraft</button>
-          <button class="btn" onclick="show('account')">Account</button>
+      <div id="phead">
+        <div id="ptitle">Mini<span>craft</span></div>
+        <div id="psub">Minecraft: Java Edition</div>
+        <div id="pright">
+          <div id="updbar" class="pill" style="display:none; margin-right:8px;"><span id="updtext"></span> <button class="btn small" onclick="applyUpdate()">Update now</button></div>
+          <button class="btn small" id="navbtn" onclick="checkAccount()">Check again</button>
+          <div id="chip">
+            <div id="avatar">?</div>
+            <div id="acctText">
+              <div id="who">No account</div>
+              <div id="email"></div>
+            </div>
+          </div>
         </div>
-        <div class="row">
-          <span class="meta">Version</span>
-          <select id="versions" onchange="updateModWarn()" style="width:180px; display:inline-block; margin-left:8px"></select>
-        </div>
-        <div class="meta" id="modwarn" style="color:#ffb86b; margin:-6px 0 12px 0; height:16px;"></div>
-        <div id="prog" style="display:none; margin-bottom:14px;">
-          <div class="meta" id="progtext" style="margin-bottom:6px;"></div>
-          <div id="pbar"><div id="pfill"></div></div>
-        </div>
-        <div class="meta">Windows &nbsp;&middot;&nbsp; Runs as a single .hta file</div>
       </div>
 
-      <div class="card" id="acctCard">
-        <div class="label">Account</div>
-        <div id="avatar">?</div>
-        <div id="acctText">
-          <div id="who">No account</div>
-          <div id="email"></div>
+      <div id="vhead">VERSIONS</div>
+      <div id="vgrid"></div>
+
+      <div class="card" id="vpanel">
+        <div id="vart"></div>
+        <div id="vbody">
+          <div id="vtitle">Minecraft</div>
+          <div id="vtags"></div>
+          <div id="vdesc"></div>
+          <div class="vrow">Account <span id="badge">No account</span></div>
+          <div class="vrow">Memory <b id="vram">2 GB</b></div>
+          <div id="vsel"><select id="versions" onchange="pickVersion(this.value)"></select></div>
+          <div class="meta" id="modwarn" style="color:#ffb86b; margin:8px 0 0 0; min-height:16px; line-height:1.4;"></div>
+          <div id="prog" style="display:none; margin-top:8px;">
+            <div class="meta" id="progtext" style="margin-bottom:6px;"></div>
+            <div id="pbar"><div id="pfill"></div></div>
+          </div>
+          <button id="playbtn" onclick="play()">LAUNCH GAME</button>
         </div>
-        <span id="badge">No account</span>
-        <div class="stat">Game <b>Minecraft: Java Edition</b></div>
       </div>
     </div>
 
