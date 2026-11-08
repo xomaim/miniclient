@@ -8,30 +8,30 @@
 <style>
   * { box-sizing: border-box; }
   html, body { margin:0; padding:0; width:100%; height:100%; overflow:hidden; }
-  body { font-family:"Segoe UI", Arial, sans-serif; font-size:14px; color:#ffd7db; background:#2b0003; }
+  body { font-family:"Segoe UI", Arial, sans-serif; font-size:14px; color:#ffd7db; background:#483248; }
 
   /* ---------- scenery layer ---------- */
   #sky { position:absolute; left:0; top:0; right:0; bottom:0; z-index:0; overflow:hidden;
-         background:#380004;
-         filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#FF200009', endColorstr='#FF720015', GradientType=0);
-         -ms-filter:"progid:DXImageTransform.Microsoft.gradient(startColorstr='#FF200009', endColorstr='#FF720015', GradientType=0)"; }
+         background:#583d58;
+         filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#FF3a283a', endColorstr='#FF664766', GradientType=0);
+         -ms-filter:"progid:DXImageTransform.Microsoft.gradient(startColorstr='#FF3a283a', endColorstr='#FF664766', GradientType=0)"; }
   #glow { position:absolute; left:0; right:0; bottom:0; height:300px; z-index:0; }
 
   /* ---------- UI layer ---------- */
   #ui { position:absolute; left:0; top:0; right:0; bottom:0; z-index:2; }
 
-  html { background:#2b0003; }
-  body { border:1px solid #66060e; }
+  html { background:#483248; }
+  body { border:1px solid #664766; }
 
   /* ---------- custom title bar (replaces the white Windows one) ---------- */
-  #titlebar { position:absolute; left:0; right:0; top:0; height:34px; z-index:30; background:rgba(28,0,2,0.55);
+  #titlebar { position:absolute; left:0; right:0; top:0; height:34px; z-index:30; background:rgba(53,37,53,0.55);
               text-align:center; line-height:34px; color:#ffd7db; font-size:13px; font-weight:600; letter-spacing:0.6px;
               cursor:default; -ms-user-select:none; user-select:none; }
   #tbclose { position:absolute; right:0; top:0; width:46px; height:34px; line-height:32px; color:#dd979d; font-size:20px; cursor:pointer; }
   #tbclose:hover { background:#c42b1c; color:#ffffff; }
 
   /* ---------- left sidebar ---------- */
-  #side { position:absolute; left:0; top:34px; bottom:0; width:84px; background:rgba(28,0,4,0.62); border-right:1px solid rgba(255,255,255,0.07); z-index:4; }
+  #side { position:absolute; left:0; top:34px; bottom:0; width:84px; background:rgba(53,37,53,0.62); border-right:1px solid rgba(255,255,255,0.07); z-index:4; }
   #slogo { height:84px; text-align:center; padding-top:18px; }
   #slogo img { width:46px; height:46px; -ms-interpolation-mode:bicubic; }
   .sn { position:relative; height:66px; margin:2px 8px; border-radius:12px; text-align:center; color:#dd979d; cursor:pointer; padding-top:11px; }
@@ -53,7 +53,7 @@
   #psub { font-size:12px; color:#dc8f96; margin-top:3px; }
   #pright { position:absolute; right:0; top:2px; white-space:nowrap; }
   #pright > * { display:inline-block; vertical-align:middle; }
-  #chip { height:44px; padding:4px 16px 4px 5px; border-radius:22px; background:rgba(28,0,4,0.7); border:1px solid rgba(255,255,255,0.10); margin-left:8px; }
+  #chip { height:44px; padding:4px 16px 4px 5px; border-radius:22px; background:rgba(53,37,53,0.7); border:1px solid rgba(255,255,255,0.10); margin-left:8px; }
   #chip #avatar { float:left; width:34px; height:34px; border-radius:17px; margin-right:10px; font-size:16px; line-height:34px; overflow:hidden; }
   #chip #avatar img { width:34px; height:34px; }
   #chip #acctText { overflow:hidden; padding-top:0; }
@@ -62,15 +62,15 @@
   .pill { display:inline-block; padding:5px 12px; border-radius:14px; background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.08); font-size:12px; color:#f5afb6; }
   #vhead { position:absolute; left:34px; top:96px; font-size:11px; font-weight:700; letter-spacing:1.4px; color:#dc8f96; }
   #vgrid { position:absolute; left:34px; top:120px; width:540px; }
-  .vc { float:left; width:250px; height:142px; margin:0 14px 14px 0; border-radius:14px; border:2px solid rgba(255,255,255,0.10); cursor:pointer; position:relative; overflow:hidden; background-color:#50030a; }
+  .vc { float:left; width:250px; height:142px; margin:0 14px 14px 0; border-radius:14px; border:2px solid rgba(255,255,255,0.10); cursor:pointer; position:relative; overflow:hidden; background-color:#664766; }
   .vc:hover { border-color:rgba(255,255,255,0.35); }
   .vc.on { border-color:#ff2d41; }
-  .vc .vtag { position:absolute; left:10px; top:10px; padding:3px 10px; border-radius:11px; font-size:11px; font-weight:600; background:rgba(28,0,4,0.72); color:#ffd7db; }
-  .vc .vband { position:absolute; left:0; right:0; bottom:0; height:50px; background:rgba(28,0,4,0.58); }
+  .vc .vtag { position:absolute; left:10px; top:10px; padding:3px 10px; border-radius:11px; font-size:11px; font-weight:600; background:rgba(53,37,53,0.72); color:#ffd7db; }
+  .vc .vband { position:absolute; left:0; right:0; bottom:0; height:50px; background:rgba(53,37,53,0.58); }
   .vc .vname { position:absolute; left:14px; bottom:8px; font-size:22px; font-weight:700; color:#ffffff; letter-spacing:-0.6px; }
   .vc .vsub { position:absolute; right:14px; bottom:16px; font-size:11px; color:#f5afb6; }
   #vpanel { position:absolute; right:34px; top:96px; width:300px; padding:0; overflow:hidden; }
-  #vart { height:150px; background-color:#50030a; position:relative; }
+  #vart { height:150px; background-color:#664766; position:relative; }
   #vskin { position:absolute; right:16px; bottom:0; height:146px; }
   #vbody { padding:16px 20px 20px 20px; }
   #vtitle { font-size:22px; font-weight:700; color:#ffffff; letter-spacing:-0.4px; }
@@ -95,7 +95,7 @@
   .meta { font-size:12px; color:#c4767d; }
 
   /* ---------- cards ---------- */
-  .card { background:rgba(46,0,4,0.88); border:1px solid rgba(255,255,255,0.09); border-radius:16px; padding:22px 24px; }
+  .card { background:rgba(75,53,75,0.88); border:1px solid rgba(255,255,255,0.09); border-radius:16px; padding:22px 24px; }
   .label { font-size:12px; color:#c4767d; margin-bottom:14px; }
 
   #avatar { float:left; width:56px; height:56px; border-radius:28px; background:#f51227; color:#ffffff;
@@ -114,11 +114,11 @@
   .panel { position:absolute; left:50%; margin-left:-300px; top:50px; width:600px; }
   .panel h2 { font-size:34px; font-weight:700; margin:0 0 6px 0; color:#ffffff; letter-spacing:-0.5px; }
   .panel p.sub { color:#dc8f96; margin:0 0 22px 0; }
-  select, input[type=text] { width:100%; height:40px; background:rgba(24,0,2,0.7); color:#ffffff; border:1px solid rgba(255,255,255,0.14);
+  select, input[type=text] { width:100%; height:40px; background:rgba(48,33,48,0.7); color:#ffffff; border:1px solid rgba(255,255,255,0.14);
                              border-radius:8px; padding:0 12px; font-family:"Segoe UI", Arial, sans-serif; font-size:13px; }
   #file { width:100%; margin-top:12px; color:#dc8f96; font-size:12px; }
   .hint { font-size:12px; color:#c4767d; margin-top:12px; line-height:1.5; }
-  textarea { width:100%; height:270px; background:rgba(24,0,2,0.8); color:#ff8fbc; border:1px solid rgba(255,255,255,0.12);
+  textarea { width:100%; height:270px; background:rgba(48,33,48,0.8); color:#ff8fbc; border:1px solid rgba(255,255,255,0.12);
              border-radius:10px; padding:12px; font-family:Consolas, monospace; font-size:11px; }
 
   /* ---------- lists (mods / saves) ---------- */
@@ -144,12 +144,12 @@
   /* ---------- cape thumbnails ---------- */
   .capelist { margin:6px 0 14px 0; overflow:hidden; }
   .capeitem { float:left; width:112px; margin:6px 12px 6px 0; text-align:center; }
-  .capeitem img { width:96px; height:48px; border-radius:6px; background:#50030a; border:1px solid rgba(255,255,255,0.12); }
+  .capeitem img { width:96px; height:48px; border-radius:6px; background:#664766; border:1px solid rgba(255,255,255,0.12); }
   .capename { font-size:11px; color:#dd979d; margin-top:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
   /* ---------- mod rows (logo + name) ---------- */
   .modrow { overflow:hidden; padding:11px 14px; }
-  .micon { float:left; width:46px; height:46px; margin-right:14px; border-radius:9px; background:#50030a;
+  .micon { float:left; width:46px; height:46px; margin-right:14px; border-radius:9px; background:#664766;
            text-align:center; line-height:46px; font-weight:700; font-size:20px; color:#ff5161; overflow:hidden; }
   .micon img { width:46px; height:46px; }
   .mtext { overflow:hidden; padding-top:3px; }
@@ -164,7 +164,7 @@
 
   /* ---------- status ---------- */
   #bar { position:absolute; left:100px; bottom:12px; z-index:5; padding:6px 14px; border-radius:14px;
-         background:rgba(28,0,3,0.78); font-size:12px; color:#f5afb6; max-width:620px; }
+         background:rgba(53,37,53,0.78); font-size:12px; color:#f5afb6; max-width:620px; }
   #status.bad { color:#ff9f98; }
 </style>
 <script language="JScript">
@@ -246,7 +246,7 @@ function buildScene() {
   sky.innerHTML = "<img src=\"" + BG_DATA + "\" style=\"position:absolute;left:0;top:0;width:100%;height:100%;-ms-interpolation-mode:nearest-neighbor;\" />";
   // dark cherry fade so the white text and the cards stay easy to read on the bright picture
   var fade = document.createElement("div");
-  fade.style.cssText = "position:absolute;left:0;top:0;right:0;bottom:0;background:rgba(40,4,14,0.28);";
+  fade.style.cssText = "position:absolute;left:0;top:0;right:0;bottom:0;background:rgba(68,47,68,0.28);";
   sky.appendChild(fade);
   var fi, strip;
   for (fi = 0; fi < 30; fi++) {   // darker on the left where the text is, fading out to the right
@@ -1214,7 +1214,7 @@ function watchWindow(id) {
 
 // ---------- self-update ----------
 // The client can replace itself with a newer copy from a web address you set in Settings.
-var APP_VERSION = 33;
+var APP_VERSION = 34;
 
 // ---------- drag the borderless window by its title bar ----------
 var dragOn = false, dragDX = 0, dragDY = 0;
