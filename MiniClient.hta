@@ -1,0 +1,1630 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="x-ua-compatible" content="ie=9">
+<title>Mini Client</title>
+<hta:application id="app" applicationname="MiniClient14" border="none" caption="no"
+  scroll="no" singleinstance="no" maximizebutton="no" />
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin:0; padding:0; width:100%; height:100%; overflow:hidden; }
+  body { font-family:"Segoe UI", Arial, sans-serif; font-size:14px; color:#e9e6ff; background:#140c2b; }
+
+  /* ---------- scenery layer ---------- */
+  #sky { position:absolute; left:0; top:0; right:0; bottom:0; z-index:0; overflow:hidden;
+         background:#1a0f38;
+         filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#FF080720', endColorstr='#FF4a2272', GradientType=0);
+         -ms-filter:"progid:DXImageTransform.Microsoft.gradient(startColorstr='#FF080720', endColorstr='#FF4a2272', GradientType=0)"; }
+  #glow { position:absolute; left:0; right:0; bottom:0; height:300px; z-index:0; }
+
+  /* ---------- UI layer ---------- */
+  #ui { position:absolute; left:0; top:0; right:0; bottom:0; z-index:2; }
+
+  html { background:#140c2b; }
+  body { border:1px solid #3b2a66; }
+
+  /* ---------- custom title bar (replaces the white Windows one) ---------- */
+  #titlebar { position:absolute; left:0; right:0; top:0; height:34px; z-index:30; background:rgba(10,6,28,0.55);
+              text-align:center; line-height:34px; color:#e9e6ff; font-size:13px; font-weight:600; letter-spacing:0.6px;
+              cursor:default; -ms-user-select:none; user-select:none; }
+  #tbclose { position:absolute; right:0; top:0; width:46px; height:34px; line-height:32px; color:#b8b1dd; font-size:20px; cursor:pointer; }
+  #tbclose:hover { background:#c42b1c; color:#ffffff; }
+
+  #nav { position:absolute; left:0; right:0; top:34px; height:64px; padding:0 48px; }
+  #brand { position:absolute; left:48px; top:19px; font-size:19px; font-weight:700; color:#ffffff; letter-spacing:0.3px; }
+  #brand i { display:inline-block; width:10px; height:10px; background:#9d8bff; margin-right:9px; }
+  #links { position:absolute; left:230px; top:20px; }
+  .nav { display:inline-block; padding:5px 14px; margin-right:2px; border-radius:6px; color:#b8b1dd; cursor:pointer; font-size:13px; }
+  .nav:hover { color:#ffffff; }
+  .nav.on { color:#ffffff; background:rgba(255,255,255,0.09); }
+  #navbtn { position:absolute; right:48px; top:15px; }
+
+  .page { display:none; position:absolute; left:0; right:0; top:98px; bottom:0; }
+
+  /* ---------- hero ---------- */
+  #hero { position:absolute; left:70px; top:70px; width:470px; }
+  .pill { display:inline-block; padding:5px 12px; border-radius:14px; background:rgba(255,255,255,0.07);
+          border:1px solid rgba(255,255,255,0.08); font-size:12px; color:#cfc9f5; margin-bottom:22px; }
+  h1 { font-size:54px; line-height:1.03; font-weight:700; margin:0 0 22px 0; letter-spacing:-1.5px; color:#ffffff; }
+  h1 span { color:#a592ff; }
+  .lead { font-size:15px; line-height:1.6; color:#c3bde6; margin:0 0 28px 0; width:440px; }
+  .row { margin-bottom:16px; }
+
+  button { font-family:"Segoe UI", Arial, sans-serif; cursor:pointer; border:0; border-radius:8px; }
+  #playbtn { height:50px; padding:0 30px; font-size:15px; font-weight:600; background:#7a67f5; color:#ffffff; margin-right:10px; }
+  #playbtn:hover { background:#8d7cff; }
+  #playbtn[disabled] { background:rgba(255,255,255,0.10); color:#7f78a8; cursor:default; }
+  .btn { height:50px; padding:0 24px; font-size:15px; background:rgba(255,255,255,0.09); color:#e9e6ff; }
+  .btn:hover { background:rgba(255,255,255,0.16); }
+  .btn.small { height:34px; padding:0 16px; font-size:13px; }
+  .meta { font-size:12px; color:#9a93c4; }
+
+  /* ---------- cards ---------- */
+  .card { background:rgba(22,16,46,0.88); border:1px solid rgba(255,255,255,0.09); border-radius:16px; padding:22px 24px; }
+  #acctCard { position:absolute; right:70px; top:62px; width:370px; }
+  .label { font-size:12px; color:#9a93c4; margin-bottom:14px; }
+
+  #avatar { float:left; width:56px; height:56px; border-radius:28px; background:#7a67f5; color:#ffffff;
+            font-size:26px; font-weight:700; text-align:center; line-height:56px; margin-right:16px; }
+  #acctText { overflow:hidden; padding-top:3px; }
+  #who { font-size:22px; font-weight:700; color:#ffffff; }
+  #email { color:#9a93c4; font-size:12px; margin-top:2px; height:16px; }
+  #badge { display:inline-block; margin-top:16px; padding:3px 12px; border-radius:12px; font-size:12px;
+           background:rgba(255,255,255,0.09); color:#b8b1dd; }
+  #badge.good { background:rgba(90,220,140,0.18); color:#7ff0ad; }
+  #badge.warn { background:rgba(255,110,100,0.20); color:#ff9f98; }
+  .stat { clear:both; padding-top:18px; margin-top:18px; border-top:1px solid rgba(255,255,255,0.08); font-size:13px; color:#b8b1dd; }
+  .stat b { color:#ffffff; font-weight:600; float:right; max-width:200px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+
+  /* ---------- panel pages ---------- */
+  .panel { position:absolute; left:50%; margin-left:-300px; top:50px; width:600px; }
+  .panel h2 { font-size:34px; font-weight:700; margin:0 0 6px 0; color:#ffffff; letter-spacing:-0.5px; }
+  .panel p.sub { color:#b3acdc; margin:0 0 22px 0; }
+  select, input[type=text] { width:100%; height:40px; background:rgba(8,6,24,0.7); color:#ffffff; border:1px solid rgba(255,255,255,0.14);
+                             border-radius:8px; padding:0 12px; font-family:"Segoe UI", Arial, sans-serif; font-size:13px; }
+  #file { width:100%; margin-top:12px; color:#b3acdc; font-size:12px; }
+  .hint { font-size:12px; color:#9a93c4; margin-top:12px; line-height:1.5; }
+  textarea { width:100%; height:270px; background:rgba(8,6,24,0.8); color:#b9d8ff; border:1px solid rgba(255,255,255,0.12);
+             border-radius:10px; padding:12px; font-family:Consolas, monospace; font-size:11px; }
+
+  /* ---------- lists (mods / saves) ---------- */
+  .card .list { max-height:300px; overflow:auto; margin:-8px -10px; padding:0; }
+  .item { padding:12px 14px; border-bottom:1px solid rgba(255,255,255,0.07); overflow:hidden; }
+  .item:last-child { border-bottom:0; }
+  .item:hover { background:rgba(255,255,255,0.05); }
+  .iname { display:block; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; font-weight:600; color:#ffffff; }
+  .imeta { float:right; margin-left:16px; font-size:12px; color:#9a93c4; padding-top:2px; }
+  .empty { padding:26px 10px; text-align:center; color:#9a93c4; line-height:1.6; }
+  .toolrow { margin-top:14px; }
+  .toolrow .btn { margin-right:8px; }
+
+  /* ---------- settings rows ---------- */
+  #page_settings .card { margin-bottom:16px; }
+  .srow { overflow:hidden; padding:13px 0; border-bottom:1px solid rgba(255,255,255,0.07); }
+  .srow:last-child { border-bottom:0; }
+  .sname { float:left; font-weight:600; color:#ffffff; max-width:380px; }
+  .sdesc { display:block; font-weight:400; font-size:12px; color:#9a93c4; margin-top:3px; }
+  .srow input[type=checkbox] { float:right; width:20px; height:20px; margin-top:4px; }
+  select.ssel { float:right; width:170px; }
+
+  /* ---------- cape thumbnails ---------- */
+  .capelist { margin:6px 0 14px 0; overflow:hidden; }
+  .capeitem { float:left; width:112px; margin:6px 12px 6px 0; text-align:center; }
+  .capeitem img { width:96px; height:48px; border-radius:6px; background:#2a2050; border:1px solid rgba(255,255,255,0.12); }
+  .capename { font-size:11px; color:#b8b1dd; margin-top:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+  /* ---------- mod rows (logo + name) ---------- */
+  .modrow { overflow:hidden; padding:11px 14px; }
+  .micon { float:left; width:46px; height:46px; margin-right:14px; border-radius:9px; background:#2a2050;
+           text-align:center; line-height:46px; font-weight:700; font-size:20px; color:#a592ff; overflow:hidden; }
+  .micon img { width:46px; height:46px; }
+  .mtext { overflow:hidden; padding-top:3px; }
+  .mdesc { font-size:12px; color:#9a93c4; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:2px; }
+  .mtag { float:right; margin-left:12px; padding:2px 10px; border-radius:10px; font-size:11px; background:rgba(255,255,255,0.09); color:#b8b1dd; }
+  .mtag.built { background:rgba(122,103,245,0.28); color:#cfc6ff; }
+
+  #pbar { height:8px; border-radius:4px; background:rgba(255,255,255,0.10); overflow:hidden; }
+  #pfill { height:8px; width:0; background:#7a67f5; }
+  #code { font-size:34px; font-weight:700; letter-spacing:6px; color:#a592ff; }
+  .btn.small { margin-right:8px; }
+
+  /* ---------- status ---------- */
+  #bar { position:absolute; left:24px; bottom:12px; z-index:5; padding:6px 14px; border-radius:14px;
+         background:rgba(10,7,28,0.78); font-size:12px; color:#cfc9f5; max-width:700px; }
+  #status.bad { color:#ff9f98; }
+</style>
+<script language="JScript">
+// Reads the official Minecraft launcher's saved account list on this PC.
+// Login tokens are never read out, shown or copied. The log only shows
+// file names, account type, e-mail/username and Minecraft profile name.
+
+var fso = new ActiveXObject("Scripting.FileSystemObject");
+var sh  = new ActiveXObject("WScript.Shell");
+var appData = sh.ExpandEnvironmentStrings("%APPDATA%");
+var cfgDir  = appData + "\\MiniClientHTA";
+var cfgFile = cfgDir + "\\config.json";
+var mcDir   = appData + "\\.minecraft";
+var cfg = { launcherPath: "", refreshToken: "" };
+var CLIENT_ID = "29c987d8-cae7-4e10-a1c8-5a43e7f6651b";
+var verified = false;
+var pollTimer = null;
+var found = [];
+var logLines = [];
+var ownsGame = null;
+
+function $(id) { return document.getElementById(id); }
+function log(s) {
+  logLines.push(s);
+  try { $("log").value = logLines.join("\r\n"); } catch (e) {}
+  // also keep a copy on disk: %APPDATA%\MiniClientHTA\client.log (never contains tokens)
+  try {
+    if (!fso.FolderExists(cfgDir)) fso.CreateFolder(cfgDir);
+    var lf2 = fso.OpenTextFile(cfgDir + "\\client.log", 8, true);
+    lf2.WriteLine(s); lf2.Close();
+  } catch (e) {}
+}
+window.onerror = function (msg, url, line) {
+  try { setStatus("Script error: " + msg + " (line " + line + "). See the Log tab.", true); log("Script error: " + msg + " at line " + line); } catch (e) {}
+  return true;
+};
+function setStatus(msg, bad) {
+  $("status").innerText = msg;
+  $("status").className = bad ? "bad" : "";
+}
+
+// ---------- pixel scenery (own artwork, drawn with plain boxes) ----------
+var seed = 11;
+function rnd() { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; }
+function box(parent, l, t, w, h, c) {
+  var d = document.createElement("div");
+  d.style.position = "absolute";
+  d.style.left = Math.round(l) + "px"; d.style.top = Math.round(t) + "px";
+  d.style.width = Math.round(w) + "px"; d.style.height = Math.round(h) + "px";
+  d.style.background = c;
+  parent.appendChild(d);
+  return d;
+}
+function mix(a, b, t) { // hex colours as [r,g,b]
+  return "rgb(" + Math.round(a[0] + (b[0] - a[0]) * t) + "," + Math.round(a[1] + (b[1] - a[1]) * t) + "," + Math.round(a[2] + (b[2] - a[2]) * t) + ")";
+}
+function hills(sky, W, H, color, base, amp, colW, trees) {
+  var h = base;
+  for (var x = 0; x < W; x += colW) {
+    h += (rnd() - 0.5) * amp;
+    if (h < base * 0.55) h = base * 0.55;
+    if (h > base * 1.45) h = base * 1.45;
+    var q = Math.round(h / colW) * colW;
+    box(sky, x, H - q, colW, q, color);
+    if (trees && rnd() < 0.09) {
+      var th = 18 + Math.round(rnd() * 3) * 6;
+      box(sky, x + colW / 2 - 3, H - q - 10, 6, 12, color);
+      box(sky, x + 2, H - q - 10 - th, colW - 4, th, color);
+      box(sky, x + 6, H - q - 10 - th - 6, colW - 12, 6, color);
+    }
+  }
+}
+var BG_DATA = "data:image/png;base64,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";
+function buildScene() {
+  var sky = $("sky");
+  if (sky.getAttribute("data-bg")) return;
+  sky.setAttribute("data-bg", "1");
+  sky.innerHTML = "<img src=\"" + BG_DATA + "\" style=\"position:absolute;left:0;top:0;width:100%;height:100%;-ms-interpolation-mode:nearest-neighbor;\" />";
+}
+
+// ---------- UI helpers ----------
+var pages = ["play", "mods", "saves", "account", "settings", "log"];
+function show(name) {
+  for (var i = 0; i < pages.length; i++) {
+    var on = (pages[i] == name);
+    $("page_" + pages[i]).style.display = on ? "block" : "none";
+    $("nav_" + pages[i]).className = on ? "nav on" : "nav";
+  }
+  if (name == "mods") loadMods();
+  if (name == "saves") loadSaves();
+}
+
+// ---------- Mods + Saves (read from the .minecraft folder) ----------
+function fmtDate(d) {
+  d = new Date(d);
+  var m = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  return d.getDate() + " " + m[d.getMonth()] + " " + d.getFullYear();
+}
+function fmtSize(b) {
+  if (b > 1048576) return (b / 1048576).toFixed(1) + " MB";
+  if (b > 1024) return Math.round(b / 1024) + " KB";
+  return b + " B";
+}
+function listDir(sub, folders) {
+  var p = gameDir + "\\" + sub, out = [];
+  if (!fso.FolderExists(p)) return null;
+  var f = fso.GetFolder(p), e;
+  if (folders) {
+    for (e = new Enumerator(f.SubFolders); !e.atEnd(); e.moveNext())
+      out.push({ name: e.item().Name, date: e.item().DateLastModified, size: null });
+  } else {
+    for (e = new Enumerator(f.Files); !e.atEnd(); e.moveNext()) {
+      var n = e.item().Name;
+      if (/\.jar(\.disabled)?$/i.test(n))
+        out.push({ name: n, date: e.item().DateLastModified, size: e.item().Size });
+    }
+  }
+  out.sort(function (a, b) { return new Date(b.date) - new Date(a.date); });
+  return out;
+}
+function fillList(id, items, emptyMsg, metaFn) {
+  var box = $(id);
+  box.innerHTML = "";
+  if (!items || items.length == 0) {
+    var em = document.createElement("div");
+    em.className = "empty";
+    em.innerText = emptyMsg;
+    box.appendChild(em);
+    return;
+  }
+  for (var i = 0; i < items.length; i++) {
+    var row = document.createElement("div");
+    row.className = "item";
+    var meta = document.createElement("span");
+    meta.className = "imeta";
+    meta.innerText = metaFn(items[i]);
+    var nm = document.createElement("span");
+    nm.className = "iname";
+    nm.innerText = items[i].name;
+    row.appendChild(meta);
+    row.appendChild(nm);
+    box.appendChild(row);
+  }
+}
+function loadSaves() {
+  var items = listDir("saves", true);
+  $("saveCount").innerText = items ? items.length + " world" + (items.length == 1 ? "" : "s") : "";
+  fillList("saveList", items,
+    items === null ? "No saves folder found yet. Play Minecraft once and your worlds will show here."
+                   : "No worlds yet.",
+    function (it) { return "Last played " + fmtDate(it.date); });
+}
+function openFolder(sub) {
+  var p = gameDir + (sub ? "\\" + sub : "");
+  if (!fso.FolderExists(p)) { setStatus("That folder does not exist yet.", true); return; }
+  sh.Run('explorer.exe "' + p + '"', 1, false);
+  setStatus("Opened " + p);
+}
+function renderBadge() {
+  var b = $("badge");
+  if (found.length == 0) { b.innerText = "No account"; b.className = ""; return; }
+  if (verified)           { b.innerText = "Verified with Microsoft"; b.className = "good"; }
+  else if (ownsGame === true)  { b.innerText = "Owns Minecraft"; b.className = "good"; }
+  else if (ownsGame === false) { b.innerText = "Minecraft not owned"; b.className = "warn"; }
+  else { b.innerText = "Account found"; b.className = "good"; }
+}
+
+// ---------- file helpers ----------
+function readUtf8(path) {
+  // Plain FileSystemObject read (ADODB.Stream is blocked by Windows zone security).
+  var f = fso.OpenTextFile(path, 1, false, 0);
+  var t = f.AtEndOfStream ? "" : f.ReadAll();
+  f.Close();
+  var i = t.indexOf("{");
+  return i > 0 ? t.substring(i) : t;
+}
+function readRaw(path) {
+  var f = fso.OpenTextFile(path, 1, false, 0);
+  var t = f.AtEndOfStream ? "" : f.ReadAll();
+  f.Close();
+  return t;
+}
+function loadCfg() {
+  try {
+    if (fso.FileExists(cfgFile)) {
+      var c = JSON.parse(readUtf8(cfgFile));
+      // ignore a saved path that points at a .hta (e.g. this client itself)
+      if (c.launcherPath && !/\.hta$/i.test(c.launcherPath)) cfg.launcherPath = c.launcherPath;
+      if (c.refreshToken) cfg.refreshToken = c.refreshToken;
+      if (c.version) cfg.version = c.version;
+      if (c.updateUrl) cfg.updateUrl = c.updateUrl;
+      for (var ck in c) cfg[ck] = c[ck];   // settings: ram, fullscreen, size, mods...
+    }
+  } catch (e) {}
+}
+function saveCfg() {
+  try {
+    if (!fso.FolderExists(cfgDir)) fso.CreateFolder(cfgDir);
+    var f = fso.CreateTextFile(cfgFile, true);
+    f.Write(JSON.stringify(cfg)); f.Close();
+  } catch (e) { setStatus("Could not save settings: " + e.message, true); }
+}
+
+function listFolder() {
+  log("APPDATA = " + appData);
+  log(".minecraft folder exists: " + fso.FolderExists(mcDir));
+  if (fso.FolderExists(mcDir)) {
+    var names = [];
+    var en = new Enumerator(fso.GetFolder(mcDir).Files);
+    for (; !en.atEnd(); en.moveNext()) names.push(en.item().Name);
+    log("Files in .minecraft: " + (names.join(", ") || "(none)"));
+  }
+  var hits = [];
+  var fe = new Enumerator(fso.GetFolder(appData).SubFolders);
+  for (; !fe.atEnd(); fe.moveNext()) {
+    var n = fe.item().Name;
+    if (/mini|launcher/i.test(n)) hits.push(n);
+  }
+  log("Other launcher-like folders in APPDATA: " + (hits.join(", ") || "(none)"));
+}
+
+function scanFile(path) {
+  log("--- " + path);
+  if (!fso.FileExists(path)) { log("not found"); return; }
+  var data;
+  try { data = JSON.parse(readUtf8(path)); }
+  catch (e) { log("could not parse: " + e.message); return; }
+  var activeId = data.activeAccountLocalId;
+  var count = 0;
+  function walk(obj, key, depth) {
+    if (!obj || typeof obj != "object" || depth > 6) return;
+    if (obj.minecraftProfile && obj.minecraftProfile.name) {
+      count++;
+      log("account: type=" + obj.type + " user=" + (obj.username || "") +
+          " profile=" + obj.minecraftProfile.name);
+      found.push({ name: obj.minecraftProfile.name, email: obj.username || "",
+                   active: (key == activeId) });
+      return;
+    }
+    for (var k in obj) walk(obj[k], k, depth + 1);
+  }
+  walk(data, "", 0);
+  log("accounts with a Minecraft profile in file: " + count);
+}
+
+function checkOwnership() {
+  var p = mcDir + "\\launcher_entitlements_microsoft_store.json";
+  if (!fso.FileExists(p)) { log("entitlements file: not found"); return; }
+  try {
+    var t = readRaw(p);
+    var owns = (t.indexOf("game_minecraft") >= 0) || (t.indexOf("product_minecraft") >= 0);
+    log("entitlements file says you own Minecraft: " + owns);
+    ownsGame = owns;
+  } catch (e) { log("entitlements read failed: " + e.message); }
+}
+
+// ---------- account check ----------
+function checkAccount() {
+  found = []; logLines = []; ownsGame = null;
+  var sel = $("accounts");
+  sel.options.length = 0;
+  $("playbtn").disabled = false;
+  $("who").innerText = "No account";
+  $("avatar").innerText = "?";
+  $("email").innerText = "";
+
+  listFolder();
+  scanFile(mcDir + "\\launcher_accounts_microsoft_store.json");
+  scanFile(mcDir + "\\launcher_accounts.json");
+  checkOwnership();
+
+  if (found.length == 0) {
+    renderBadge();
+    setStatus("No Minecraft account found. Open the Log page and send it to Claude.", true);
+    return;
+  }
+  var activeIndex = 0, seen = {}, uniq = [];
+  for (var i = 0; i < found.length; i++) {
+    if (seen[found[i].name]) continue;
+    seen[found[i].name] = 1;
+    if (found[i].active) activeIndex = uniq.length;
+    uniq.push(found[i]);
+  }
+  found = uniq;
+  for (var j = 0; j < found.length; j++) {
+    var o = document.createElement("option");
+    o.text = found[j].name + (found[j].email ? "  (" + found[j].email + ")" : "");
+    sel.options.add(o);
+  }
+  sel.selectedIndex = activeIndex;
+  pick();
+  if (ownsGame === false) setStatus("Account found, but the launcher says it does not own Minecraft.", true);
+  else setStatus(ownsGame ? "Microsoft account found. Minecraft is owned." : "Microsoft account found.");
+}
+
+function pick() {
+  var i = $("accounts").selectedIndex;
+  if (i < 0 || !found[i]) return;
+  $("who").innerText = found[i].name;
+  $("avatar").innerText = found[i].name.charAt(0).toUpperCase();
+  $("email").innerText = found[i].email;
+  $("playbtn").disabled = false;
+  renderBadge();
+}
+
+// ---------- Microsoft sign-in (approved app ID) ----------
+function http(method, url, headers, body) {
+  var x = new ActiveXObject("MSXML2.ServerXMLHTTP.6.0");
+  x.setTimeouts(10000, 10000, 15000, 30000);
+  x.open(method, url, false);
+  for (var h in headers) x.setRequestHeader(h, headers[h]);
+  x.send(body || null);
+  var j = null;
+  try { j = JSON.parse(x.responseText); } catch (e) {}
+  return { status: x.status, json: j, text: x.responseText };
+}
+function form(o) {
+  var a = [];
+  for (var k in o) a.push(encodeURIComponent(k) + "=" + encodeURIComponent(o[k]));
+  return a.join("&");
+}
+var FORM_H = { "Content-Type": "application/x-www-form-urlencoded" };
+var JSON_H = { "Content-Type": "application/json", "Accept": "application/json" };
+
+function startLogin() {
+  try {
+    if (pollTimer) clearTimeout(pollTimer);
+    setStatus("Requesting sign-in code...");
+    var r = http("POST", "https://login.microsoftonline.com/consumers/oauth2/v2.0/devicecode", FORM_H,
+      form({ client_id: CLIENT_ID, scope: "XboxLive.signin offline_access" }));
+    if (r.status != 200) { setStatus("Sign-in code failed: " + r.text, true); return; }
+    var d = r.json;
+    $("code").innerText = d.user_code;
+    $("link").innerText = d.verification_uri;
+    $("codebox").style.display = "block";
+    show("account");
+    setStatus("Enter the code on the Microsoft page that just opened...");
+    try { sh.Run(d.verification_uri, 1, false); } catch (e) {}
+    pollLogin(d.device_code, (d.interval || 5) * 1000, new Date().getTime() + d.expires_in * 1000);
+  } catch (e) { setStatus("Sign-in error: " + e.message, true); }
+}
+function pollLogin(deviceCode, ms, deadline) {
+  pollTimer = setTimeout(function () {
+    try {
+      if (new Date().getTime() > deadline) { setStatus("Code expired. Click Sign in again.", true); return; }
+      var r = http("POST", "https://login.microsoftonline.com/consumers/oauth2/v2.0/token", FORM_H,
+        form({ grant_type: "urn:ietf:params:oauth:grant-type:device_code", client_id: CLIENT_ID, device_code: deviceCode }));
+      if (r.status == 200) { $("codebox").style.display = "none"; afterMsToken(r.json); return; }
+      var err = r.json && r.json.error;
+      if (err == "authorization_pending") { pollLogin(deviceCode, ms, deadline); return; }
+      if (err == "slow_down") { pollLogin(deviceCode, ms + 5000, deadline); return; }
+      setStatus("Sign-in failed: " + (err || r.text), true);
+    } catch (e) { setStatus("Sign-in error: " + e.message, true); }
+  }, ms);
+}
+function trySilentLogin() {
+  if (!cfg.refreshToken) return;
+  try {
+    setStatus("Checking saved Microsoft login...");
+    var r = http("POST", "https://login.microsoftonline.com/consumers/oauth2/v2.0/token", FORM_H,
+      form({ grant_type: "refresh_token", client_id: CLIENT_ID, refresh_token: cfg.refreshToken,
+             scope: "XboxLive.signin offline_access" }));
+    if (r.status == 200) afterMsToken(r.json);
+    else { cfg.refreshToken = ""; saveCfg(); setStatus("Saved login expired. Click Sign in with Microsoft."); }
+  } catch (e) { setStatus("Could not check saved login: " + e.message, true); }
+}
+function afterMsToken(t) {
+  if (t.refresh_token) { cfg.refreshToken = t.refresh_token; saveCfg(); }
+  setStatus("Checking Xbox profile...");
+  var xbl = http("POST", "https://user.auth.xboxlive.com/user/authenticate", JSON_H, JSON.stringify({
+    Properties: { AuthMethod: "RPS", SiteName: "user.auth.xboxlive.com", RpsTicket: "d=" + t.access_token },
+    RelyingParty: "http://auth.xboxlive.com", TokenType: "JWT" }));
+  if (xbl.status != 200) { setStatus("Xbox auth failed (" + xbl.status + ").", true); return; }
+  var uhs = xbl.json.DisplayClaims.xui[0].uhs;
+
+  var xsts = http("POST", "https://xsts.auth.xboxlive.com/xsts/authorize", JSON_H, JSON.stringify({
+    Properties: { SandboxId: "RETAIL", UserTokens: [xbl.json.Token] },
+    RelyingParty: "rp://api.minecraftservices.com/", TokenType: "JWT" }));
+  if (xsts.status != 200) {
+    var xe = xsts.json && xsts.json.XErr, m = "XSTS failed (" + xsts.status + ").";
+    if (xe == 2148916233) m = "This Microsoft account has no Xbox profile. Sign in once at xbox.com to create one.";
+    if (xe == 2148916238) m = "Child account: add it to a Microsoft Family first.";
+    setStatus(m, true); return;
+  }
+
+  setStatus("Logging in to Minecraft services...");
+  var mc = http("POST", "https://api.minecraftservices.com/authentication/login_with_xbox", JSON_H,
+    JSON.stringify({ identityToken: "XBL3.0 x=" + uhs + ";" + xsts.json.Token }));
+  if (mc.status != 200) {
+    // Log Mojang's reply (it contains no tokens) so the reason is visible.
+    log("Minecraft login reply (" + mc.status + "): " + String(mc.text).substring(0, 400));
+    setStatus("Minecraft login failed (" + mc.status + "). Open the Log tab and send it to Claude.", true);
+    return;
+  }
+  var auth = { "Authorization": "Bearer " + mc.json.access_token, "Accept": "application/json" };
+  var ent = http("GET", "https://api.minecraftservices.com/entitlements/mcstore", auth);
+  var owns = false;
+  if (ent.json && ent.json.items) {
+    for (var i = 0; i < ent.json.items.length; i++) {
+      var n = ent.json.items[i].name;
+      if (n == "game_minecraft" || n == "product_minecraft") owns = true;
+    }
+  }
+  var prof = http("GET", "https://api.minecraftservices.com/minecraft/profile", auth);
+  var name = (prof.status == 200 && prof.json) ? prof.json.name : null;
+
+  if (owns && name) {
+    verified = true;
+    ownsGame = true;
+    mcToken = mc.json.access_token;           // kept in memory only, never logged
+    mcUuid = (prof.json && prof.json.id) ? prof.json.id : "";
+    mcName = name;
+    mcTime = new Date().getTime();
+    found = [{ name: name, email: "Verified with Microsoft", active: true }];
+    var sel = $("accounts");
+    sel.options.length = 0;
+    var o = document.createElement("option");
+    o.text = name;
+    sel.options.add(o);
+    sel.selectedIndex = 0;
+    pick();
+    log("Microsoft login OK: " + name + " (owns Minecraft)");
+    setStatus("Signed in with Microsoft. Minecraft is owned.");
+  } else if (!owns) {
+    setStatus("Signed in, but this account does not own Minecraft Java.", true);
+  } else {
+    setStatus("You own the game but have no Minecraft profile yet. Create one in the official launcher once.", true);
+  }
+}
+function signOut() {
+  cfg.refreshToken = ""; saveCfg(); verified = false;
+  checkAccount();
+  setStatus("Signed out of Microsoft on this client.");
+}
+
+// ---------- Game launcher (downloads Minecraft + Java, then starts it) ----------
+var gameDir = mcDir;   // shared with the official launcher (.minecraft): versions, libraries, assets, saves, mods
+var mcToken = "", mcUuid = "", mcName = "", mcTime = 0;
+var versionList = null;
+var busy = false;
+var useCurl = false;
+var ctx = null;
+var tPlay = 0;
+
+var archEnv = sh.ExpandEnvironmentStrings("%PROCESSOR_ARCHITEW6432%");
+if (archEnv.charAt(0) == "%") archEnv = sh.ExpandEnvironmentStrings("%PROCESSOR_ARCHITECTURE%");
+var archKey = (archEnv == "ARM64") ? "arm64" : (archEnv == "x86" ? "x86" : "x64");
+var rtPlatform = { arm64: "windows-arm64", x86: "windows-x86", x64: "windows-x64" }[archKey];
+var RT_INDEX = "https://launchermeta.mojang.com/v1/products/java-runtime/2ec0cc96c44e5a76b9c8b7c39df7210883d12871/all.json";
+var VERSIONS_URL = "https://piston-meta.mojang.com/mc/game/version_manifest_v2.json";
+
+function fwd(p) { return String(p).replace(/\\/g, "/"); }
+function mkdirs(p) {
+  if (fso.FolderExists(p)) return;
+  var parent = fso.GetParentFolderName(p);
+  if (parent && !fso.FolderExists(parent)) mkdirs(parent);
+  fso.CreateFolder(p);
+}
+function getJson(url) {
+  var r = http("GET", url, {});
+  if (r.status != 200 || !r.json) throw new Error("HTTP " + r.status + " for " + url);
+  return r.json;
+}
+function dl(url, path) {
+  mkdirs(fso.GetParentFolderName(path));
+  if (!useCurl) {
+    try {
+      var x = new ActiveXObject("MSXML2.ServerXMLHTTP.6.0");
+      x.setTimeouts(15000, 15000, 30000, 120000);
+      x.open("GET", url, false);
+      x.send();
+      if (x.status != 200) throw new Error("HTTP " + x.status);
+      var s = new ActiveXObject("ADODB.Stream");
+      s.Type = 1; s.Open(); s.Write(x.responseBody); s.SaveToFile(path, 2); s.Close();
+      return;
+    } catch (e) {
+      if (String(e.message).indexOf("HTTP") == 0) throw e;
+      log("Direct file save not allowed here (" + e.message + "). Using Windows' built-in curl.exe instead.");
+      useCurl = true;
+    }
+  }
+  var rc = sh.Run('curl.exe -L -s -f -o "' + path + '" "' + url + '"', 0, true);
+  if (rc != 0 || !fso.FileExists(path)) throw new Error("curl failed (" + rc + ") for " + url);
+}
+
+// rules: Mojang's allow/disallow lists. Only Windows rules match; "features" (demo mode, etc.) are all off.
+function rulesOk(rules) {
+  if (!rules) return true;
+  var ok = false;
+  for (var i = 0; i < rules.length; i++) {
+    var r = rules[i], m = true;
+    if (r.os) {
+      if (r.os.name && r.os.name != "windows") m = false;
+      if (r.os.arch && r.os.arch != archKey) m = false;
+    }
+    if (r.features) m = false;
+    if (m) ok = (r.action == "allow");
+  }
+  return ok;
+}
+function subst(s, vars) {
+  return String(s).replace(/\$\{([^}]+)\}/g, function (all, k) { return vars[k] !== undefined ? vars[k] : ""; });
+}
+function collectArgs(arr, vars, out) {
+  for (var i = 0; i < arr.length; i++) {
+    var a = arr[i];
+    if (typeof a == "string") { out.push(subst(a, vars)); continue; }
+    if (!rulesOk(a.rules)) continue;
+    var v = a.value;
+    if (typeof v == "string") out.push(subst(v, vars));
+    else for (var j = 0; j < v.length; j++) out.push(subst(v[j], vars));
+  }
+}
+function buildLaunchArgs(ver, vars, extra) {
+  var ram = parseInt((typeof cfg == "object" && cfg.ram) ? cfg.ram : 2, 10);
+  if (!(ram >= 1 && ram <= 32)) ram = 2;
+  var out = ["-Xmx" + ram + "G", "-Xms512M"];
+  var jvm = [], hasCp = false, i;
+  collectArgs(ver.arguments.jvm || [], vars, jvm);
+  for (i = 0; i < jvm.length; i++) if (jvm[i] == "-cp" || jvm[i] == "-classpath") hasCp = true;
+  if (!hasCp) { jvm.push("-cp"); jvm.push(vars.classpath); }
+  out = out.concat(jvm);
+  if (extra && extra.jvm) out = out.concat(extra.jvm);
+  out.push(ver.mainClass);
+  collectArgs(ver.arguments.game || [], vars, out);
+  if (typeof cfg == "object") {
+    if (cfg.fullscreen) out.push("--fullscreen");
+    else if (cfg.size && cfg.size != "default") {
+      var wh = String(cfg.size).split("x");
+      if (wh.length == 2) { out.push("--width"); out.push(wh[0]); out.push("--height"); out.push(wh[1]); }
+    }
+  }
+  return out;
+}
+
+// ---------- progress UI ----------
+function showProg(on, text, pct) {
+  $("prog").style.display = on ? "block" : "none";
+  if (text !== undefined) $("progtext").innerText = text;
+  if (pct !== undefined) $("pfill").style.width = Math.max(0, Math.min(100, pct)) + "%";
+}
+function fail(msg) {
+  busy = false;
+  showProg(false);
+  $("playbtn").disabled = false;
+  log("ERROR: " + msg);
+  setStatus(msg, true);
+}
+
+// ---------- version list ----------
+function loadVersions() {
+  try {
+    var m = getJson(VERSIONS_URL);
+    versionList = m.versions;
+    var sel = $("versions");
+    sel.options.length = 0;
+    var n = 0, want = 0;
+    for (var i = 0; i < versionList.length && n < 45; i++) {
+      if (versionList[i].type != "release") continue;
+      var o = document.createElement("option");
+      o.text = versionList[i].id;
+      sel.options.add(o);
+      if (versionList[i].id == cfg.version) want = n;
+      n++;
+    }
+    sel.selectedIndex = want;
+    if (useFabric() && !modVersionOk(sel.value)) preferModVersion();
+    updateModWarn();
+  } catch (e) {
+    log("Could not load version list: " + e.message);
+    setStatus("Could not load the Minecraft version list. Check your internet.", true);
+  }
+}
+
+// ---------- Play ----------
+function ensureLogin() {
+  var now = new Date().getTime();
+  if (mcToken && now - mcTime < 20 * 3600 * 1000) return;
+  mcToken = "";
+  trySilentLogin();
+}
+function play() {
+  log("Play pressed. Signed in: " + (mcToken ? "yes" : "not yet") + ", version: " + $("versions").value);
+  setStatus("Starting...");
+  if (busy) { log("Already working on a launch."); return; }
+  busy = true;
+  $("playbtn").disabled = true;
+  tPlay = new Date().getTime();
+  setStatus("Starting Minecraft...");
+  showProg(true, "Starting...", 5);
+  setTimeout(playGo, 40);   // let the window repaint before the heavy work starts
+}
+function elapsed() { return ((new Date().getTime() - tPlay) / 1000).toFixed(1) + "s"; }
+function playGo() {
+  try {
+    ensureLogin();
+    log("Login ready after " + elapsed());
+    if (!mcToken) {
+      fail("Sign in with Microsoft first (Account tab), then press Play.");
+      show("account");
+      return;
+    }
+    var id = $("versions").value;
+    if (!id) { fail("Pick a Minecraft version first."); return; }
+    cfg.version = id; saveCfg();
+    startPrepare(id);
+  } catch (e) { fail("Play failed: " + e.message); }
+}
+function startPrepare(id) {
+  try {
+    var fc = fastLoad(id);
+    if (fc) {
+      log("Fast start: " + id + " is already set up, skipping file checks.");
+      ctx = fc;
+      setStatus("Starting Minecraft " + id + "...");
+      launchGame();
+      return;
+    }
+    showProg(true, "Reading version info...", 0);
+    setStatus("Preparing Minecraft " + id + "...");
+    var vi = null, i;
+    for (i = 0; versionList && i < versionList.length; i++) if (versionList[i].id == id) vi = versionList[i];
+    if (!vi) { fail("Version list is not loaded. Check your internet and reopen the client."); return; }
+    var ver = getJson(vi.url);
+    if (!ver.arguments || !ver.downloads || !ver.downloads.client) {
+      fail("Version " + id + " is too old for this launcher. Pick a newer one (1.19 or later).");
+      return;
+    }
+    var q = [], cp = [];
+
+    for (i = 0; i < ver.libraries.length; i++) {
+      var lib = ver.libraries[i];
+      if (lib.natives && lib.natives.windows && rulesOk(lib.rules)) {
+        fail("Version " + id + " is too old for this launcher. Pick a newer one (1.19 or later).");
+        return;
+      }
+      if (!rulesOk(lib.rules)) continue;
+      var art = lib.downloads && lib.downloads.artifact;
+      if (!art) continue;
+      var lp = gameDir + "\\libraries\\" + art.path.replace(/\//g, "\\");
+      q.push({ url: art.url, path: lp, size: art.size });
+      cp.push(lp);
+    }
+
+    // ----- built-in mods: Fabric loader + mods from Modrinth (only applied if everything is available) -----
+    var addMods = [], modsNote = "", modsFailed = false, skipped = [];
+    if (useFabric()) {
+      try {
+        showProg(true, "Setting up mods...", 0);
+        var fabList = getJson("https://meta.fabricmc.net/v2/versions/loader/" + id);
+        var loaderV = "";
+        for (i = 0; i < fabList.length; i++) if (fabList[i].loader && fabList[i].loader.stable) { loaderV = fabList[i].loader.version; break; }
+        if (!loaderV) throw new Error("Fabric does not support " + id + " yet");
+        var prof = getJson("https://meta.fabricmc.net/v2/versions/loader/" + id + "/" + loaderV + "/profile/json");
+        var modFiles = [], wm = wantedMods(), mi;
+        for (mi = 0; mi < wm.length; mi++) {
+          var mf = modrinthFile(wm[mi].slug, id);
+          if (mf) modFiles.push(mf);
+          else { skipped.push(wm[mi].label); log(wm[mi].label + " is not available for " + id + ", skipping it."); }
+        }
+        // everything was fetched, now apply it
+        ver.mainClass = prof.mainClass;
+        if (prof.arguments) {
+          if (prof.arguments.jvm) ver.arguments.jvm = ver.arguments.jvm.concat(prof.arguments.jvm);
+          if (prof.arguments.game) ver.arguments.game = ver.arguments.game.concat(prof.arguments.game);
+        }
+        for (mi = 0; mi < prof.libraries.length; mi++) {
+          var fl = prof.libraries[mi], rel = mavenPath(fl.name);
+          var flp = gameDir + "\\libraries\\" + rel.replace(/\//g, "\\");
+          q.push({ url: (fl.url || "https://maven.fabricmc.net/") + rel, path: flp, size: 0 });
+          cp.push(flp);
+        }
+        var mdir = cfgDir + "\\builtin_mods\\" + id;
+        for (mi = 0; mi < modFiles.length; mi++) {
+          var mp = mdir + "\\" + modFiles[mi].name;
+          q.push({ url: modFiles[mi].url, path: mp, size: modFiles[mi].size });
+          addMods.push(mp);
+        }
+        log("Mods: Fabric loader " + loaderV + " with " + modFiles.length + " built-in mod(s).");
+      } catch (fe) {
+        addMods = [];
+        modsFailed = true;
+        modsNote = fe.message;
+        log("Mods are not available for " + id + " (" + fe.message + "). Starting plain Minecraft.");
+      }
+    }
+
+    var jar = gameDir + "\\versions\\" + id + "\\" + id + ".jar";
+    q.push({ url: ver.downloads.client.url, path: jar, size: ver.downloads.client.size });
+    cp.push(jar);
+
+    var ai = ver.assetIndex;
+    q.push({ url: ai.url, path: gameDir + "\\assets\\indexes\\" + ai.id + ".json", size: ai.size });
+    var idx = getJson(ai.url), seen = {};
+    for (var nm in idx.objects) {
+      var o = idx.objects[nm];
+      if (seen[o.hash]) continue;
+      seen[o.hash] = 1;
+      var pre = o.hash.substring(0, 2);
+      q.push({ url: "https://resources.download.minecraft.net/" + pre + "/" + o.hash,
+               path: gameDir + "\\assets\\objects\\" + pre + "\\" + o.hash, size: o.size });
+    }
+
+    var comp = ver.javaVersion ? ver.javaVersion.component : "jre-legacy";
+    // Reuse the official launcher's Java if it is there; otherwise keep our own copy.
+    var offRt = mcDir + "\\runtime\\" + comp + "\\" + rtPlatform + "\\" + comp;
+    var rtDir, rtNew;
+    if (fso.FileExists(offRt + "\\bin\\java.exe")) { rtDir = offRt; rtNew = false; }
+    else { rtDir = cfgDir + "\\runtime\\" + comp; rtNew = !fso.FileExists(rtDir + "\\.ready"); }
+    if (rtNew) {
+      showProg(true, "Reading Java runtime info...", 0);
+      var all = getJson(RT_INDEX);
+      var lst = all[rtPlatform] && all[rtPlatform][comp];
+      if (!lst || !lst.length) { fail("No Java runtime '" + comp + "' available for " + rtPlatform + "."); return; }
+      var man = getJson(lst[0].manifest.url);
+      for (var fp in man.files) {
+        var e = man.files[fp];
+        if (e.type == "file" && e.downloads && e.downloads.raw)
+          q.push({ url: e.downloads.raw.url, path: rtDir + "\\" + fp.replace(/\//g, "\\"), size: e.downloads.raw.size });
+      }
+    }
+
+    ctx = { id: id, ver: ver, cp: cp, rtDir: rtDir, rtNew: rtNew, addMods: addMods, modsNote: modsNote, modsFailed: modsFailed, skipped: skipped, queue: q, qi: 0, done: 0 };
+    log("Preparing " + id + ": " + q.length + " files to check (Java runtime " + comp + (rtNew ? ", needs download" : ", already installed") + ")");
+    pump();
+  } catch (e) { fail("Could not prepare the game: " + e.message); }
+}
+// ---------- fast start ----------
+// After one full setup, later launches skip all network calls and the 4,000-file check.
+function fastFile(id) { return cfgDir + "\\fast_" + id + "_" + modSig() + ".json"; }
+function fastSave() {
+  try {
+    mkdirs(cfgDir);
+    var f = fso.CreateTextFile(fastFile(ctx.id), true, true);   // unicode
+    f.Write(JSON.stringify({ id: ctx.id, ver: ctx.ver, cp: ctx.cp, rtDir: ctx.rtDir, addMods: ctx.addMods || [] }));
+    f.Close();
+  } catch (e) { log("Could not save fast-start info: " + e.message); }
+}
+function fastLoad(id) {
+  try {
+    var p = fastFile(id);
+    if (!fso.FileExists(p)) return null;
+    var f = fso.OpenTextFile(p, 1, false, -1);
+    var t = f.AtEndOfStream ? "" : f.ReadAll();
+    f.Close();
+    var d = JSON.parse(t);
+    if (!d || d.id != id || !d.cp || !d.ver) return null;
+    if (!fso.FileExists(d.rtDir + "\\bin\\java.exe")) return null;
+    for (var i = 0; i < d.cp.length; i++) if (!fso.FileExists(d.cp[i])) return null;
+    var am = d.addMods || [];
+    for (var m = 0; m < am.length; m++) if (!fso.FileExists(am[m])) return null;
+    return { id: id, ver: d.ver, cp: d.cp, rtDir: d.rtDir, addMods: am, rtNew: false, queue: [], qi: 0, done: 0 };
+  } catch (e) { return null; }
+}
+function clearFast() {
+  try {
+    var en = new Enumerator(fso.GetFolder(cfgDir).Files);
+    for (; !en.atEnd(); en.moveNext()) if (/^fast_.*\.json$/i.test(en.item().Name)) fso.DeleteFile(en.item().Path);
+    setStatus("Done. The next Play re-checks all game files once (slower), then it is fast again.");
+  } catch (er) { setStatus("Could not clear fast-start data: " + er.message, true); }
+}
+function needed(it) {
+  return !(fso.FileExists(it.path) && (!it.size || fso.GetFile(it.path).Size == it.size));
+}
+function pump() {
+  var c = ctx, t0 = new Date().getTime();
+  try {
+    while (c.qi < c.queue.length && new Date().getTime() - t0 < 400) {
+      var it = c.queue[c.qi++];
+      if (needed(it)) {
+        try { dl(it.url, it.path); }
+        catch (e1) { dl(it.url, it.path); }   // one retry
+      }
+      c.done++;
+    }
+  } catch (e) { fail("Download failed: " + e.message); return; }
+  showProg(true, "Downloading game files: " + c.done + " / " + c.queue.length, c.done * 100 / c.queue.length);
+  if (c.qi < c.queue.length) setTimeout(pump, 5);
+  else afterDownloads();
+}
+function afterDownloads() {
+  try {
+    if (ctx.rtNew) { var f = fso.CreateTextFile(ctx.rtDir + "\\.ready", true); f.Write("ok"); f.Close(); }
+    if (!ctx.modsFailed) fastSave();   // never cache a "mods failed" fallback
+    launchGame();
+  } catch (e) { fail("Could not finish setup: " + e.message); }
+}
+function launchGame() {
+  var c = ctx, ver = c.ver;
+  var javaExe = c.rtDir + "\\bin\\java.exe";
+  if (!fso.FileExists(javaExe)) { fail("Java was not found at " + javaExe); return; }
+  mkdirs(gameDir + "\\versions\\" + c.id + "\\natives");
+  var cpf = [];
+  for (var i = 0; i < c.cp.length; i++) cpf.push(fwd(c.cp[i]));
+  var vars = {
+    auth_player_name: mcName, version_name: c.id, game_directory: fwd(gameDir),
+    assets_root: fwd(gameDir + "\\assets"), assets_index_name: ver.assetIndex.id,
+    auth_uuid: mcUuid, auth_access_token: mcToken, clientid: "0", auth_xuid: "0",
+    user_type: "msa", version_type: ver.type || "release",
+    natives_directory: fwd(gameDir + "\\versions\\" + c.id + "\\natives"),
+    launcher_name: "MiniClient", launcher_version: "1.0", classpath: cpf.join(";")
+  };
+  syncBuiltinMods(c.addMods || []);
+  var args = buildLaunchArgs(ver, vars, null);
+  mkdirs(cfgDir);
+  var af = cfgDir + "\\launch_args.txt";
+  var lf = cfgDir + "\\game.log";
+  var f = fso.CreateTextFile(af, true, false);
+  for (var k = 0; k < args.length; k++)
+    f.WriteLine('"' + String(args[k]).replace(/\\/g, "\\\\").replace(/"/g, '\\"') + '"');
+  f.Close();
+  log("Client setup done after " + elapsed() + ". Starting Java now.");
+  sh.CurrentDirectory = gameDir;
+  log("Java: " + javaExe + " (" + fso.GetFile(javaExe).Size + " bytes). Arguments: " + args.length + ". Game folder: " + gameDir);
+  try { var old = fso.OpenTextFile(lf, 2, true); old.Close(); } catch (e) {}   // empty the old game log
+  var cmd = 'cmd /c ""' + javaExe + '" @"' + af + '" > "' + lf + '" 2>&1 & if errorlevel 1 echo [java exited with an error code] >> "' + lf + '" & echo [java ended] >> "' + lf + '""';
+  sh.Run(cmd, 0, false);
+  log("Started Minecraft " + c.id + " as " + mcName + ". Game output: " + lf);
+  showProg(false);
+  busy = false;
+  $("playbtn").disabled = false;
+  var nMods = (c.addMods && c.addMods.length) ? c.addMods.length : 0;
+  var skip = (c.skipped && c.skipped.length) ? " Skipped (not out for this version): " + c.skipped.join(", ") + "." : "";
+  var hints = (cfgBool("builtinOn", false) ? " Right Shift opens the HUD editor." : "") + (cfgBool("capeOn", false) ? " Press Change Cape on the main menu." : "");
+  if (nMods) setStatus("Minecraft " + c.id + " is starting with " + nMods + " mods." + hints + skip);
+  else if (useFabric()) {
+    setStatus("Minecraft " + c.id + " started WITHOUT mods: " + (c.modsNote || "none are available for this version") + ". Try another version.", true);
+    log("Started WITHOUT mods. Reason: " + (c.modsNote || "none available for this version"));
+  } else setStatus("Minecraft " + c.id + " is starting. The window can take a few seconds to appear.");
+  setTimeout(function () { try { fso.DeleteFile(af); } catch (e) {} }, 20000);
+  watchWindow(c.id);
+  setTimeout(checkLaunch, 9000);
+  setTimeout(checkLaunch, 25000);
+}
+var fabricLogged = false;
+function checkLaunch() {
+  var lf = cfgDir + "\\game.log";
+  try {
+    var t = fso.FileExists(lf) ? readRaw(lf) : "";
+    if (!fabricLogged && t.length) {
+      var ix = t.search(/Loading \d+ mods?/);
+      if (ix >= 0) { fabricLogged = true; log("Mods Fabric loaded:\r\n" + t.substring(ix, ix + 900)); }
+      else if (/Fabric/i.test(t)) { log("Fabric started but did not list any mods."); }
+    }
+    var ended = t.indexOf("[java ended]") >= 0;
+    var bad = t.indexOf("[java exited with an error code]") >= 0 || /Exception|Could not create|Unrecognized|Error:/.test(t);
+    if (bad || (ended && t.length < 60)) {
+      log("Game output (last part):\r\n" + (t ? t.substring(Math.max(0, t.length - 1500)) : "(nothing was printed)"));
+      setStatus("The game closed straight away. Open the Log tab and send it to Claude.", true);
+    } else if (ended) {
+      log("The game has closed.");
+    } else {
+      log("Game is running (no errors so far).");
+    }
+  } catch (e) { log("Could not read game log: " + e.message); }
+}
+function checkLaunchOld() {
+  var lf = cfgDir + "\\game.log";
+  try {
+    if (!fso.FileExists(lf)) return;
+    var t = readRaw(lf);
+    if (/Exception|Error|Could not create|Unrecognized/i.test(t)) {
+      log("Game output (last part):\r\n" + t.substring(Math.max(0, t.length - 900)));
+      setStatus("The game reported an error. Open the Log tab and send it to Claude.", true);
+    }
+  } catch (e) {}
+}
+
+// ---------- how long until the game window appears ----------
+var watchN = 0;
+function watchWindow(id) {
+  watchN = 0;
+  function tick() {
+    watchN++;
+    var ok = false;
+    try { ok = sh.AppActivate("Minecraft* " + id); } catch (e) {}
+    if (ok) {
+      var s = elapsed();
+      log("Minecraft window opened " + s + " after Play was pressed.");
+      setStatus("Minecraft " + id + " is running (window opened after " + s + ").");
+      return;
+    }
+    if (watchN < 90) setTimeout(tick, 1000);
+  }
+  setTimeout(tick, 1000);
+}
+
+// ---------- self-update ----------
+// The client can replace itself with a newer copy from a web address you set in Settings.
+var APP_VERSION = 22;
+
+// ---------- drag the borderless window by its title bar ----------
+var dragOn = false, dragDX = 0, dragDY = 0;
+function dragStart(e) {
+  e = e || window.event;
+  dragOn = true;
+  dragDX = e.screenX - window.screenLeft;
+  dragDY = e.screenY - window.screenTop;
+  try { $("titlebar").setCapture(); } catch (er) {}
+  return false;
+}
+var pendingUpdate = null;
+function selfPath() {
+  var p = decodeURIComponent(location.pathname);
+  if (p.charAt(0) == "/") p = p.substring(1);
+  return p.replace(/\//g, "\\");
+}
+function verOf(text) {
+  var m = /var APP_VERSION = (\d+);/.exec(text);
+  return m ? parseInt(m[1], 10) : 0;
+}
+function checkUpdate(manual) {
+  var url = $("updurl").value.replace(/^\s+|\s+$/g, "");
+  if (!url) { if (manual) setStatus("Paste your update address in Settings first.", true); return; }
+  if (url.toLowerCase().indexOf("https://") != 0) { if (manual) setStatus("The update address must start with https://", true); return; }
+  try {
+    cfg.updateUrl = url; saveCfg();
+    var r = http("GET", url + (url.indexOf("?") < 0 ? "?" : "&") + "t=" + new Date().getTime(), {});
+    if (r.status != 200) {
+      log("Update check: HTTP " + r.status);
+      if (manual) setStatus("Could not check for updates (HTTP " + r.status + "). Is the address right?", true);
+      return;
+    }
+    var v = verOf(r.text);
+    if (v > APP_VERSION && r.text.indexOf("<hta:application") >= 0 && /<\/html>\s*$/.test(r.text)) {
+      pendingUpdate = r.text;
+      $("updtext").innerText = "Update available: v" + v + " (you have v" + APP_VERSION + ")";
+      $("updbar").style.display = "inline-block";
+      setStatus("An update is available. Click Update now on the Play page.");
+    } else if (manual) {
+      setStatus("You are up to date (v" + APP_VERSION + ").");
+    }
+  } catch (e) {
+    log("Update check failed: " + e.message);
+    if (manual) setStatus("Could not check for updates: " + e.message, true);
+  }
+}
+function applyUpdate() {
+  if (!pendingUpdate) return;
+  try {
+    if (/[^\x00-\x7F]/.test(pendingUpdate)) { setStatus("This update has characters the updater cannot save. Download the file by hand instead.", true); return; }
+    var self = selfPath();
+    if (!fso.FileExists(self)) { setStatus("Cannot find this file to update: " + self, true); return; }
+    var nw = self + ".new";
+    var f = fso.CreateTextFile(nw, true, false);
+    f.Write(pendingUpdate); f.Close();
+    fso.CopyFile(self, self + ".bak", true);   // keep the old version as a backup
+    sh.Run('cmd /c ping -n 4 127.0.0.1 >nul & move /y "' + nw + '" "' + self + '" >nul & start "" "' + self + '"', 0, false);
+    setStatus("Updating... the client will restart in a moment.");
+    setTimeout(function () { window.close(); }, 300);
+  } catch (e) { setStatus("Update failed: " + e.message, true); }
+}
+
+// ---------- settings ----------
+function cfgBool(k, def) { return (typeof cfg != "object" || cfg[k] === undefined) ? def : !!cfg[k]; }
+function applySettingsToUI() {
+  $("updurl").value = cfg.updateUrl || "";
+  $("s_ram").value = String(cfg.ram || "2");
+  $("s_size").value = cfg.size || "default";
+  $("s_full").checked = cfgBool("fullscreen", false);
+  $("s_mods").checked = cfgBool("builtinOn", false);
+  $("s_hud").checked = cfgBool("bmHud", true);
+  $("s_sodium").checked = cfgBool("bmSodium", true);
+  $("s_cape").checked = cfgBool("capeOn", false);
+  modsEnabledUI();
+  loadCapes();
+}
+function saveSettings() {
+  cfg.ram = $("s_ram").value;
+  cfg.size = $("s_size").value;
+  cfg.fullscreen = $("s_full").checked;
+  cfg.builtinOn = $("s_mods").checked;
+  cfg.bmHud = $("s_hud").checked;
+  cfg.bmSodium = $("s_sodium").checked;
+  cfg.capeOn = $("s_cape").checked;
+  saveCfg();
+  modsEnabledUI();
+  var msg = "Settings saved.";
+  if (useFabric() && !modVersionOk($("versions").value)) {
+    if (preferModVersion()) msg = "Settings saved. Switched the version to " + $("versions").value + ", which works with your mods.";
+    else msg = "Settings saved. No listed version works with all your mods, so some will be skipped.";
+  }
+  updateModWarn();
+  setStatus(msg);
+}
+// Built-in mods only exist for some Minecraft versions.
+// HUD+ and Sodium: 1.21 to 1.21.11. Client Capes (per its Modrinth page): the versions listed below.
+var CAPE_VERSIONS = ",1.21.7,1.21.5,1.21.4,1.21.1,1.21,1.20.6,1.20.4,1.20.1,";
+function useFabric() { return cfgBool("builtinOn", false) || cfgBool("capeOn", false); }
+function modVersionOk(v) {
+  v = String(v);
+  if (cfgBool("builtinOn", false) && !/^1\.21(\.\d+)?$/.test(v)) return false;
+  if (cfgBool("capeOn", false) && CAPE_VERSIONS.indexOf("," + v + ",") < 0) return false;
+  return true;
+}
+function preferModVersion() {
+  try {
+    var sel = $("versions");
+    for (var i = 0; i < sel.options.length; i++) {
+      if (modVersionOk(sel.options[i].text)) { sel.selectedIndex = i; return true; }
+    }
+  } catch (e) {}
+  return false;
+}
+function updateModWarn() {
+  try {
+    var warn = "";
+    if (useFabric() && !modVersionOk($("versions").value))
+      warn = "Not every mod you turned on works on this version, so some will be skipped.";
+    $("modwarn").innerText = warn;
+  } catch (e) {}
+}
+function modsEnabledUI() {
+  var on = $("s_mods").checked;
+  $("s_hud").disabled = !on;
+  $("s_sodium").disabled = !on;
+  $("modopts").style.opacity = on ? "1" : "0.45";
+}
+function modSig() {
+  if (!useFabric()) return "v";
+  var b = cfgBool("builtinOn", false);
+  return "m3" + (b && cfgBool("bmHud", true) ? "h" : "") + (b && cfgBool("bmSodium", true) ? "s" : "") + (cfgBool("capeOn", false) ? "c" : "");
+}
+function wantedMods() {
+  var out = [{ slug: "fabric-api", label: "Fabric API" }];
+  if (cfgBool("builtinOn", false)) {
+    if (cfgBool("bmHud", true)) out.push({ slug: "hud-plus", label: "HUD+" });
+    if (cfgBool("bmSodium", true)) out.push({ slug: "sodium", label: "Sodium" });
+  }
+  if (cfgBool("capeOn", false)) out.push({ slug: "client-capes", label: "Client Capes" });
+  return out;
+}
+
+// ---------- custom cape: your own PNG files in .minecraft\Capes (shown only to you) ----------
+function loadCapes() {
+  var box = $("capeList");
+  box.innerHTML = "";
+  var dir = gameDir + "\\Capes", n = 0;
+  try {
+    if (fso.FolderExists(dir)) {
+      for (var en = new Enumerator(fso.GetFolder(dir).Files); !en.atEnd(); en.moveNext()) {
+        var f = en.item();
+        if (!/\.png$/i.test(f.Name)) continue;
+        n++;
+        var d = document.createElement("div"); d.className = "capeitem";
+        var im = document.createElement("img");
+        im.src = "file:///" + encodeURI(fwd(f.Path));
+        var nm = document.createElement("div"); nm.className = "capename"; nm.innerText = f.Name.replace(/\.png$/i, "");
+        d.appendChild(im); d.appendChild(nm);
+        box.appendChild(d);
+      }
+    }
+  } catch (e) { log("Could not list capes: " + e.message); }
+  if (!n) {
+    var em = document.createElement("div"); em.className = "hint";
+    em.innerText = "No capes yet. Click + Add a cape and pick your cape PNG.";
+    box.appendChild(em);
+  }
+}
+function addCapeFile() {
+  var v = $("capefile").value;
+  if (!v) return;
+  try {
+    var p = String(v).replace(/^"|"$/g, "");
+    if (!/\.png$/i.test(p) || !fso.FileExists(p)) { setStatus("Pick a .png cape file.", true); return; }
+    var dir = gameDir + "\\Capes";
+    mkdirs(dir);
+    fso.CopyFile(p, dir + "\\" + fso.GetFileName(p), true);
+    log("Added cape: " + dir + "\\" + fso.GetFileName(p));
+    loadCapes();
+    if (!$("s_cape").checked) { $("s_cape").checked = true; saveSettings(); }
+    setStatus("Cape added. In game, press Change Cape on the main menu to pick it. Only you can see it.");
+  } catch (e) { setStatus("Could not add the cape: " + e.message, true); }
+}
+function openCapes() {
+  var dir = gameDir + "\\Capes";
+  try { mkdirs(dir); sh.Run('explorer.exe "' + dir + '"', 1, false); } catch (e) { setStatus("Could not open the Capes folder: " + e.message, true); }
+}
+
+// ---------- Fabric + Modrinth helpers ----------
+function mavenPath(name) {
+  var p = String(name).split(":");
+  var cl = p[3] ? "-" + p[3] : "";
+  return p[0].replace(/\./g, "/") + "/" + p[1] + "/" + p[2] + "/" + p[1] + "-" + p[2] + cl + ".jar";
+}
+function modrinthFile(slug, mc) {
+  var url = "https://api.modrinth.com/v2/project/" + slug + "/version?loaders=" +
+            encodeURIComponent('["fabric"]') + "&game_versions=" + encodeURIComponent('["' + mc + '"]');
+  var r = http("GET", url, { "User-Agent": "MiniClient-HTA/1.0 (personal launcher)" });
+  if (r.status != 200 || !r.json || !r.json.length) return null;
+  var v = r.json[0], i;
+  for (i = 0; i < r.json.length; i++) if (r.json[i].version_type == "release") { v = r.json[i]; break; }
+  if (!v.files || !v.files.length) return null;
+  var f = v.files[0];
+  for (i = 0; i < v.files.length; i++) if (v.files[i].primary) f = v.files[i];
+  return { url: f.url, name: f.filename, size: f.size, version: v.version_number };
+}
+
+// ---------- Mods tab: logo + name for every mod file ----------
+var shellApp = null, modRows = [], modQi = 0;
+function safeKey(s) { return String(s).replace(/[^A-Za-z0-9_.-]/g, "_"); }
+function prettyName(file) { return String(file).replace(/^minicraft-/i, "").replace(/\.jar(\.disabled)?$/i, "").replace(/[-_+]+/g, " "); }
+
+// Built-in mods are copied into the mods folder with a "minicraft-" prefix, so Fabric loads them
+// the normal way. Old copies are removed first, so switching versions never leaves stale mods behind.
+function syncBuiltinMods(list) {
+  try {
+    var md = gameDir + "\\mods";
+    mkdirs(md);
+    var old = [], i, j;
+    for (var en = new Enumerator(fso.GetFolder(md).Files); !en.atEnd(); en.moveNext())
+      if (/^minicraft-.*\.jar$/i.test(en.item().Name)) old.push(en.item().Path);
+    for (i = 0; i < old.length; i++) fso.DeleteFile(old[i], true);
+    for (j = 0; j < list.length; j++) fso.CopyFile(list[j], md + "\\minicraft-" + fso.GetFileName(list[j]), true);
+    log("Built-in mods in the mods folder: " + list.length);
+  } catch (e2) { log("Could not copy built-in mods: " + e2.message); }
+}
+function addModFile() {
+  var v = $("modfile").value;
+  if (!v) return;
+  try {
+    var p = String(v).replace(/^"|"$/g, "");
+    if (!/\.jar$/i.test(p) || !fso.FileExists(p)) { setStatus("Pick a .jar mod file.", true); return; }
+    var md = gameDir + "\\mods";
+    mkdirs(md);
+    var dest = md + "\\" + fso.GetFileName(p);
+    var existed = fso.FileExists(dest);
+    fso.CopyFile(p, dest, true);
+    setStatus((existed ? "Replaced " : "Added ") + fso.GetFileName(p) + ". It loads the next time you press Play (mods must be on in Settings).");
+    log("Added mod: " + dest);
+    loadMods();
+  } catch (e) { setStatus("Could not add the mod: " + e.message, true); }
+}
+function zipExtract(z, rel, outDir) {
+  var parts = rel.split("/"), folder = z, it, i;
+  for (i = 0; i < parts.length - 1; i++) {
+    it = folder.ParseName(parts[i]);
+    if (!it || !it.IsFolder) return "";
+    folder = it.GetFolder;
+  }
+  it = folder.ParseName(parts[parts.length - 1]);
+  if (!it) return "";
+  var dest = outDir + "\\" + parts[parts.length - 1];
+  try { if (fso.FileExists(dest)) fso.DeleteFile(dest); } catch (e) {}
+  shellApp.NameSpace(outDir).CopyHere(it, 4 | 16 | 1024);
+  var t0 = new Date().getTime();
+  while (!fso.FileExists(dest) && new Date().getTime() - t0 < 2500) {}
+  t0 = new Date().getTime();
+  while (fso.FileExists(dest) && fso.GetFile(dest).Size == 0 && new Date().getTime() - t0 < 800) {}
+  return fso.FileExists(dest) ? dest : "";
+}
+function modMeta(jar) {
+  var file = fso.GetFileName(jar);
+  var dir = cfgDir + "\\modcache";
+  mkdirs(dir);
+  var key = safeKey(file + "_" + fso.GetFile(jar).Size);
+  var mj = dir + "\\" + key + ".json", png = dir + "\\" + key + ".png";
+  if (fso.FileExists(mj)) {
+    try { var c = JSON.parse(readUtf8(mj)); c.icon = fso.FileExists(png) ? png : ""; return c; } catch (e0) {}
+  }
+  var meta = { name: prettyName(file), version: "", desc: "", icon: "" };
+  var tmp = dir + "\\_tmp.zip", out = dir + "\\_out";
+  try {
+    fso.CopyFile(jar, tmp, true);
+    mkdirs(out);
+    if (!shellApp) shellApp = new ActiveXObject("Shell.Application");
+    var z = shellApp.NameSpace(tmp);
+    if (z) {
+      var iconPath = "";
+      var fj = zipExtract(z, "fabric.mod.json", out);
+      if (fj) {
+        var j = JSON.parse(readUtf8(fj));
+        if (j.name) meta.name = String(j.name);
+        if (j.version && String(j.version).indexOf("${") < 0) meta.version = String(j.version);
+        if (j.description) meta.desc = String(j.description);
+        if (typeof j.icon == "string") iconPath = j.icon;
+        else if (j.icon) {
+          var best = -1;
+          for (var sz in j.icon) if (parseInt(sz, 10) >= best) { best = parseInt(sz, 10); iconPath = j.icon[sz]; }
+        }
+      } else {
+        var mt = zipExtract(z, "META-INF/mods.toml", out);
+        if (mt) {
+          var tx = readRaw(mt), m;
+          if ((m = /displayName\s*=\s*"([^"]+)"/.exec(tx))) meta.name = m[1];
+          if ((m = /\nversion\s*=\s*"([^"$]+)"/.exec(tx))) meta.version = m[1];
+          if ((m = /logoFile\s*=\s*"([^"]+)"/.exec(tx))) iconPath = m[1];
+        }
+      }
+      if (iconPath) {
+        var ip = zipExtract(z, String(iconPath).replace(/^\//, ""), out);
+        if (ip) fso.CopyFile(ip, png, true);
+      }
+    }
+  } catch (e) { log("Could not read " + file + ": " + e.message); }
+  try { fso.DeleteFile(tmp); } catch (e1) {}
+  try { fso.DeleteFolder(out, true); } catch (e2) {}
+  try {
+    var w = fso.CreateTextFile(mj, true, false);
+    w.Write(JSON.stringify({ name: meta.name, version: meta.version, desc: meta.desc }));
+    w.Close();
+  } catch (e3) {}
+  meta.icon = fso.FileExists(png) ? png : "";
+  return meta;
+}
+function jarsIn(dir, builtin) {
+  var out = [];
+  if (!fso.FolderExists(dir)) return out;
+  for (var e = new Enumerator(fso.GetFolder(dir).Files); !e.atEnd(); e.moveNext()) {
+    if (/\.jar$/i.test(e.item().Name)) out.push({ path: e.item().Path, builtin: builtin });
+  }
+  return out;
+}
+function loadMods() {
+  var vid = "";
+  try { vid = $("versions").value; } catch (e) {}
+  var items = jarsIn(gameDir + "\\mods", false);
+  for (var k = 0; k < items.length; k++) items[k].builtin = /^minicraft-/i.test(fso.GetFileName(items[k].path));
+  items.sort(function (a, b) { return (b.builtin ? 1 : 0) - (a.builtin ? 1 : 0); });
+  $("modCount").innerText = items.length ? items.length + " mod" + (items.length == 1 ? "" : "s") : "";
+  var box = $("modList");
+  box.innerHTML = "";
+  modRows = []; modQi = 0;
+  if (!items.length) {
+    var em = document.createElement("div");
+    em.className = "empty";
+    em.innerText = useFabric()
+      ? "No mods yet. The built-in mods download the first time you press Play. You can also drop .jar mods into your mods folder."
+      : "Mods are turned off. Turn them on in Settings, or drop .jar mods into your mods folder.";
+    box.appendChild(em);
+    return;
+  }
+  for (var i = 0; i < items.length; i++) {
+    var row = document.createElement("div"); row.className = "item modrow";
+    var tag = document.createElement("span"); tag.className = items[i].builtin ? "mtag built" : "mtag";
+    tag.innerText = items[i].builtin ? "Built-in" : "Yours";
+    var ic = document.createElement("div"); ic.className = "micon";
+    var nm0 = prettyName(fso.GetFileName(items[i].path));
+    ic.innerText = nm0.charAt(0).toUpperCase();
+    var tx = document.createElement("div"); tx.className = "mtext";
+    var nm = document.createElement("div"); nm.className = "iname"; nm.innerText = nm0;
+    var ds = document.createElement("div"); ds.className = "mdesc"; ds.innerText = fso.GetFileName(items[i].path);
+    tx.appendChild(nm); tx.appendChild(ds);
+    row.appendChild(tag); row.appendChild(ic); row.appendChild(tx);
+    box.appendChild(row);
+    modRows.push({ path: items[i].path, icon: ic, name: nm, desc: ds });
+  }
+  setTimeout(fillNextMod, 30);
+}
+function fillNextMod() {
+  if (modQi >= modRows.length) return;
+  var r = modRows[modQi++];
+  try {
+    var m = modMeta(r.path);
+    if (m.name) r.name.innerText = m.name;
+    r.desc.innerText = (m.version ? "v" + m.version + "  -  " : "") + (m.desc || fso.GetFileName(r.path));
+    if (m.icon) {
+      r.icon.innerHTML = "";
+      var im = document.createElement("img");
+      im.src = "file:///" + encodeURI(fwd(m.icon));
+      r.icon.appendChild(im);
+    }
+  } catch (e) { log("Mod info failed: " + e.message); }
+  setTimeout(fillNextMod, 20);
+}
+
+// ---------- launch ----------
+
+window.onload = function () {
+  window.resizeTo(1000, 680);
+  try { window.moveTo(Math.round((screen.availWidth - 1000) / 2), Math.round((screen.availHeight - 680) / 2)); } catch (e) {}
+  document.onmousemove = function (e) {
+    if (!dragOn) return;
+    e = e || window.event;
+    window.moveTo(e.screenX - dragDX, e.screenY - dragDY);
+  };
+  document.onmouseup = function () {
+    dragOn = false;
+    try { $("titlebar").releaseCapture(); } catch (er) {}
+  };
+  setTimeout(function () {
+    buildScene();
+  }, 150);
+  loadCfg();
+  applySettingsToUI();
+  show("play");
+  checkAccount();
+  setTimeout(trySilentLogin, 300);
+  setTimeout(loadVersions, 900);
+  setTimeout(function () { checkUpdate(false); }, 1800);
+};
+window.onresize = function () { try { buildScene(); } catch (e) {} };
+</script>
+</head>
+<body>
+
+  <div id="sky"></div>
+
+  <div id="titlebar" onmousedown="dragStart(event)">
+    Mini Client
+    <span id="tbclose" onmousedown="event.cancelBubble=true" onclick="window.close()">&times;</span>
+  </div>
+
+  <div id="ui">
+
+    <div id="nav">
+      <div id="brand"><i></i>Mini Client</div>
+      <div id="links">
+        <span class="nav on" id="nav_play"     onclick="show('play')">Play</span>
+        <span class="nav"    id="nav_mods"     onclick="show('mods')">Mods</span>
+        <span class="nav"    id="nav_saves"    onclick="show('saves')">Saves</span>
+        <span class="nav"    id="nav_account"  onclick="show('account')">Account</span>
+        <span class="nav"    id="nav_settings" onclick="show('settings')">Settings</span>
+        <span class="nav"    id="nav_log"      onclick="show('log')">Log</span>
+      </div>
+      <button class="btn small" id="navbtn" onclick="checkAccount()">Check again</button>
+    </div>
+
+    <!-- PLAY / HERO -->
+    <div class="page" id="page_play" style="display:block">
+      <div id="hero">
+        <div id="updbar" class="pill" style="display:none; margin-right:8px;"><span id="updtext"></span> <button class="btn small" onclick="applyUpdate()">Update now</button></div>
+        <div class="pill">Minecraft: Java Edition &nbsp;&middot;&nbsp; Microsoft account</div>
+        <h1 style="font-size:84px; letter-spacing:-3px; margin-bottom:14px;">Mini<span>craft</span></h1>
+        <p class="lead">Minecraft, your way. Built-in FPS and CPS counters, mods and one-click play.</p>
+        <div class="row">
+          <button id="playbtn" onclick="play()">Play Minecraft</button>
+          <button class="btn" onclick="show('account')">Account</button>
+        </div>
+        <div class="row">
+          <span class="meta">Version</span>
+          <select id="versions" onchange="updateModWarn()" style="width:180px; display:inline-block; margin-left:8px"></select>
+        </div>
+        <div class="meta" id="modwarn" style="color:#ffb86b; margin:-6px 0 12px 0; height:16px;"></div>
+        <div id="prog" style="display:none; margin-bottom:14px;">
+          <div class="meta" id="progtext" style="margin-bottom:6px;"></div>
+          <div id="pbar"><div id="pfill"></div></div>
+        </div>
+        <div class="meta">Windows &nbsp;&middot;&nbsp; Runs as a single .hta file</div>
+      </div>
+
+      <div class="card" id="acctCard">
+        <div class="label">Account</div>
+        <div id="avatar">?</div>
+        <div id="acctText">
+          <div id="who">No account</div>
+          <div id="email"></div>
+        </div>
+        <span id="badge">No account</span>
+        <div class="stat">Game <b>Minecraft: Java Edition</b></div>
+      </div>
+    </div>
+
+    <!-- MODS -->
+    <div class="page" id="page_mods">
+      <div class="panel">
+        <h2>Mods</h2>
+        <p class="sub">Built-in mods and your own. Click <b>+ Add a mod</b> and pick a Fabric .jar. <span id="modCount"></span></p>
+        <div class="card">
+          <div class="list" id="modList"></div>
+        </div>
+        <div class="toolrow">
+          <button class="btn small" onclick="$('modfile').click()">+ Add a mod</button>
+          <input type="file" id="modfile" accept=".jar" onchange="addModFile()" style="display:none" />
+          <button class="btn small" onclick="openFolder('mods')">Open mods folder</button>
+          <button class="btn small" onclick="loadMods()">Refresh</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- SAVES -->
+    <div class="page" id="page_saves">
+      <div class="panel">
+        <h2>Saves</h2>
+        <p class="sub">Your worlds, newest first. <span id="saveCount"></span></p>
+        <div class="card">
+          <div class="list" id="saveList"></div>
+        </div>
+        <div class="toolrow">
+          <button class="btn small" onclick="openFolder('saves')">Open saves folder</button>
+          <button class="btn small" onclick="loadSaves()">Refresh</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ACCOUNT -->
+    <div class="page" id="page_account">
+      <div class="panel">
+        <h2>Account</h2>
+        <p class="sub">Sign in with Microsoft to verify you own Minecraft.</p>
+        <div class="card">
+          <div class="label">Microsoft login</div>
+          <button class="btn small" onclick="startLogin()">Sign in with Microsoft</button>
+          <button class="btn small" onclick="signOut()">Sign out</button>
+          <div id="codebox" style="display:none; margin-top:16px;">
+            <div class="hint" style="margin:0 0 6px 0;">Go to <b id="link"></b> and enter this code:</div>
+            <div id="code"></div>
+          </div>
+        </div>
+        <p class="sub">Other accounts found on this PC:</p>
+        <div class="card">
+          <div class="label">Choose account</div>
+          <select id="accounts" onchange="pick()"></select>
+          <div class="hint">Accounts come from the official Minecraft launcher on this PC. No passwords or tokens are read or shown.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div class="page" id="page_settings" style="overflow:auto; bottom:30px;">
+      <div class="panel" style="position:relative; top:0; left:0; margin:30px auto 40px auto;">
+        <h2>Settings</h2>
+        <p class="sub">Make Minicraft yours. Changes save automatically.</p>
+
+        <div class="card">
+          <div class="label">Performance</div>
+          <div class="srow">
+            <span class="sname">Memory (RAM)<span class="sdesc">More helps with mods and big worlds. Stay under half of your PC's RAM.</span></span>
+            <select id="s_ram" class="ssel" onchange="saveSettings()">
+              <option value="2">2 GB</option><option value="3">3 GB</option><option value="4">4 GB</option>
+              <option value="6">6 GB</option><option value="8">8 GB</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="label">Display</div>
+          <div class="srow">
+            <span class="sname">Fullscreen<span class="sdesc">Start the game fullscreen</span></span>
+            <input type="checkbox" id="s_full" onclick="saveSettings()" />
+          </div>
+          <div class="srow">
+            <span class="sname">Window size<span class="sdesc">Used when fullscreen is off</span></span>
+            <select id="s_size" class="ssel" onchange="saveSettings()">
+              <option value="default">Default</option><option value="1280x720">1280 x 720</option>
+              <option value="1600x900">1600 x 900</option><option value="1920x1080">1920 x 1080</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="label">Built-in mods</div>
+          <div class="srow">
+            <span class="sname">Use built-in mods<span class="sdesc">Off by default. Turn on to set up Fabric and the mods below (needs Minecraft 1.21 to 1.21.11)</span></span>
+            <input type="checkbox" id="s_mods" onclick="saveSettings()" />
+          </div>
+          <div id="modopts">
+            <div class="srow">
+              <span class="sname">HUD+<span class="sdesc">FPS counter, CPS counter, keystrokes, coordinates, armor status</span></span>
+              <input type="checkbox" id="s_hud" onclick="saveSettings()" />
+            </div>
+            <div class="srow">
+              <span class="sname">Sodium<span class="sdesc">Big FPS boost and smoother gameplay</span></span>
+              <input type="checkbox" id="s_sodium" onclick="saveSettings()" />
+            </div>
+          </div>
+          <div class="hint">Mods download the first time you play. If a mod is not out for your Minecraft version it is skipped, and if Fabric is not available Minecraft starts plain. Your own Fabric mods in the mods folder load too. In game, press Right Shift to open HUD+'s editor, where you switch on and move the FPS and CPS counters.</div>
+        </div>
+
+        <div class="card">
+          <div class="label">Custom cape</div>
+          <div class="srow">
+            <span class="sname">Use a custom cape<span class="sdesc">Adds the Client Capes mod. Only you can see your cape, not other players.</span></span>
+            <input type="checkbox" id="s_cape" onclick="saveSettings()" />
+          </div>
+          <div id="capeList" class="capelist"></div>
+          <button class="btn small" onclick="$('capefile').click()">+ Add a cape</button>
+          <input type="file" id="capefile" accept=".png" onchange="addCapeFile()" style="display:none" />
+          <button class="btn small" onclick="openCapes()">Open Capes folder</button>
+          <div class="hint">Use a normal Minecraft cape PNG. In game, press Change Cape on the main menu to switch between your capes. Works on Minecraft 1.21 to 1.21.1, 1.21.4 to 1.21.5, 1.21.7 and some 1.20 versions.</div>
+        </div>
+
+        <div class="card">
+          <div class="label">Maintenance</div>
+          <button class="btn small" onclick="clearFast()">Re-check game files</button>
+          <div class="label" style="margin-top:22px">Updates &middot; this is v21</div>
+          <input type="text" id="updurl" />
+          <button class="btn small" style="margin-top:12px" onclick="checkUpdate(true)">Check for updates</button>
+          <div class="hint">Paste the web address of the newest MiniClient file. The client checks it when it opens and can replace itself in one click.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LOG -->
+    <div class="page" id="page_log">
+      <div class="panel">
+        <h2>Log</h2>
+        <p class="sub">What the client found. No tokens are shown.</p>
+        <textarea id="log" readonly></textarea>
+      </div>
+    </div>
+
+    <div id="bar">Status: <span id="status">Starting...</span></div>
+  </div>
+
+</body>
+</html>
