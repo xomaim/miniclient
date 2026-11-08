@@ -70,7 +70,8 @@
   .vc .vname { position:absolute; left:14px; bottom:8px; font-size:22px; font-weight:700; color:#ffffff; letter-spacing:-0.6px; }
   .vc .vsub { position:absolute; right:14px; bottom:16px; font-size:11px; color:#f5afb6; }
   #vpanel { position:absolute; right:34px; top:96px; width:300px; padding:0; overflow:hidden; }
-  #vart { height:140px; background-color:#50030a; }
+  #vart { height:150px; background-color:#50030a; position:relative; }
+  #vskin { position:absolute; right:16px; bottom:0; height:146px; }
   #vbody { padding:16px 20px 20px 20px; }
   #vtitle { font-size:22px; font-weight:700; color:#ffffff; letter-spacing:-0.4px; }
   #vtags { margin:8px 0 10px 0; }
@@ -498,6 +499,7 @@ function pick() {
   $("who").innerText = found[i].name;
   $("avatar").innerHTML = '<img src="https://mc-heads.net/avatar/' + encodeURIComponent(found[i].name) + '/64" onerror="this.parentNode.innerText=\'' + found[i].name.charAt(0).toUpperCase() + '\'" />';
   $("email").innerText = found[i].email;
+  skinName = found[i].name; renderSelected();
   $("playbtn").disabled = false;
   renderBadge();
 }
@@ -746,6 +748,53 @@ function fail(msg) {
   setStatus(msg, true);
 }
 
+// ---------- thumbnails: Minecraft's own title-screen picture, read from the game the launcher installed on this PC ----------
+var thumbBusy = false, thumbTry = {}, skinName = "";
+function thumbPath(id) { return cfgDir + "\\thumbs\\" + safeKey(id) + ".png"; }
+function fileUrl(p) { return "file:///" + p.replace(/\\/g, "/").replace(/ /g, "%20"); }
+function makeThumb(id, dest) {
+  try {
+    var jar = gameDir + "\\versions\\" + id + "\\" + id + ".jar";
+    if (!fso.FileExists(jar)) return;
+    var dir = cfgDir + "\\thumbs", out = dir + "\\_out", tmp = dir + "\\_tmp.zip";
+    mkdirs(dir); mkdirs(out);
+    fso.CopyFile(jar, tmp, true);
+    if (!shellApp) shellApp = new ActiveXObject("Shell.Application");
+    var z = shellApp.NameSpace(tmp);
+    if (z) {
+      var f = zipExtract(z, "assets/minecraft/textures/gui/title/background/panorama_0.png", out);
+      if (f) fso.CopyFile(f, dest, true);
+    }
+    try { fso.DeleteFile(tmp); } catch (e1) {}
+  } catch (e) { log("Could not make a thumbnail for " + id + ": " + e.message); }
+}
+function useThumb(el, id) {
+  try {
+    var p = thumbPath(id);
+    if (!fso.FileExists(p)) return;
+    el.style.backgroundImage = "url(" + fileUrl(p) + ")";
+    el.style.backgroundSize = "cover";
+    el.style.backgroundPosition = "center";
+  } catch (e) {}
+}
+function fillThumbs() {
+  if (thumbBusy) return;
+  thumbBusy = true;
+  var list = [], kids = $("vgrid").childNodes, i;
+  for (i = 0; i < kids.length; i++) list.push(kids[i]);
+  var idx = 0;
+  (function next() {
+    if (idx >= list.length) { thumbBusy = false; return; }
+    var el = list[idx++], id = el.getAttribute("data-v");
+    try {
+      var p = thumbPath(id);
+      if (!fso.FileExists(p) && !thumbTry[id]) { thumbTry[id] = 1; makeThumb(id, p); }
+      useThumb(el, id);
+    } catch (e) {}
+    setTimeout(next, 30);
+  })();
+  setTimeout(function () { thumbBusy = false; }, 15000);
+}
 // ---------- version cards + selected-version panel ----------
 var CARD_POS = ["0% 0%", "100% 0%", "0% 100%", "100% 100%", "50% 20%", "30% 80%", "80% 40%"];
 function isModVer(id) { return /^1\.21(\.\d+)?$/.test(id); }
@@ -771,6 +820,7 @@ function renderCards() {
       d.innerHTML = '<div class="vtag">' + (isModVer(ids[i]) ? "Fabric" : "Vanilla") + '</div><div class="vband"></div><div class="vname">' + ids[i] + '</div><div class="vsub">' + (isModVer(ids[i]) ? "Mods ready" : "Plain game") + '</div>';
       box.appendChild(d);
     }
+    setTimeout(fillThumbs, 60);
   } catch (e) { log("Could not draw version cards: " + e.message); }
 }
 function renderSelected() {
@@ -778,6 +828,10 @@ function renderSelected() {
     var v = $("versions").value || "", tags = "", desc;
     $("vtitle").innerText = v ? "Minecraft " + v : "Minecraft";
     $("vart").style.cssText = artStyle(3, 300);
+    useThumb($("vart"), v);
+    var sk = $("vskin");
+    if (skinName) { var u = "https://mc-heads.net/body/" + encodeURIComponent(skinName) + "/160"; if (sk.getAttribute("data-u") != u) { sk.setAttribute("data-u", u); sk.src = u; } sk.style.display = "block"; }
+    else sk.style.display = "none";
     var mod = isModVer(v);
     tags += '<span class="vt hot">' + (mod ? "Fabric" : "Vanilla") + '</span>';
     if (mod && cfgBool("builtinOn", false)) tags += '<span class="vt">HUD+</span><span class="vt">Sodium</span>';
@@ -1160,7 +1214,7 @@ function watchWindow(id) {
 
 // ---------- self-update ----------
 // The client can replace itself with a newer copy from a web address you set in Settings.
-var APP_VERSION = 32;
+var APP_VERSION = 33;
 
 // ---------- drag the borderless window by its title bar ----------
 var dragOn = false, dragDX = 0, dragDY = 0;
@@ -1630,7 +1684,7 @@ window.onresize = function () { try { buildScene(); } catch (e) {} };
       <div id="vgrid"></div>
 
       <div class="card" id="vpanel">
-        <div id="vart"></div>
+        <div id="vart"><img id="vskin" style="display:none" onerror="this.style.display='none'" /></div>
         <div id="vbody">
           <div id="vtitle">Minecraft</div>
           <div id="vtags"></div>
