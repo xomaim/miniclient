@@ -4,7 +4,7 @@
 <meta http-equiv="x-ua-compatible" content="ie=9">
 <title>Mini Client</title>
 <hta:application id="app" applicationname="MiniClient14" border="none" caption="no"
-  scroll="no" singleinstance="no" maximizebutton="no" />
+  scroll="no" singleinstance="no" sysmenu="no" minimizebutton="no" maximizebutton="no" showintaskbar="yes" />
 <style>
   * { box-sizing: border-box; }
   html, body { margin:0; padding:0; width:100%; height:100%; overflow:hidden; }
@@ -1075,7 +1075,7 @@ function watchWindow(id) {
 
 // ---------- self-update ----------
 // The client can replace itself with a newer copy from a web address you set in Settings.
-var APP_VERSION = 25;
+var APP_VERSION = 26;
 
 // ---------- drag the borderless window by its title bar ----------
 var dragOn = false, dragDX = 0, dragDY = 0;
