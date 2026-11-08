@@ -712,10 +712,12 @@ function ensureLogin() {
   mcToken = "";
   trySilentLogin();
 }
+var lastLaunch = 0;
 function play() {
   log("Play pressed. Signed in: " + (mcToken ? "yes" : "not yet") + ", version: " + $("versions").value);
   setStatus("Starting...");
   if (busy) { log("Already working on a launch."); return; }
+  if (lastLaunch && (new Date().getTime() - lastLaunch) < 45000) { setStatus("Minecraft is still starting. Wait for the window to open.", true); log("Ignored a second Play press while Minecraft was starting."); return; }
   busy = true;
   $("playbtn").disabled = true;
   tPlay = new Date().getTime();
@@ -759,7 +761,7 @@ function startPrepare(id) {
       fail("Version " + id + " is too old for this launcher. Pick a newer one (1.19 or later).");
       return;
     }
-    var q = [], cp = [];
+    var q = [], cp = [], vanillaKeys = [];
 
     for (i = 0; i < ver.libraries.length; i++) {
       var lib = ver.libraries[i];
@@ -773,6 +775,7 @@ function startPrepare(id) {
       var lp = gameDir + "\\libraries\\" + art.path.replace(/\//g, "\\");
       q.push({ url: art.url, path: lp, size: art.size });
       cp.push(lp);
+      vanillaKeys.push({ key: libKey(lib.name), path: lp });
     }
 
     // ----- built-in mods: Fabric loader + mods from Modrinth (only applied if everything is available) -----
@@ -796,6 +799,16 @@ function startPrepare(id) {
         if (prof.arguments) {
           if (prof.arguments.jvm) ver.arguments.jvm = ver.arguments.jvm.concat(prof.arguments.jvm);
           if (prof.arguments.game) ver.arguments.game = ver.arguments.game.concat(prof.arguments.game);
+        }
+        // Fabric brings its own version of some libraries (e.g. ASM). Drop Minecraft's copy so only one is on the classpath.
+        var fabKeys = {};
+        for (mi = 0; mi < prof.libraries.length; mi++) fabKeys[libKey(prof.libraries[mi].name)] = 1;
+        for (mi = 0; mi < vanillaKeys.length; mi++) {
+          if (!fabKeys[vanillaKeys[mi].key]) continue;
+          var vp = vanillaKeys[mi].path, xi;
+          for (xi = cp.length - 1; xi >= 0; xi--) if (cp[xi] == vp) cp.splice(xi, 1);
+          for (xi = q.length - 1; xi >= 0; xi--) if (q[xi].path == vp) q.splice(xi, 1);
+          log("Using Fabric's version of " + vanillaKeys[mi].key + " instead of Minecraft's.");
         }
         for (mi = 0; mi < prof.libraries.length; mi++) {
           var fl = prof.libraries[mi], rel = mavenPath(fl.name);
@@ -936,7 +949,11 @@ function launchGame() {
   syncBuiltinMods(c.addMods || []);
   var args = buildLaunchArgs(ver, vars, null);
   mkdirs(cfgDir);
-  var af = cfgDir + "\\launch_args.txt";
+  try {
+    for (var ae = new Enumerator(fso.GetFolder(cfgDir).Files); !ae.atEnd(); ae.moveNext())
+      if (/^launch_args.*\.txt$/i.test(ae.item().Name)) { try { fso.DeleteFile(ae.item().Path, true); } catch (e0) {} }
+  } catch (e1) {}
+  var af = cfgDir + "\\launch_args_" + new Date().getTime() + ".txt";
   var lf = cfgDir + "\\game.log";
   var f = fso.CreateTextFile(af, true, false);
   for (var k = 0; k < args.length; k++)
@@ -948,6 +965,7 @@ function launchGame() {
   try { var old = fso.OpenTextFile(lf, 2, true); old.Close(); } catch (e) {}   // empty the old game log
   var cmd = 'cmd /c ""' + javaExe + '" @"' + af + '" > "' + lf + '" 2>&1 & if errorlevel 1 echo [java exited with an error code] >> "' + lf + '" & echo [java ended] >> "' + lf + '""';
   sh.Run(cmd, 0, false);
+  lastLaunch = new Date().getTime();
   log("Started Minecraft " + c.id + " as " + mcName + ". Game output: " + lf);
   showProg(false);
   busy = false;
@@ -960,7 +978,7 @@ function launchGame() {
     setStatus("Minecraft " + c.id + " started WITHOUT mods: " + (c.modsNote || "none are available for this version") + ". Try another version.", true);
     log("Started WITHOUT mods. Reason: " + (c.modsNote || "none available for this version"));
   } else setStatus("Minecraft " + c.id + " is starting. The window can take a few seconds to appear.");
-  setTimeout(function () { try { fso.DeleteFile(af); } catch (e) {} }, 20000);
+  setTimeout(function () { try { fso.DeleteFile(af); } catch (e) {} }, 90000);
   watchWindow(c.id);
   setTimeout(checkLaunch, 9000);
   setTimeout(checkLaunch, 25000);
@@ -1020,7 +1038,7 @@ function watchWindow(id) {
 
 // ---------- self-update ----------
 // The client can replace itself with a newer copy from a web address you set in Settings.
-var APP_VERSION = 23;
+var APP_VERSION = 24;
 
 // ---------- drag the borderless window by its title bar ----------
 var dragOn = false, dragDX = 0, dragDY = 0;
@@ -1149,7 +1167,7 @@ function modsEnabledUI() {
 function modSig() {
   if (!useFabric()) return "v";
   var b = cfgBool("builtinOn", false);
-  return "m3" + (b && cfgBool("bmHud", true) ? "h" : "") + (b && cfgBool("bmSodium", true) ? "s" : "") + (cfgBool("capeOn", false) ? "c" : "");
+  return "m4" + (b && cfgBool("bmHud", true) ? "h" : "") + (b && cfgBool("bmSodium", true) ? "s" : "") + (cfgBool("capeOn", false) ? "c" : "");
 }
 function wantedMods() {
   var out = [{ slug: "fabric-api", label: "Fabric API" }];
@@ -1208,6 +1226,7 @@ function openCapes() {
 }
 
 // ---------- Fabric + Modrinth helpers ----------
+function libKey(name) { var p = String(name).split(":"); return p[0] + ":" + p[1]; }
 function mavenPath(name) {
   var p = String(name).split(":");
   var cl = p[3] ? "-" + p[3] : "";
@@ -1237,11 +1256,17 @@ function syncBuiltinMods(list) {
   try {
     var md = gameDir + "\\mods";
     mkdirs(md);
-    var old = [], i, j;
+    var want = {}, i, j;
+    for (j = 0; j < list.length; j++) want[("minicraft-" + fso.GetFileName(list[j])).toLowerCase()] = list[j];
+    var old = [];
     for (var en = new Enumerator(fso.GetFolder(md).Files); !en.atEnd(); en.moveNext())
-      if (/^minicraft-.*\.jar$/i.test(en.item().Name)) old.push(en.item().Path);
-    for (i = 0; i < old.length; i++) fso.DeleteFile(old[i], true);
-    for (j = 0; j < list.length; j++) fso.CopyFile(list[j], md + "\\minicraft-" + fso.GetFileName(list[j]), true);
+      if (/^minicraft-.*\.jar$/i.test(en.item().Name) && !want[en.item().Name.toLowerCase()]) old.push(en.item().Path);
+    for (i = 0; i < old.length; i++) { try { fso.DeleteFile(old[i], true); } catch (e0) { log("Could not remove old mod " + old[i] + ": " + e0.message); } }
+    for (j = 0; j < list.length; j++) {
+      var dest = md + "\\minicraft-" + fso.GetFileName(list[j]);
+      if (fso.FileExists(dest) && fso.GetFile(dest).Size == fso.GetFile(list[j]).Size) continue;   // already there, leave it alone
+      fso.CopyFile(list[j], dest, true);
+    }
     log("Built-in mods in the mods folder: " + list.length);
   } catch (e2) { log("Could not copy built-in mods: " + e2.message); }
 }
