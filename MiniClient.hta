@@ -694,10 +694,11 @@ function randStr(n) { var c = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvw
 function startLogin() {
   try {
     if (pollTimer) clearTimeout(pollTimer);
+    clearBrowserLogin();
     wbVerifier = randStr(64); wbState = randStr(16);
     var url = "https://login.microsoftonline.com/consumers/oauth2/v2.0/authorize?" + form({
       client_id: CLIENT_ID, response_type: "code", redirect_uri: REDIRECT, response_mode: "query",
-      scope: "XboxLive.signin offline_access", prompt: "select_account", state: wbState,
+      scope: "XboxLive.signin offline_access", prompt: "login", state: wbState,
       code_challenge: wbVerifier, code_challenge_method: "plain" });
     $("loginov").style.display = "block";
     $("wbhost").innerHTML = '<object id="wb" classid="clsid:8856F961-340A-11D0-8F6D-00AA0053D09B" width="100%" height="100%"></object>';
@@ -882,7 +883,12 @@ function afterMsToken(t) {
     setStatus("You own the game but have no Minecraft profile yet. Create one in the official launcher once.", true);
   }
 }
+function clearBrowserLogin() {
+  try { sh.Run("RunDll32.exe InetCpl.cpl,ClearMyTracksByProcess 2", 0, true); } catch (e) {}     // cookies
+  try { sh.Run("RunDll32.exe InetCpl.cpl,ClearMyTracksByProcess 8", 0, true); } catch (e) {}     // temporary files
+}
 function signOut() {
+  clearBrowserLogin();
   cfg.refreshToken = ""; saveCfg(); verified = false; ownsGame = null;
   checkAccount();
   try { $("welcome").style.display = "block"; } catch (e0) {}
@@ -1628,7 +1634,7 @@ function watchWindow(id) {
 
 // ---------- self-update ----------
 // The client can replace itself with a newer copy from a web address you set in Settings.
-var APP_VERSION = 47;
+var APP_VERSION = 48;
 
 // ---------- drag the borderless window by its title bar ----------
 var dragOn = false, dragDX = 0, dragDY = 0;
