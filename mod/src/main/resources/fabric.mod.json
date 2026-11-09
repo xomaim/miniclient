@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "id": "miniclient",
+  "version": "${version}",
+  "name": "Mini Client",
+  "description": "Minicraft in-game client: HUD bar, settings screen and menu style.",
+  "authors": ["Mini Client"],
+  "license": "All-Rights-Reserved",
+  "environment": "client",
+  "entrypoints": {
+    "client": ["com.minicraft.MiniClient"]
+  },
+  "depends": {
+    "fabricloader": ">=0.16.0",
+    "minecraft": "~1.21.7",
+    "java": ">=21",
+    "fabric-api": "*"
+  }
+}

@@ -1,0 +1,66 @@
+name: Build Mini Client mod
+
+on:
+  push:
+    paths:
+      - 'mod/**'
+      - '.github/workflows/mod.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: 8.14.3
+
+      - name: Pick current Fabric versions
+        working-directory: mod
+        run: |
+          FV=$(curl -s -H "User-Agent: miniclient-build" "https://api.modrinth.com/v2/project/fabric-api/version?game_versions=%5B%221.21.7%22%5D&loaders=%5B%22fabric%22%5D" | jq -r '.[0].version_number')
+          LV=$(curl -s https://meta.fabricmc.net/v2/versions/loader | jq -r '[.[]|select(.stable==true)][0].version')
+          echo "fabric api: $FV  loader: $LV"
+          if [ -n "$FV" ] && [ "$FV" != "null" ]; then sed -i "s/^fabric_version=.*/fabric_version=$FV/" gradle.properties; fi
+          if [ -n "$LV" ] && [ "$LV" != "null" ]; then sed -i "s/^loader_version=.*/loader_version=$LV/" gradle.properties; fi
+          cat gradle.properties
+
+      - name: Build
+        id: build
+        working-directory: mod
+        continue-on-error: true
+        run: gradle build --stacktrace --no-daemon > ../build.log 2>&1
+
+      - name: Publish build log
+        if: always()
+        run: |
+          mkdir -p /tmp/lg
+          cp build.log /tmp/lg/build.log || echo "no log" > /tmp/lg/build.log
+          cp mod/gradle.properties /tmp/lg/gradle.properties
+          cd /tmp/lg
+          git init -q -b buildlog
+          git config user.name build
+          git config user.email build@example.com
+          git add -A
+          git commit -qm "build log"
+          git push -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}" buildlog
+
+      - name: Publish the mod jar
+        if: steps.build.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          JAR=$(ls mod/build/libs/*.jar | grep -v sources | head -1)
+          cp "$JAR" miniclient-mod.jar
+          gh release delete latest -y --cleanup-tag || true
+          gh release create latest miniclient-mod.jar --title "Latest mod build" --notes "Built automatically from the mod folder."

@@ -1,0 +1,5 @@
+mod/.gradle/
+mod/build/
+mod/.idea/
+mod/run/
+build.log
