@@ -30,7 +30,7 @@ public class MiniTitleScreen extends Screen {
 			px[i] = r.nextFloat();
 			py[i] = r.nextFloat();
 			ps[i] = 0.012f + r.nextFloat() * 0.03f;
-			pc[i] = (i % 3 == 0) ? 0xB0FFFFFF : ((i % 3 == 1) ? 0xB0FFB3D0 : 0xB0FF8FB8);
+			pc[i] = (i % 3 == 0) ? 0xB0FFFFFF : ((i % 3 == 1) ? 0xB0FFB3D0 : 0xB0FF4F9A);
 		}
 	}
 
@@ -56,15 +56,23 @@ public class MiniTitleScreen extends Screen {
 		y += step + 8;
 		addRenderableWidget(new GlassButton(cx - 100, y, 200, 20, "Quit Game", () -> mc.stop()));
 
-		// quick play: your recent servers, click to join
+		// quick play: your saved servers first, then popular ones, click to join
 		try {
 			ServerList servers = new ServerList(mc);
 			servers.load();
+			java.util.List<ServerData> shown = new java.util.ArrayList<>();
+			for (int i = 0; i < servers.size() && shown.size() < 4; i++) shown.add(servers.get(i));
+			String[][] defaults = {{"Hypixel", "mc.hypixel.net"}, {"Wynncraft", "play.wynncraft.com"}, {"CubeCraft", "play.cubecraft.net"}, {"2b2t", "2b2t.org"}};
+			for (String[] d : defaults) {
+				if (shown.size() >= 4) break;
+				boolean have = false;
+				for (ServerData sd : shown) if (sd.ip.equalsIgnoreCase(d[1])) have = true;
+				if (!have) shown.add(new ServerData(d[0], d[1], ServerData.Type.OTHER));
+			}
 			int sy = this.height / 2 - 6;
-			for (int i = 0; i < Math.min(3, servers.size()); i++) {
-				ServerData sd = servers.get(i);
+			for (ServerData sd : shown) {
 				final ServerData target = sd;
-				addRenderableWidget(new GlassButton(14, sy, 150, 34, sd.name, "Click to join", () ->
+				addRenderableWidget(new GlassButton(14, sy, 160, 34, sd.name, sd.ip, () ->
 					ConnectScreen.startConnecting(this, mc, ServerAddress.parseString(target.ip), target, false, null)));
 				sy += 38;
 			}
@@ -79,7 +87,8 @@ public class MiniTitleScreen extends Screen {
 
 	@Override
 	public void renderBackground(GuiGraphics g, int mouseX, int mouseY, float delta) {
-		g.fillGradient(0, 0, this.width, this.height, 0xFF150C24, 0xFF3A1838);
+		g.fillGradient(0, 0, this.width, this.height, 0xFF050509, 0xFF120A14);
+		g.fillGradient(0, this.height / 2, this.width, this.height, 0x00FF4F9A, 0x38FF4F9A);
 		long t = System.currentTimeMillis();
 		for (int i = 0; i < PETALS; i++) {
 			float yy = (py[i] + (t % 1000000L) / 1000f * ps[i]) % 1f;
@@ -107,7 +116,7 @@ public class MiniTitleScreen extends Screen {
 		int cx = this.width / 2;
 		int top = this.height / 2 - 100;
 		star(g, cx, top + 22, 20, 0xFFFFFFFF);
-		star(g, cx, top + 22, 9, 0xFFFF7FAF);
+		star(g, cx, top + 22, 9, 0xFFFF4F9A);
 
 		float s = 3.0f;
 		String a = "MINI";
@@ -119,12 +128,12 @@ public class MiniTitleScreen extends Screen {
 		g.pose().translate(cx - total / 2f, (float) (top + 52));
 		g.pose().scale(s, s);
 		g.drawString(this.font, a, 0, 0, 0xFFFFFFFF, true);
-		g.drawString(this.font, b, wa, 0, 0xFFFF7FAF, true);
+		g.drawString(this.font, b, wa, 0, 0xFFFF4F9A, true);
 		g.pose().popMatrix();
 
-		g.drawString(this.font, "Quick play", 14, this.height / 2 - 20, 0xFFFFC0D8, true);
-		g.drawString(this.font, "Account", this.width - 164, this.height / 2 - 20, 0xFFFFC0D8, true);
+		g.drawString(this.font, "Quick play", 14, this.height / 2 - 20, 0xFFFF9AC4, true);
+		g.drawString(this.font, "Account", this.width - 164, this.height / 2 - 20, 0xFFFF9AC4, true);
 		String v = "Minicraft 1.21.7";
-		g.drawString(this.font, v, this.width - this.font.width(v) - 8, this.height - 14, 0xFFB9A9C9, false);
+		g.drawString(this.font, v, this.width - this.font.width(v) - 8, this.height - 14, 0xFF8D8BA0, false);
 	}
 }
