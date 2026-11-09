@@ -888,10 +888,10 @@ function renderSelected() {
     else sk.style.display = "none";
     var mod = isModVer(v);
     tags += '<span class="vt hot">' + (mod ? "Fabric" : "Vanilla") + '</span>';
-    if (mod && cfgBool("builtinOn", false)) tags += '<span class="vt">HUD+</span><span class="vt">Sodium</span>';
+    if (mod && cfgBool("builtinOn", false)) tags += (miniFor(v) ? '<span class="vt">Mini Client</span>' : '<span class="vt">HUD+</span>') + '<span class="vt">Sodium</span>';
     if (cfgBool("capeOn", false) && CAPE_VERSIONS.indexOf("," + v + ",") >= 0) tags += '<span class="vt">Capes</span>';
     $("vtags").innerHTML = tags;
-    if (mod) desc = cfgBool("builtinOn", false) ? "Fabric with your built-in mods. In game, press Right Shift to move the FPS and CPS counters." : "Built-in mods are off. Turn them on in Settings to get FPS and CPS counters.";
+    if (mod) desc = cfgBool("builtinOn", false) ? (miniFor(v) ? "Fabric with the Mini Client mod. In game, press Esc and click Mini Client to change the FPS and CPS bar and the menu style." : "Fabric with your built-in mods. In game, press Right Shift to move the FPS and CPS counters.") : "Built-in mods are off. Turn them on in Settings to get FPS and CPS counters.";
     else desc = "Plain Minecraft. The built-in mods need a 1.21 version.";
     $("vdesc").innerText = desc;
     $("vram").innerText = (cfg.ram || "2") + " GB";
@@ -1017,9 +1017,9 @@ function startPrepare(id) {
         for (i = 0; i < fabList.length; i++) if (fabList[i].loader && fabList[i].loader.stable) { loaderV = fabList[i].loader.version; break; }
         if (!loaderV) throw new Error("Fabric does not support " + id + " yet");
         var prof = getJson("https://meta.fabricmc.net/v2/versions/loader/" + id + "/" + loaderV + "/profile/json");
-        var modFiles = [], wm = wantedMods(), mi;
+        var modFiles = [], wm = wantedMods(id), mi;
         for (mi = 0; mi < wm.length; mi++) {
-          var mf = modrinthFile(wm[mi].slug, id);
+          var mf = (wm[mi].slug == "@mini") ? miniModFile() : modrinthFile(wm[mi].slug, id);
           if (mf) modFiles.push(mf);
           else { skipped.push(wm[mi].label); log(wm[mi].label + " is not available for " + id + ", skipping it."); }
         }
@@ -1269,7 +1269,7 @@ function watchWindow(id) {
 
 // ---------- self-update ----------
 // The client can replace itself with a newer copy from a web address you set in Settings.
-var APP_VERSION = 35;
+var APP_VERSION = 36;
 
 // ---------- drag the borderless window by its title bar ----------
 var dragOn = false, dragDX = 0, dragDY = 0;
@@ -1402,12 +1402,28 @@ function modsEnabledUI() {
 function modSig() {
   if (!useFabric()) return "v";
   var b = cfgBool("builtinOn", false);
-  return "m4" + (b && cfgBool("bmHud", true) ? "h" : "") + (b && cfgBool("bmSodium", true) ? "s" : "") + (cfgBool("capeOn", false) ? "c" : "");
+  return "m5" + (b && cfgBool("bmHud", true) ? "h" : "") + (b && cfgBool("bmSodium", true) ? "s" : "") + (cfgBool("capeOn", false) ? "c" : "");
 }
-function wantedMods() {
+// Our own in-game mod (built by GitHub from the "mod" folder of the repository). Only made for Minecraft 1.21.7 so far.
+var MINI_REPO = "xomaim/miniclient";
+function miniFor(id) { return cfgBool("builtinOn", false) && String(id) == "1.21.7"; }
+function miniModFile() {
+  var url = "https://github.com/" + MINI_REPO + "/releases/download/latest/miniclient-mod.jar", stamp = "latest", size = 0;
+  try {
+    var r = http("GET", "https://api.github.com/repos/" + MINI_REPO + "/releases/tags/latest", { "User-Agent": "MiniClient-HTA/1.0" });
+    if (r.status == 200 && r.json && r.json.assets && r.json.assets.length) {
+      var a = r.json.assets[0];
+      url = a.browser_download_url; size = a.size || 0;
+      stamp = String(a.updated_at || "").replace(/[^0-9]/g, "");
+    }
+  } catch (e) { log("Could not check the Mini Client mod version: " + e.message); }
+  return { url: url, name: "miniclient-mod-" + stamp + ".jar", size: size, version: stamp };
+}
+function wantedMods(id) {
   var out = [{ slug: "fabric-api", label: "Fabric API" }];
   if (cfgBool("builtinOn", false)) {
-    if (cfgBool("bmHud", true)) out.push({ slug: "hud-plus", label: "HUD+" });
+    if (miniFor(id)) out.push({ slug: "@mini", label: "Mini Client" });
+    else if (cfgBool("bmHud", true)) out.push({ slug: "hud-plus", label: "HUD+" });
     if (cfgBool("bmSodium", true)) out.push({ slug: "sodium", label: "Sodium" });
   }
   if (cfgBool("capeOn", false)) out.push({ slug: "client-capes", label: "Client Capes" });
