@@ -21,7 +21,7 @@ public class HudEditorScreen extends Screen {
 		Config c = Config.INSTANCE;
 		int w = HudRenderer.width(this.minecraft);
 		int h = HudRenderer.height(this.minecraft);
-		g.fill(c.x - 1, c.y - 1, c.x + w + 1, c.y + h + 1, dragging ? 0x80FF6A8A : 0x60FFFFFF);
+		g.fill(c.x - 1, c.y - 1, c.x + w + 1, c.y + h + 1, dragging ? 0x806A97FF : 0x60FFFFFF);
 		HudRenderer.draw(g, this.minecraft);
 		g.drawCenteredString(this.font, "Drag the bar where you want it. Press Esc when done.", this.width / 2, this.height / 2, 0xFFFFFFFF);
 	}

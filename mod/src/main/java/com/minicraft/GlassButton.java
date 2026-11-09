@@ -29,8 +29,8 @@ public class GlassButton extends AbstractWidget {
 		int y = this.getY();
 		int w = this.getWidth();
 		int h = this.getHeight();
-		int fill = hot ? 0xC02A1020 : 0xB00B0B11;
-		int line = hot ? 0xFFFF4F9A : 0xCC9A98AC;
+		int fill = hot ? 0xC010182A : 0xB00B0B11;
+		int line = hot ? 0xFF4F84FF : 0xCC9A98AC;
 		g.fill(x + 1, y, x + w - 1, y + h, fill);
 		g.fill(x, y + 1, x + w, y + h - 1, fill);
 		g.fill(x + 1, y, x + w - 1, y + 1, line);
