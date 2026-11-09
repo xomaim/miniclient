@@ -3,6 +3,7 @@ package com.minicraft;
 import com.mojang.realmsclient.RealmsMainScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.ConnectScreen;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.multiplayer.JoinMultiplayerScreen;
@@ -83,6 +84,10 @@ public class MiniTitleScreen extends Screen {
 		int rx = this.width - 164;
 		addRenderableWidget(new GlassButton(rx, this.height / 2 - 6, 150, 34, mc.getUser().getName(), "Playing as", () -> { }));
 		addRenderableWidget(new GlassButton(rx, this.height / 2 + 32, 150, 22, "Mini Client settings", () -> mc.setScreen(new MiniSettingsScreen(this))));
+		if (MiniClient.capeBtn != null) {
+			final Button cb = MiniClient.capeBtn;
+			addRenderableWidget(new GlassButton(rx, this.height / 2 + 58, 150, 22, "Change Cape", () -> cb.mouseClicked(cb.getX() + 2, cb.getY() + 2, 0)));
+		}
 	}
 
 	@Override

@@ -13,6 +13,7 @@ import net.minecraft.network.chat.Component;
 import org.lwjgl.glfw.GLFW;
 
 public class MiniClient implements ClientModInitializer {
+	public static Button capeBtn = null;
 	private int tick = 0;
 
 	@Override
@@ -30,6 +31,10 @@ public class MiniClient implements ClientModInitializer {
 		ClientTickEvents.END_CLIENT_TICK.register(mc -> {
 			tick++;
 			if (Config.INSTANCE.titleStyle && mc.screen instanceof TitleScreen) {
+				capeBtn = null;
+				for (net.minecraft.client.gui.components.AbstractWidget wd : Screens.getButtons(mc.screen)) {
+					if (wd instanceof Button && wd.getMessage().getString().toLowerCase().contains("cape")) { capeBtn = (Button) wd; break; }
+				}
 				mc.setScreen(new MiniTitleScreen());
 			}
 			if (tick % 20 == 0) {
