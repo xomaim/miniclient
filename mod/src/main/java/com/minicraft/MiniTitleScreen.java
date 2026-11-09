@@ -59,7 +59,12 @@ public class MiniTitleScreen extends Screen {
 		// right column (OneClient style): account, host world, quick play, wardrobe
 		int rx = this.width - 210;
 		int ry = this.height / 2 - 6;
-		addRenderableWidget(new GlassButton(rx, ry, 190, 22, mc.getUser().getName(), () -> { }));
+		addRenderableWidget(new GlassButton(rx + 24, ry, 166, 22, mc.getUser().getName(), () -> { }));
+		int tx = this.width - 26;
+		addRenderableWidget(new GlassButton(tx, 6, 20, 20, "X", () -> mc.stop()));
+		addRenderableWidget(new GlassButton(tx - 24, 6, 20, 20, "F", () -> mc.getWindow().toggleFullScreen()));
+		addRenderableWidget(new GlassButton(tx - 48, 6, 20, 20, "S", () -> mc.setScreen(new MiniSettingsScreen(this))));
+		addRenderableWidget(new GlassButton(tx - 72, 6, 20, 20, "M", () -> mc.setScreen(new MiniSettingsScreen(this))));
 		addRenderableWidget(new GlassButton(rx, ry + 26, 190, 22, "Host World", () -> mc.setScreen(new SelectWorldScreen(this))));
 		addRenderableWidget(new GlassButton(rx, ry + 52, 190, 22, "Quick Play: Hypixel", () -> {
 			ServerData hd = new ServerData("Hypixel", "mc.hypixel.net", ServerData.Type.OTHER);
@@ -75,16 +80,18 @@ public class MiniTitleScreen extends Screen {
 
 	@Override
 	public void renderBackground(GuiGraphics g, int mouseX, int mouseY, float delta) {
-		g.fillGradient(0, 0, this.width, this.height, 0xFF050509, 0xFF0A0D14);
-		g.fillGradient(0, this.height / 2, this.width, this.height, 0x004F84FF, 0x384F84FF);
+		g.fillGradient(0, 0, this.width, this.height, 0xFF081426, 0xFF0B2036);
+		g.fillGradient(0, this.height / 2, this.width, this.height, 0x00102A4A, 0x40102A4A);
 		long t = System.currentTimeMillis();
 		for (int i = 0; i < PETALS; i++) {
-			float yy = (py[i] + (t % 1000000L) / 1000f * ps[i]) % 1f;
-			float xx = (px[i] + (float) Math.sin((t / 1000.0) * 0.6 + i) * 0.015f) % 1f;
+			float yy = (py[i] + (t % 1000000L) / 1000f * ps[i] * 0.4f) % 1f;
+			float xx = (px[i] + (float) Math.sin((t / 1000.0) * 0.3 + i) * 0.01f) % 1f;
 			int x = (int) (xx * this.width);
 			int y = (int) (yy * this.height);
-			int s = (i % 4 == 0) ? 3 : 2;
-			g.fill(x, y, x + s, y + s, pc[i]);
+			int s = (i % 5 == 0) ? 3 : 2;
+			int a = (i % 3 == 0) ? 0x70 : 0x38;
+			g.fill(x - 1, y - 1, x + s + 1, y + s + 1, (a / 3) << 24 | 0x6C9BFF);
+			g.fill(x, y, x + s, y + s, a << 24 | 0xC8DCFF);
 		}
 	}
 
@@ -101,22 +108,30 @@ public class MiniTitleScreen extends Screen {
 	@Override
 	public void render(GuiGraphics g, int mouseX, int mouseY, float delta) {
 		super.render(g, mouseX, mouseY, delta);
+		try {
+			net.minecraft.client.gui.components.PlayerFaceRenderer.draw(g, this.minecraft.getSkinManager().getInsecureSkin(this.minecraft.getGameProfile()), this.width - 210, this.height / 2 - 6, 22);
+		} catch (Throwable ignored) {
+		}
 		int cx = (int) (this.width * 0.36);
 		int top = this.height / 2 - 100;
 		star(g, cx, top + 22, 20, 0xFFFFFFFF);
 		star(g, cx, top + 22, 9, 0xFF4F84FF);
 
-		float s = 3.0f;
-		String a = "MINI";
-		String b = "CRAFT";
-		int wa = this.font.width(a);
-		int wb = this.font.width(b);
-		float total = (wa + wb) * s;
+		float s = 2.4f;
+		String word = "MINICRAFT";
+		int gap = 2;
+		float total = 0;
+		for (int i = 0; i < word.length(); i++) total += (this.font.width(String.valueOf(word.charAt(i))) + gap) * s;
+		total -= gap * s;
 		g.pose().pushMatrix();
-		g.pose().translate(cx - total / 2f, (float) (top + 52));
+		g.pose().translate(cx - total / 2f, (float) (top + 62));
 		g.pose().scale(s, s);
-		g.drawString(this.font, a, 0, 0, 0xFFFFFFFF, true);
-		g.drawString(this.font, b, wa, 0, 0xFF4F84FF, true);
+		int px0 = 0;
+		for (int i = 0; i < word.length(); i++) {
+			String ch = String.valueOf(word.charAt(i));
+			g.drawString(this.font, ch, px0, 0, 0xFFFFFFFF, true);
+			px0 += this.font.width(ch) + gap;
+		}
 		g.pose().popMatrix();
 
 		String v = "Minicraft 1.21.7";
