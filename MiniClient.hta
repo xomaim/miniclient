@@ -46,6 +46,34 @@
 
   .page { display:none; position:absolute; left:84px; right:0; top:34px; bottom:0; }
 
+
+  /* ---------- home page ---------- */
+  #hhead { position:absolute; left:34px; right:34px; top:22px; height:56px; }
+  #hero { position:absolute; left:34px; right:34px; top:92px; height:230px; border-radius:16px; overflow:hidden; border:1px solid rgba(255,255,255,0.12); background-color:#40204a; }
+  #herofade { position:absolute; left:0; top:0; right:0; bottom:0; background:rgba(26,12,38,0.52); }
+  #herotext { position:absolute; left:30px; top:26px; width:560px; }
+  #herotag { margin-bottom:12px; }
+  #herotitle { font-size:40px; font-weight:700; color:#ffffff; letter-spacing:-1px; line-height:44px; }
+  #herodesc { font-size:13px; color:#f0cddb; margin:8px 0 20px 0; width:440px; line-height:1.5; }
+  #herobtn { height:46px; padding:0 30px; font-size:14px; font-weight:700; letter-spacing:1px; background:#f51227; color:#ffffff; margin-right:10px; }
+  #herobtn:hover { background:#ff2d41; }
+  #herobtn[disabled] { background:rgba(255,255,255,0.10); color:#a85b62; cursor:default; }
+  #heroalt { height:46px; padding:0 22px; font-size:14px; }
+  #hnewshead { position:absolute; left:34px; top:340px; font-size:11px; font-weight:700; letter-spacing:1.4px; color:#dc8f96; }
+  #hnews { position:absolute; left:34px; right:34px; top:362px; height:150px; }
+  .ncard { float:left; width:228px; height:124px; margin-right:14px; border-radius:14px; padding:16px 18px; background:rgba(44,24,50,0.80); border:1px solid rgba(255,255,255,0.10); overflow:hidden; }
+  .ncard:hover { border-color:rgba(255,255,255,0.28); }
+  .ncard .vt { margin-bottom:8px; }
+  .ntitle { font-size:16px; font-weight:700; color:#ffffff; margin-bottom:6px; }
+  .ntext { font-size:12px; line-height:1.5; color:#e6bfd0; }
+  #promo { position:absolute; left:34px; right:34px; top:540px; height:62px; border-radius:14px; background:rgba(44,24,50,0.86); border:1px solid rgba(255,255,255,0.12); padding:0 18px; line-height:62px; }
+  #promo > * { vertical-align:middle; }
+  #promobadge { margin:0 14px 0 0; line-height:16px; padding:3px 12px; background:rgba(245,18,39,0.30); color:#ffd0d6; }
+  #promotext { display:inline-block; width:560px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; line-height:20px; }
+  #promotext b { color:#ffffff; margin-right:10px; }
+  #promodesc { color:#e6bfd0; font-size:12px; }
+  #promobtn { float:right; margin:14px 0 0 0; }
+
   /* ---------- play page ---------- */
   #phead { position:absolute; left:34px; right:34px; top:22px; height:56px; }
   #ptitle { font-size:30px; font-weight:700; color:#ffffff; letter-spacing:-0.8px; line-height:32px; }
@@ -279,7 +307,7 @@ function buildScene() {
 }
 
 // ---------- UI helpers ----------
-var pages = ["play", "mods", "saves", "account", "settings", "log"];
+var pages = ["home", "play", "mods", "saves", "account", "settings", "log"];
 function show(name) {
   for (var i = 0; i < pages.length; i++) {
     var on = (pages[i] == name);
@@ -459,7 +487,7 @@ function checkAccount() {
   found = []; logLines = []; ownsGame = null;
   var sel = $("accounts");
   sel.options.length = 0;
-  $("playbtn").disabled = false;
+  $("playbtn").disabled = false; $("herobtn").disabled = false;
   $("who").innerText = "No account";
   $("avatar").innerText = "?";
   $("email").innerText = "";
@@ -500,7 +528,7 @@ function pick() {
   $("avatar").innerHTML = '<img src="https://mc-heads.net/avatar/' + encodeURIComponent(found[i].name) + '/64" onerror="this.parentNode.innerText=\'' + found[i].name.charAt(0).toUpperCase() + '\'" />';
   $("email").innerText = found[i].email;
   skinName = found[i].name; renderSelected();
-  $("playbtn").disabled = false;
+  $("playbtn").disabled = false; $("herobtn").disabled = false;
   renderBadge();
 }
 
@@ -743,7 +771,7 @@ function showProg(on, text, pct) {
 function fail(msg) {
   busy = false;
   showProg(false);
-  $("playbtn").disabled = false;
+  $("playbtn").disabled = false; $("herobtn").disabled = false;
   log("ERROR: " + msg);
   setStatus(msg, true);
 }
@@ -849,6 +877,51 @@ function fillThumbs() {
   })();
   setTimeout(function () { thumbBusy = false; }, 15000);
 }
+// ---------- home page: hero + news + promo banner (news.json on GitHub, so you can edit it without an update) ----------
+var NEWS_URL = "https://raw.githubusercontent.com/" + MINI_REPO + "/main/news.json";
+var promoUrl = "";
+var DEFAULT_NEWS = {
+  promo: { badge: "NEW", title: "Minicraft", text: "Your launcher, your menus, your cape.", button: "Open", url: "" },
+  news: [
+    { tag: "Update", title: "New Minecraft menus", text: "The title screen and the ESC menu have a new look in game on 1.21.7." },
+    { tag: "Mods", title: "Build your own HUD", text: "Press Esc in game, click Mini Client and pick what shows on the bar." },
+    { tag: "Cosmetics", title: "Capes", text: "Add your own cape PNG in Settings. Only you can see it." }
+  ]
+};
+function esc(t) { return String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+function renderNews(data) {
+  var box = $("hnews"), i, n = data.news || [], html = "";
+  for (i = 0; i < n.length && i < 3; i++)
+    html += '<div class="ncard"><span class="vt hot">' + esc(n[i].tag || "News") + '</span><div class="ntitle">' + esc(n[i].title || "") + '</div><div class="ntext">' + esc(n[i].text || "") + '</div></div>';
+  box.innerHTML = html;
+  var p = data.promo || {};
+  $("promobadge").innerText = p.badge || "NEW";
+  $("promotitle").innerText = p.title || "";
+  $("promodesc").innerText = p.text || "";
+  $("promobtn").innerText = p.button || "Open";
+  promoUrl = (p.url && /^https:\/\//i.test(p.url)) ? p.url : "";
+  $("promobtn").style.display = promoUrl ? "inline-block" : "none";
+}
+function loadNews() {
+  renderNews(DEFAULT_NEWS);
+  try { renderNews(getJson(NEWS_URL)); } catch (e) { log("Could not load the news: " + e.message); }
+}
+function openPromo() { if (promoUrl) { try { sh.Run('"' + promoUrl + '"', 1, false); } catch (e) {} } }
+function renderHome() {
+  try {
+    var v = $("versions").value || "", name = $("who").innerText;
+    $("herotitle").innerText = v ? "Minecraft " + v : "Minecraft";
+    $("hname").innerText = (name && name != "No account") ? "signed in as " + name : "not signed in";
+    $("herodesc").innerText = v ? (miniFor(v) ? "Fabric with the Mini Client mod, Sodium and your settings. One click and you are in game." : "Your last version is ready. One click and you are in game.") : "Loading your versions...";
+    var hero = $("hero");
+    hero.style.backgroundImage = "url(" + BG_DATA + ")";
+    hero.style.backgroundRepeat = "no-repeat";
+    hero.style.backgroundSize = "cover";
+    hero.style.backgroundPosition = "50% 35%";
+    useThumb(hero, v);
+  } catch (e) {}
+}
+
 // ---------- version cards + selected-version panel ----------
 var CARD_POS = ["0% 0%", "100% 0%", "0% 100%", "100% 100%", "50% 20%", "30% 80%", "80% 40%"];
 function isModVer(id) { return /^1\.21(\.\d+)?$/.test(id); }
@@ -896,6 +969,7 @@ function renderSelected() {
     $("vdesc").innerText = desc;
     $("vram").innerText = (cfg.ram || "2") + " GB";
     $("sver").innerText = "v" + APP_VERSION;
+    renderHome();
   } catch (e) {}
 }
 function pickVersion(id) {
@@ -948,7 +1022,7 @@ function play() {
   if (busy) { log("Already working on a launch."); return; }
   if (lastLaunch && (new Date().getTime() - lastLaunch) < 45000) { setStatus("Minecraft is still starting. Wait for the window to open.", true); log("Ignored a second Play press while Minecraft was starting."); return; }
   busy = true;
-  $("playbtn").disabled = true;
+  $("playbtn").disabled = true; $("herobtn").disabled = true;
   tPlay = new Date().getTime();
   setStatus("Starting Minecraft...");
   showProg(true, "Starting...", 5);
@@ -1200,7 +1274,7 @@ function launchGame() {
   log("Started Minecraft " + c.id + " as " + mcName + ". Game output: " + lf);
   showProg(false);
   busy = false;
-  $("playbtn").disabled = false;
+  $("playbtn").disabled = false; $("herobtn").disabled = false;
   var nMods = (c.addMods && c.addMods.length) ? c.addMods.length : 0;
   var skip = (c.skipped && c.skipped.length) ? " Skipped (not out for this version): " + c.skipped.join(", ") + "." : "";
   var hints = (cfgBool("builtinOn", false) ? " Right Shift opens the HUD editor." : "") + (cfgBool("capeOn", false) ? " Press Change Cape on the main menu." : "");
@@ -1269,7 +1343,7 @@ function watchWindow(id) {
 
 // ---------- self-update ----------
 // The client can replace itself with a newer copy from a web address you set in Settings.
-var APP_VERSION = 36;
+var APP_VERSION = 37;
 
 // ---------- drag the borderless window by its title bar ----------
 var dragOn = false, dragDX = 0, dragDY = 0;
@@ -1703,8 +1777,9 @@ window.onload = function () {
   }, 150);
   loadCfg();
   applySettingsToUI();
-  show("play");
+  show("home");
   checkAccount();
+  setTimeout(loadNews, 1200);
   setTimeout(trySilentLogin, 300);
   setTimeout(loadVersions, 900);
   setTimeout(function () { checkUpdate(false); }, 1800);
@@ -1726,7 +1801,8 @@ window.onresize = function () { try { buildScene(); } catch (e) {} };
 
     <div id="side">
       <div id="slogo"><img src="data:image/png;base64,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" /></div>
-      <div class="sn on" id="nav_play" onclick="show('play')"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Play</span></div>
+      <div class="sn on" id="nav_home" onclick="show('home')"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Home</span></div>
+      <div class="sn" id="nav_play" onclick="show('play')"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg><span>Versions</span></div>
       <div class="sn" id="nav_mods" onclick="show('mods')"><svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg><span>Mods</span></div>
       <div class="sn" id="nav_saves" onclick="show('saves')"><svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg><span>Saves</span></div>
       <div class="sn" id="nav_account" onclick="show('account')"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Account</span></div>
@@ -1735,11 +1811,36 @@ window.onresize = function () { try { buildScene(); } catch (e) {} };
       <div id="sver"></div>
     </div>
 
-    <!-- PLAY -->
-    <div class="page" id="page_play" style="display:block">
-      <div id="phead">
+    <!-- HOME -->
+    <div class="page" id="page_home" style="display:block">
+      <div id="hhead">
         <div id="ptitle">Mini<span>craft</span></div>
-        <div id="psub">Minecraft: Java Edition</div>
+        <div id="psub">Minecraft: Java Edition &nbsp;&middot;&nbsp; <span id="hname">not signed in</span></div>
+      </div>
+      <div id="hero">
+        <div id="herofade"></div>
+        <div id="herotext">
+          <div class="pill" id="herotag">Ready to play</div>
+          <div id="herotitle">Minecraft</div>
+          <div id="herodesc">Your last version is ready. One click and you are in game.</div>
+          <button id="herobtn" onclick="play()">LAUNCH GAME</button>
+          <button class="btn" id="heroalt" onclick="show('play')">Choose a version</button>
+        </div>
+      </div>
+      <div id="hnewshead">NEWS</div>
+      <div id="hnews"></div>
+      <div id="promo">
+        <span id="promobadge" class="pill">NEW</span>
+        <div id="promotext"><b id="promotitle"></b><span id="promodesc"></span></div>
+        <button class="btn small" id="promobtn" onclick="openPromo()">Open</button>
+      </div>
+    </div>
+
+    <!-- PLAY -->
+    <div class="page" id="page_play">
+      <div id="phead">
+        <div id="ptitle">Versions</div>
+        <div id="psub">Pick a version and press Launch</div>
         <div id="pright">
           <div id="updbar" class="pill" style="display:none; margin-right:8px;"><span id="updtext"></span> <button class="btn small" onclick="applyUpdate()">Update now</button></div>
           <button class="btn small" id="navbtn" onclick="checkAccount()">Check again</button>

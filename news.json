@@ -1,0 +1,14 @@
+{
+  "promo": {
+    "badge": "NEW",
+    "title": "Minicraft is live",
+    "text": "Your launcher, your cape, your menus. Edit this banner any time by changing news.json on GitHub.",
+    "button": "Open GitHub",
+    "url": "https://github.com/xomaim/miniclient"
+  },
+  "news": [
+    { "tag": "Update", "title": "New Minecraft menus", "text": "The title screen and the ESC menu have a new look in game on 1.21.7." },
+    { "tag": "Mods", "title": "Build your own HUD", "text": "Press Esc in game, click Mini Client and pick what shows on the bar: FPS, CPS, ping, coordinates, clock." },
+    { "tag": "Cosmetics", "title": "Capes", "text": "Add your own cape PNG in Settings. Only you can see it." }
+  ]
+}
