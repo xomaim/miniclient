@@ -1,0 +1,41 @@
+name: Build Mini Client app
+
+on:
+  push:
+    paths:
+      - 'app/**'
+      - '.github/workflows/app.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Build exe
+        working-directory: app
+        shell: bash
+        run: |
+          npm install --no-audit --no-fund 2>&1 | tail -5
+          npx electron-builder --win portable --publish never 2>&1 | tee ../app-build.log | tail -30
+      - name: Publish release asset
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release view app-latest >/dev/null 2>&1 || gh release create app-latest --title "Mini Client app" --notes "Latest Mini Client.exe" 
+          gh release upload app-latest app/dist/MiniClient.exe --clobber
+      - name: Push build log
+        if: always()
+        shell: bash
+        run: |
+          git config user.name "build"; git config user.email "build@users.noreply.github.com"
+          git checkout --orphan applog; git rm -rf . >/dev/null 2>&1 || true
+          cp ../app-build.log ./app-build.log 2>/dev/null || cp app-build.log . 2>/dev/null || echo "no log" > app-build.log
+          git add app-build.log; git commit -qm "app build log"; git push -f origin applog
