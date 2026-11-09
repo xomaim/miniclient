@@ -199,6 +199,51 @@
   #bar { position:absolute; left:100px; bottom:12px; z-index:5; padding:6px 14px; border-radius:14px;
          background:rgba(21,21,24,0.78); font-size:12px; color:#f5afb6; max-width:620px; }
   #status.bad { color:#e7e1fa; }
+
+  /* ---------- v38 Lunar / OneConfig layout ---------- */
+  #side { width:64px; background:rgba(10,10,13,0.92); }
+  #slogo { height:78px; padding-top:14px; }
+  #slogo img { width:38px; height:38px; }
+  .sn { width:44px; height:44px; margin:6px 10px; padding-top:0; border-radius:12px; }
+  .sn svg { width:22px; height:22px; margin:11px auto 0 auto; }
+  .sn span { display:none; }
+  .sn.on { background:#f54c95; }
+  .sn.on svg { stroke:#ffffff; }
+  .sn.on:before { display:none; }
+  .sn:hover { background:rgba(245,76,149,0.30); }
+  .sn.on:hover { background:#f54c95; }
+  .page { left:64px; }
+  #bar { left:80px; }
+  #promo { left:0; right:0; top:0; height:30px; border-radius:0; border:0; background:#f54c95; padding:0 16px; line-height:30px; }
+  #promobadge { background:rgba(0,0,0,0.28); color:#ffffff; border:0; padding:2px 10px; line-height:14px; font-size:11px; }
+  #promotext { width:620px; line-height:30px; } #promotext b { color:#ffffff; } #promodesc { color:#ffe3ef; }
+  #promobtn { margin:3px 34px 0 0; background:rgba(0,0,0,0.28); height:24px; padding:0 12px; font-size:12px; }
+  #promox { position:absolute; right:10px; top:0; width:20px; height:30px; line-height:28px; color:#ffffff; font-size:18px; cursor:pointer; text-align:center; }
+  #hhead { left:28px; top:46px; }
+  #hero { left:28px; right:auto; width:576px; top:118px; height:240px; }
+  #herotext { left:26px; top:24px; width:520px; }
+  #herotitle { font-size:34px; }
+  #herodesc { width:380px; margin:6px 0 18px 0; }
+  #herobtn { height:52px; padding:0 40px; font-size:16px; }
+  #hsrv { position:absolute; right:28px; top:118px; width:276px; height:240px; border-radius:16px; background:rgba(14,14,18,0.86); border:1px solid rgba(255,255,255,0.10); padding:14px 14px 0 14px; overflow:hidden; }
+  #hsrvh { font-size:11px; font-weight:700; letter-spacing:1.4px; color:#c7c2d8; margin-bottom:8px; }
+  .hs { height:40px; margin-bottom:4px; border-radius:10px; padding:4px 6px; background:rgba(255,255,255,0.04); overflow:hidden; cursor:pointer; }
+  .hs:hover { background:rgba(245,76,149,0.20); }
+  .hs img { float:left; width:32px; height:32px; border-radius:6px; margin-right:10px; background:#15121c; }
+  .hs b { display:block; font-size:13px; color:#fff; line-height:16px; padding-top:2px; } .hs span { font-size:11px; color:#9a93ad; }
+  .hs i { float:right; font-style:normal; font-size:11px; font-weight:700; color:#fff; background:#f54c95; padding:3px 10px; border-radius:8px; margin-top:6px; }
+  #hnewshead { left:28px; top:380px; }
+  #hnews { left:28px; right:28px; top:402px; }
+  .ncard { width:270px; margin-right:20px; height:112px; background:rgba(14,14,18,0.86); }
+  /* mods grid */
+  #modList .modrow { float:left; position:relative; width:196px; height:118px; margin:0 12px 12px 0; padding:12px; border-radius:14px; overflow:hidden; background:rgba(14,14,18,0.86); border:1px solid rgba(255,255,255,0.10); }
+  #modList .modrow:hover { border-color:#f54c95; }
+  #modList .micon { float:none; margin:0 0 8px 0; width:38px; height:38px; line-height:38px; }
+  #modList .micon img { width:38px; height:38px; }
+  #modList .mtext { padding:0; } #modList .iname { font-size:14px; font-weight:700; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  #modList .mtag { position:absolute; float:none; left:0; right:0; bottom:0; margin:0; border-radius:0; text-align:center; padding:3px 0; background:rgba(255,255,255,0.08); }
+  #modList .mtag.built { background:#f54c95; color:#fff; }
+  #modsearch { width:220px; margin:0 8px 10px 0; }
 </style>
 <script language="JScript">
 // Reads the official Minecraft launcher's saved account list on this PC.
@@ -909,12 +954,20 @@ function loadNews() {
   try { renderNews(getJson(NEWS_URL)); } catch (e) { log("Could not load the news: " + e.message); }
 }
 function openPromo() { if (promoUrl) { try { sh.Run('"' + promoUrl + '"', 1, false); } catch (e) {} } }
+function renderHomeServers() {
+  var l = getServers(), h = "", i;
+  for (i = 0; i < l.length && i < 4; i++)
+    h += '<div class="hs" onclick="joinServer(' + i + ')"><img src="https://api.mcsrvstat.us/icon/' + encodeURIComponent(l[i][1]) + '" /><i>JOIN</i><b>' + esc(l[i][0]) + '</b><span>' + esc(l[i][1]) + '</span></div>';
+  $("hsrvlist").innerHTML = h;
+}
 function renderHome() {
   try {
     var v = $("versions").value || "", name = $("who").innerText;
     $("herotitle").innerText = v ? "Minecraft " + v : "Minecraft";
     $("hname").innerText = (name && name != "No account") ? "signed in as " + name : "not signed in";
     $("herodesc").innerText = v ? (miniFor(v) ? "Fabric with the Mini Client mod, Sodium and your settings. One click and you are in game." : "Your last version is ready. One click and you are in game.") : "Loading your versions...";
+    $("wname").innerText = (name && name != "No account") ? name : "player";
+    renderHomeServers();
     var hero = $("hero");
     hero.style.backgroundImage = "url(" + BG_DATA + ")";
     hero.style.backgroundRepeat = "no-repeat";
@@ -1793,6 +1846,13 @@ function loadMods() {
   }
   setTimeout(fillNextMod, 30);
 }
+function filterMods() {
+  var q = $("modsearch").value.toLowerCase(), rows = $("modList").childNodes, i;
+  for (i = 0; i < rows.length; i++) {
+    var t = (rows[i].innerText || "").toLowerCase();
+    rows[i].style.display = (!q || t.indexOf(q) >= 0) ? "" : "none";
+  }
+}
 function fillNextMod() {
   if (modQi >= modRows.length) return;
   var r = modRows[modQi++];
@@ -1867,7 +1927,7 @@ window.onresize = function () { try { buildScene(); } catch (e) {} };
     <!-- HOME -->
     <div class="page" id="page_home" style="display:block">
       <div id="hhead">
-        <div id="ptitle">Mini<span>craft</span></div>
+        <div id="ptitle">Welcome back, <span id="wname">player</span></div>
         <div id="psub">Minecraft: Java Edition &nbsp;&middot;&nbsp; <span id="hname">not signed in</span></div>
       </div>
       <div id="hero">
@@ -1880,9 +1940,10 @@ window.onresize = function () { try { buildScene(); } catch (e) {} };
           <button class="btn" id="heroalt" onclick="show('play')">Choose a version</button>
         </div>
       </div>
-      <div id="hnewshead">NEWS</div>
+      <div id="hsrv"><div id="hsrvh">SERVERS</div><div id="hsrvlist"></div></div>
+      <div id="hnewshead">LATEST NEWS</div>
       <div id="hnews"></div>
-      <div id="promo">
+      <div id="promo"><div id="promox" onclick="$('promo').style.display='none'">&times;</div>
         <span id="promobadge" class="pill">NEW</span>
         <div id="promotext"><b id="promotitle"></b><span id="promodesc"></span></div>
         <button class="btn small" id="promobtn" onclick="openPromo()">Open</button>
@@ -1943,7 +2004,8 @@ window.onresize = function () { try { buildScene(); } catch (e) {} };
       <div class="panel">
         <h2>Mods</h2>
         <p class="sub">Built-in mods and your own. Click <b>+ Add a mod</b> and pick a Fabric .jar. <span id="modCount"></span></p>
-        <div class="card">
+        <input type="text" id="modsearch" placeholder="Search mods" onkeyup="filterMods()" />
+        <div class="card" style="background:none;border:0;padding:0">
           <div class="list" id="modList"></div>
         </div>
         <div class="toolrow">
