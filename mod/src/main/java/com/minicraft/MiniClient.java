@@ -29,6 +29,9 @@ public class MiniClient implements ClientModInitializer {
 
 		ClientTickEvents.END_CLIENT_TICK.register(mc -> {
 			tick++;
+			if (Config.INSTANCE.titleStyle && mc.screen instanceof TitleScreen) {
+				mc.setScreen(new MiniTitleScreen());
+			}
 			if (tick % 20 == 0) {
 				GLFW.glfwSetWindowTitle(mc.getWindow().getWindow(), "Minicraft 1.21.7");
 			}
@@ -39,9 +42,6 @@ public class MiniClient implements ClientModInitializer {
 				Screens.getButtons(screen).add(
 					Button.builder(Component.literal("Mini Client"), b -> client.setScreen(new MiniSettingsScreen(screen)))
 						.bounds(6, 6, 90, 20).build());
-			}
-			if (screen instanceof TitleScreen && Config.INSTANCE.titleStyle) {
-				TitleStyle.apply(client, screen, w, h);
 			}
 		});
 	}
