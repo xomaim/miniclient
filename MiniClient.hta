@@ -1422,7 +1422,7 @@ function watchWindow(id) {
 
 // ---------- self-update ----------
 // The client can replace itself with a newer copy from a web address you set in Settings.
-var APP_VERSION = 39;
+var APP_VERSION = 40;
 
 // ---------- drag the borderless window by its title bar ----------
 var dragOn = false, dragDX = 0, dragDY = 0;
@@ -1459,6 +1459,7 @@ function checkUpdate(manual) {
       pendingUpdate = r.text;
       $("updtext").innerText = "Update available: v" + v + " (you have v" + APP_VERSION + ")";
       $("updbar").style.display = "inline-block";
+      $("updglobal").style.display = "block"; $("updglobaltext").innerText = "Update available: v" + v;
       setStatus("An update is available. Click Update now on the Play page.");
     } else if (manual) {
       setStatus("You are up to date (v" + APP_VERSION + ").");
@@ -1903,6 +1904,7 @@ window.onresize = function () { try { buildScene(); } catch (e) {} };
 <body>
 
   <div id="sky"></div>
+  <div id="updglobal" style="display:none;position:absolute;right:60px;top:2px;z-index:30;background:#f54c95;color:#fff;border-radius:14px;padding:4px 6px 4px 14px;font-size:12px;font-weight:700;"><span id="updglobaltext"></span> <button class="btn small" style="margin:0 0 0 8px;height:22px;padding:0 12px;" onclick="applyUpdate()">Update now</button></div>
 
   <div id="titlebar" onmousedown="dragStart(event)">
     Mini Client
