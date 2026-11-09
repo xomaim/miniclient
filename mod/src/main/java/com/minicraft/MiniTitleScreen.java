@@ -10,7 +10,6 @@ import net.minecraft.client.gui.screens.multiplayer.JoinMultiplayerScreen;
 import net.minecraft.client.gui.screens.options.OptionsScreen;
 import net.minecraft.client.gui.screens.worldselection.SelectWorldScreen;
 import net.minecraft.client.multiplayer.ServerData;
-import net.minecraft.client.multiplayer.ServerList;
 import net.minecraft.client.multiplayer.resolver.ServerAddress;
 import net.minecraft.network.chat.Component;
 
@@ -43,7 +42,7 @@ public class MiniTitleScreen extends Screen {
 	@Override
 	protected void init() {
 		Minecraft mc = this.minecraft;
-		int cx = this.width / 2;
+		int cx = (int) (this.width * 0.36);
 		int y = this.height / 2 - 6;
 		int step = 26;
 		addRenderableWidget(new GlassButton(cx - 100, y, 200, 22, "Singleplayer", () -> mc.setScreen(new SelectWorldScreen(this))));
@@ -57,36 +56,20 @@ public class MiniTitleScreen extends Screen {
 		y += step + 8;
 		addRenderableWidget(new GlassButton(cx - 100, y, 200, 20, "Quit Game", () -> mc.stop()));
 
-		// quick play: your saved servers first, then popular ones, click to join
-		try {
-			ServerList servers = new ServerList(mc);
-			servers.load();
-			java.util.List<ServerData> shown = new java.util.ArrayList<>();
-			for (int i = 0; i < servers.size() && shown.size() < 4; i++) shown.add(servers.get(i));
-			String[][] defaults = {{"Hypixel", "mc.hypixel.net"}, {"Wynncraft", "play.wynncraft.com"}, {"CubeCraft", "play.cubecraft.net"}, {"2b2t", "2b2t.org"}};
-			for (String[] d : defaults) {
-				if (shown.size() >= 4) break;
-				boolean have = false;
-				for (ServerData sd : shown) if (sd.ip.equalsIgnoreCase(d[1])) have = true;
-				if (!have) shown.add(new ServerData(d[0], d[1], ServerData.Type.OTHER));
-			}
-			int sy = this.height / 2 - 6;
-			for (ServerData sd : shown) {
-				final ServerData target = sd;
-				addRenderableWidget(new GlassButton(14, sy, 160, 34, sd.name, sd.ip, () ->
-					ConnectScreen.startConnecting(this, mc, ServerAddress.parseString(target.ip), target, false, null)));
-				sy += 38;
-			}
-		} catch (Exception ignored) {
-		}
-
-		// right side: your account and the settings
-		int rx = this.width - 164;
-		addRenderableWidget(new GlassButton(rx, this.height / 2 - 6, 150, 34, mc.getUser().getName(), "Playing as", () -> { }));
-		addRenderableWidget(new GlassButton(rx, this.height / 2 + 32, 150, 22, "Mini Client settings", () -> mc.setScreen(new MiniSettingsScreen(this))));
+		// right column (OneClient style): account, host world, quick play, wardrobe
+		int rx = this.width - 210;
+		int ry = this.height / 2 - 6;
+		addRenderableWidget(new GlassButton(rx, ry, 190, 22, mc.getUser().getName(), () -> { }));
+		addRenderableWidget(new GlassButton(rx, ry + 26, 190, 22, "Host World", () -> mc.setScreen(new SelectWorldScreen(this))));
+		addRenderableWidget(new GlassButton(rx, ry + 52, 190, 22, "Quick Play: Hypixel", () -> {
+			ServerData hd = new ServerData("Hypixel", "mc.hypixel.net", ServerData.Type.OTHER);
+			ConnectScreen.startConnecting(this, mc, ServerAddress.parseString(hd.ip), hd, false, null);
+		}));
 		if (MiniClient.capeBtn != null) {
 			final Button cb = MiniClient.capeBtn;
-			addRenderableWidget(new GlassButton(rx, this.height / 2 + 58, 150, 22, "Change Cape", () -> cb.mouseClicked(cb.getX() + 2, cb.getY() + 2, 0)));
+			addRenderableWidget(new GlassButton(rx, ry + 78, 190, 22, "Wardrobe", () -> cb.mouseClicked(cb.getX() + 2, cb.getY() + 2, 0)));
+		} else {
+			addRenderableWidget(new GlassButton(rx, ry + 78, 190, 22, "Mini Client settings", () -> mc.setScreen(new MiniSettingsScreen(this))));
 		}
 	}
 
@@ -118,7 +101,7 @@ public class MiniTitleScreen extends Screen {
 	@Override
 	public void render(GuiGraphics g, int mouseX, int mouseY, float delta) {
 		super.render(g, mouseX, mouseY, delta);
-		int cx = this.width / 2;
+		int cx = (int) (this.width * 0.36);
 		int top = this.height / 2 - 100;
 		star(g, cx, top + 22, 20, 0xFFFFFFFF);
 		star(g, cx, top + 22, 9, 0xFF4F84FF);
@@ -136,8 +119,6 @@ public class MiniTitleScreen extends Screen {
 		g.drawString(this.font, b, wa, 0, 0xFF4F84FF, true);
 		g.pose().popMatrix();
 
-		g.drawString(this.font, "Quick play", 14, this.height / 2 - 20, 0xFF9AB8FF, true);
-		g.drawString(this.font, "Account", this.width - 164, this.height / 2 - 20, 0xFF9AB8FF, true);
 		String v = "Minicraft 1.21.7";
 		g.drawString(this.font, v, this.width - this.font.width(v) - 8, this.height - 14, 0xFF8D8BA0, false);
 	}

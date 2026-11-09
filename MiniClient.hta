@@ -260,6 +260,37 @@
   .vc .vname { font-size:18px; bottom:6px; }
   .vc .vsub { display:none; }
   .vc.on { border-color:#4f84ff; }
+  /* ---------- v43 Lunar launchpad home ---------- */
+  #topbar { position:absolute; left:14px; right:14px; top:10px; height:50px; }
+  #qp { position:absolute; left:0; top:0; right:230px; height:50px; border-radius:12px; background:rgba(14,18,30,0.92); border:1px solid rgba(255,255,255,0.08); padding:0 16px; line-height:50px; overflow:hidden; white-space:nowrap; }
+  #qplabel { font-size:11px; font-weight:800; letter-spacing:1px; color:#ffffff; margin-right:20px; vertical-align:middle; }
+  .qpi { width:32px; height:32px; margin-right:18px; border-radius:6px; vertical-align:middle; cursor:pointer; background:#15192b; }
+  #acctpill { position:absolute; right:0; top:0; width:214px; height:50px; border-radius:12px; background:#2f6bff; cursor:pointer; overflow:hidden; }
+  #acctimg { position:absolute; left:8px; top:8px; border-radius:6px; background:#1d3f99; }
+  #acctsmall { position:absolute; left:52px; top:7px; font-size:10px; color:#cfe0ff; font-style:italic; }
+  #wname { position:absolute; left:52px; top:20px; font-size:15px; font-weight:800; color:#ffffff; letter-spacing:0.5px; }
+  #promo { left:14px; right:14px; top:68px; height:30px; border-radius:8px; background:#2f6bff; line-height:30px; padding:0 14px; }
+  #promotext { width:640px; text-align:left; }
+  #promox { right:6px; }
+  #hero { left:14px; right:14px; top:106px; width:auto; height:200px; border-radius:14px; }
+  #herotext { display:none; }
+  #herogl1 { position:absolute; right:-40px; bottom:-90px; width:380px; height:260px; border-radius:190px; background:rgba(47,107,255,0.22); }
+  #herogl2 { position:absolute; left:-60px; top:-80px; width:300px; height:200px; border-radius:150px; background:rgba(47,107,255,0.12); }
+  #herobtn { position:absolute; left:50%; top:62px; width:290px; margin-left:-145px; height:68px; border-radius:10px; font-size:24px; font-weight:800; letter-spacing:1px; padding:0; background:#2f6bff; }
+  #herobtn:hover { background:#4f84ff; }
+  #herorty { display:block; font-size:10px; font-weight:600; letter-spacing:1.5px; color:#cfe0ff; margin-top:-2px; }
+  #herosub { position:absolute; left:0; right:0; top:140px; text-align:center; font-size:12px; color:#9fb3d9; }
+  #herosub #herotitle { font-size:12px; line-height:16px; color:#ffffff; letter-spacing:0; font-weight:700; }
+  #heroalt { position:absolute; left:0; right:0; top:164px; text-align:center; height:auto; padding:0; background:none; font-size:12px; color:#6f8cd1; cursor:pointer; }
+  #heroalt:hover { color:#ffffff; }
+  #hnewshead { left:14px; top:322px; font-size:15px; font-weight:800; letter-spacing:0; color:#ffffff; }
+  #hnews { left:14px; right:auto; width:650px; top:352px; }
+  .ncard { width:292px; height:150px; margin-right:14px; float:left; padding:18px 20px; border-radius:14px; background:rgba(14,18,30,0.92); }
+  .ncard .ntitle { font-size:19px; }
+  #hsrv { right:14px; top:322px; width:256px; height:262px; border:0; background:transparent; padding:0; }
+  #hsrvh { font-size:15px; font-weight:800; letter-spacing:0; color:#ffffff; margin-bottom:12px; }
+  .hs { height:44px; margin-bottom:6px; padding:6px 8px; background:transparent; }
+  .hs img { width:32px; height:32px; }
 </style>
 <script language="JScript">
 // Reads the official Minecraft launcher's saved account list on this PC.
@@ -997,7 +1028,7 @@ var DEFAULT_NEWS = {
 function esc(t) { return String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
 function renderNews(data) {
   var box = $("hnews"), i, n = data.news || [], html = "";
-  for (i = 0; i < n.length && i < 3; i++)
+  for (i = 0; i < n.length && i < 2; i++)
     html += '<div class="ncard"><span class="vt hot">' + esc(n[i].tag || "News") + '</span><div class="ntitle">' + esc(n[i].title || "") + '</div><div class="ntext">' + esc(n[i].text || "") + '</div></div>';
   box.innerHTML = html;
   var p = data.promo || {};
@@ -1018,6 +1049,9 @@ function renderHomeServers() {
   for (i = 0; i < l.length && i < 4; i++)
     h += '<div class="hs" onclick="joinServer(' + i + ')"><img src="https://api.mcsrvstat.us/icon/' + encodeURIComponent(l[i][1]) + '" /><i>JOIN</i><b>' + esc(l[i][0]) + '</b><span>' + esc(l[i][1]) + '</span></div>';
   $("hsrvlist").innerHTML = h;
+  var q = "";
+  for (i = 0; i < l.length && i < 7; i++) q += '<img class="qpi" title="' + esc(l[i][0]) + '" onclick="joinServer(' + i + ')" src="https://api.mcsrvstat.us/icon/' + encodeURIComponent(l[i][1]) + '" />';
+  $("qplist").innerHTML = q;
 }
 function renderHome() {
   try {
@@ -1026,6 +1060,8 @@ function renderHome() {
     $("hname").innerText = (name && name != "No account") ? "signed in as " + name : "not signed in";
     $("herodesc").innerText = v ? (miniFor(v) ? "Fabric with the Mini Client mod, Sodium and your settings. One click and you are in game." : "Your last version is ready. One click and you are in game.") : "Loading your versions...";
     $("wname").innerText = (name && name != "No account") ? name : "player";
+    $("herobtn").innerHTML = "LAUNCH " + (v || "") + '<span id="herorty">READY TO LAUNCH</span>';
+    try { var an = (name && name != "No account") ? name : ""; if (an) $("acctimg").src = "https://mc-heads.net/avatar/" + encodeURIComponent(an) + "/34"; } catch (e1) {}
     renderHomeServers();
     var hero = $("hero");
     hero.style.backgroundImage = "url(" + BG_DATA + ")";
@@ -1497,7 +1533,7 @@ function watchWindow(id) {
 
 // ---------- self-update ----------
 // The client can replace itself with a newer copy from a web address you set in Settings.
-var APP_VERSION = 42;
+var APP_VERSION = 43;
 
 // ---------- drag the borderless window by its title bar ----------
 var dragOn = false, dragDX = 0, dragDY = 0;
@@ -2007,28 +2043,26 @@ window.onresize = function () { try { buildScene(); } catch (e) {} };
 
     <!-- HOME -->
     <div class="page" id="page_home" style="display:block">
-      <div id="hhead">
-        <div id="ptitle">Welcome back, <span id="wname">player</span></div>
-        <div id="psub">Minecraft: Java Edition &nbsp;&middot;&nbsp; <span id="hname">not signed in</span></div>
+      <div id="topbar">
+        <div id="qp"><span id="qplabel">QUICK PLAY</span><span id="qplist"></span></div>
+        <div id="acctpill" onclick="show('account')"><img id="acctimg" width="34" height="34" /><span id="acctsmall">Playing as</span><b id="wname">player</b></div>
       </div>
-      <div id="hero">
-        <div id="herofade"></div>
-        <div id="herotext">
-          <div class="pill" id="herotag">Ready to play</div>
-          <div id="herotitle">Minecraft</div>
-          <div id="herodesc">Your last version is ready. One click and you are in game.</div>
-          <button id="herobtn" onclick="play()">LAUNCH GAME</button>
-          <button class="btn" id="heroalt" onclick="show('play')">Choose a version</button>
-        </div>
-      </div>
-      <div id="hsrv"><div id="hsrvh">SERVERS</div><div id="hsrvlist"></div></div>
-      <div id="hnewshead">LATEST NEWS</div>
-      <div id="hnews"></div>
       <div id="promo"><div id="promox" onclick="$('promo').style.display='none'">&times;</div>
         <span id="promobadge" class="pill">NEW</span>
         <div id="promotext"><b id="promotitle"></b><span id="promodesc"></span></div>
         <button class="btn small" id="promobtn" onclick="openPromo()">Open</button>
       </div>
+      <div id="hero">
+        <div id="herofade"></div>
+        <div id="herogl1"></div><div id="herogl2"></div>
+        <button id="herobtn" onclick="play()">LAUNCH</button>
+        <div id="herosub"><span id="herotitle">Minecraft</span> <span id="herodesc"></span></div>
+        <div id="heroalt" onclick="show('play')">Choose a version</div>
+        <div id="hhead" style="display:none"><span id="ptitle"></span><span id="psub"></span><span id="hname"></span><span id="herotag"></span></div>
+      </div>
+      <div id="hnewshead">LATEST NEWS</div>
+      <div id="hnews"></div>
+      <div id="hsrv"><div id="hsrvh">SERVERS</div><div id="hsrvlist"></div></div>
     </div>
 
     <!-- SERVERS -->
