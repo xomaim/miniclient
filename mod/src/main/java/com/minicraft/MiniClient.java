@@ -45,9 +45,9 @@ public class MiniClient implements ClientModInitializer {
 		ScreenEvents.AFTER_INIT.register((client, screen, w, h) -> {
 			if (screen instanceof PauseScreen) {
 				ScreenEvents.beforeRender(screen).register((sc, g, mx, my, dt) -> {
-					g.fillGradient(0, 0, sc.width, sc.height, 0xE0050509, 0xE00A1230);
-					g.fill(0, sc.height / 2 - 70, 3, sc.height / 2 + 70, 0xFF4F84FF);
-					g.drawCenteredString(client.font, "MINICRAFT", sc.width / 2, 14, 0xFF4F84FF);
+					g.fillGradient(0, 0, sc.width, sc.height, 0xE0070707, 0xE01C1C1C);
+					g.fill(0, sc.height / 2 - 70, 3, sc.height / 2 + 70, 0xFFEBEBEB);
+					g.drawCenteredString(client.font, "MINICRAFT", sc.width / 2, 14, 0xFFEBEBEB);
 				});
 				Screens.getButtons(screen).add(
 					Button.builder(Component.literal("Mini Client"), b -> client.setScreen(new MiniSettingsScreen(screen)))

@@ -30,7 +30,7 @@ public class MiniTitleScreen extends Screen {
 			px[i] = r.nextFloat();
 			py[i] = r.nextFloat();
 			ps[i] = 0.012f + r.nextFloat() * 0.03f;
-			pc[i] = (i % 3 == 0) ? 0xB0FFFFFF : ((i % 3 == 1) ? 0xB0B3CAFF : 0xB04F84FF);
+			pc[i] = (i % 3 == 0) ? 0xB0FFFFFF : ((i % 3 == 1) ? 0xB0EBEBEB : 0xB0EBEBEB);
 		}
 	}
 
@@ -80,8 +80,8 @@ public class MiniTitleScreen extends Screen {
 
 	@Override
 	public void renderBackground(GuiGraphics g, int mouseX, int mouseY, float delta) {
-		g.fillGradient(0, 0, this.width, this.height, 0xFF081426, 0xFF0B2036);
-		g.fillGradient(0, this.height / 2, this.width, this.height, 0x00102A4A, 0x40102A4A);
+		g.fillGradient(0, 0, this.width, this.height, 0xFF161616, 0xFF1F1F1F);
+		g.fillGradient(0, this.height / 2, this.width, this.height, 0x002B2B2B, 0x402B2B2B);
 		long t = System.currentTimeMillis();
 		for (int i = 0; i < PETALS; i++) {
 			float yy = (py[i] + (t % 1000000L) / 1000f * ps[i] * 0.4f) % 1f;
@@ -115,7 +115,7 @@ public class MiniTitleScreen extends Screen {
 		int cx = (int) (this.width * 0.36);
 		int top = this.height / 2 - 100;
 		star(g, cx, top + 22, 20, 0xFFFFFFFF);
-		star(g, cx, top + 22, 9, 0xFF4F84FF);
+		star(g, cx, top + 22, 9, 0xFFEBEBEB);
 
 		float s = 2.4f;
 		String word = "MINICRAFT";
