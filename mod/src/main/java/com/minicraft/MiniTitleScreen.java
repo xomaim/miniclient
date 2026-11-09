@@ -70,12 +70,7 @@ public class MiniTitleScreen extends Screen {
 			ServerData hd = new ServerData("Hypixel", "mc.hypixel.net", ServerData.Type.OTHER);
 			ConnectScreen.startConnecting(this, mc, ServerAddress.parseString(hd.ip), hd, false, null);
 		}));
-		if (MiniClient.capeBtn != null) {
-			final Button cb = MiniClient.capeBtn;
-			addRenderableWidget(new GlassButton(rx, ry + 78, 190, 22, "Wardrobe", () -> cb.mouseClicked(cb.getX() + 2, cb.getY() + 2, 0)));
-		} else {
-			addRenderableWidget(new GlassButton(rx, ry + 78, 190, 22, "Mini Client settings", () -> mc.setScreen(new MiniSettingsScreen(this))));
-		}
+		addRenderableWidget(new GlassButton(rx, ry + 78, 190, 22, "Mini Client settings", () -> mc.setScreen(new MiniSettingsScreen(this))));
 	}
 
 	@Override

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta http-equiv="x-ua-compatible" content="ie=9">
+<meta http-equiv="x-ua-compatible" content="ie=edge">
 <title>Mini Client</title>
 <hta:application id="app" applicationname="MiniClient14" border="none" caption="no"
   scroll="no" singleinstance="no" sysmenu="no" minimizebutton="no" maximizebutton="no" showintaskbar="yes" />
@@ -315,6 +315,27 @@
   #herorty, #acctsmall, #promobadge, #promodesc, #promotext b, #promotext { color:#2a2a2d; }
   #promo, #acctpill { background:#f2f2f2; }
   #promox { color:#0a0a0a; }
+  /* ---------- v45 Lunar launchpad layout ---------- */
+  #hwelcome { position:absolute; left:20px; top:14px; font-size:15px; color:#d8d8dc; }
+  #hwelcome #wname { position:static; display:inline; font-size:15px; font-weight:800; color:#ffffff; letter-spacing:0; }
+  #wcaret { color:#a8a8ad; cursor:pointer; margin-left:4px; }
+  #hero { left:14px; top:46px; right:auto; width:600px; height:232px; border-radius:14px; border:1px solid rgba(255,255,255,0.10); }
+  #herobtn { top:76px; width:300px; margin-left:-150px; height:62px; font-size:22px; }
+  #herosub { top:150px; } #heroalt { top:176px; }
+  #qpbar { position:absolute; left:14px; top:288px; width:600px; height:48px; border-radius:12px; background:rgba(16,16,18,0.92); border:1px solid rgba(255,255,255,0.08); padding:8px 16px; overflow:hidden; white-space:nowrap; }
+  #qpbar .qpi { width:30px; height:30px; margin-right:26px; }
+  #hnewshead { left:20px; top:350px; font-size:14px; font-weight:800; }
+  #hnews { left:14px; top:378px; width:650px; }
+  .ncard { width:292px; height:140px; }
+  #hsrv { left:630px; right:auto; top:46px; width:292px; height:372px; border-radius:14px; background:rgba(16,16,18,0.92); border:1px solid rgba(255,255,255,0.08); padding:16px 14px; }
+  #hsrvh { font-size:15px; font-weight:800; color:#ffffff; margin-bottom:12px; }
+  #promo { left:630px; right:auto; top:430px; width:292px; height:120px; border-radius:14px; background:rgba(16,16,18,0.92); border:1px solid rgba(255,255,255,0.08); padding:14px; line-height:1.4; }
+  #promo > * { display:block; }
+  #promotext { width:auto; white-space:normal; margin:8px 0; color:#ffffff; } #promotext b { color:#ffffff; display:block; }
+  #promodesc { color:#a8a8ad; }
+  #promobadge { display:inline-block; background:rgba(255,255,255,0.14); color:#ffffff; }
+  #promobtn { float:none; margin:0; background:#f2f2f2; color:#0a0a0a; height:30px; }
+  #promox { right:10px; top:6px; color:#a8a8ad; }
 </style>
 <script language="JScript">
 // Reads the official Minecraft launcher's saved account list on this PC.
@@ -605,14 +626,12 @@ function checkAccount() {
   $("avatar").innerText = "?";
   $("email").innerText = "";
 
-  listFolder();
-  scanFile(mcDir + "\\launcher_accounts_microsoft_store.json");
-  scanFile(mcDir + "\\launcher_accounts.json");
-  checkOwnership();
+  mcName = ""; mcToken = ""; skinName = "";
 
   if (found.length == 0) {
     renderBadge();
-    setStatus("No Minecraft account found. Open the Log page and send it to Claude.", true);
+    try { renderHome(); renderSelected(); } catch (e0) {}
+    setStatus("Sign in with Microsoft to play.");
     return;
   }
   var activeIndex = 0, seen = {}, uniq = [];
@@ -683,7 +702,7 @@ function startLogin() {
     setStatus("Sign in with your Microsoft account in the window.");
     if (wbTimer) clearInterval(wbTimer);
     wbTimer = setInterval(checkWb, 400);
-  } catch (e) { closeLogin(); log("Popup sign-in unavailable: " + e.message); startCodeLogin(); }
+  } catch (e) { closeLogin(); log("Popup sign-in unavailable: " + e.message); setStatus("The sign-in window could not open. Open the Log page for details.", true); }
 }
 function checkWb() {
   try {
@@ -698,7 +717,7 @@ function checkWb() {
       form({ grant_type: "authorization_code", client_id: CLIENT_ID, code: decodeURIComponent(m[1]), redirect_uri: REDIRECT,
              code_verifier: wbVerifier, scope: "XboxLive.signin offline_access" }));
     if (r.status == 200) afterMsToken(r.json);
-    else { log("Popup token error: " + String(r.text).substring(0, 300)); setStatus("Popup sign-in was refused. Using the code sign-in instead.", true); startCodeLogin(); }
+    else { log("Popup token error: " + String(r.text).substring(0, 300)); setStatus("Microsoft refused the sign-in. Open the Log page for details.", true); }
   } catch (e) {}
 }
 function closeWelcome() { try { $("welcome").style.display = "none"; } catch (e) {} }
@@ -815,8 +834,9 @@ function afterMsToken(t) {
   }
 }
 function signOut() {
-  cfg.refreshToken = ""; saveCfg(); verified = false;
+  cfg.refreshToken = ""; saveCfg(); verified = false; ownsGame = null;
   checkAccount();
+  try { $("welcome").style.display = "block"; } catch (e0) {}
   setStatus("Signed out of Microsoft on this client.");
 }
 
@@ -1072,11 +1092,11 @@ function loadNews() {
 function openPromo() { if (promoUrl) { try { sh.Run('"' + promoUrl + '"', 1, false); } catch (e) {} } }
 function renderHomeServers() {
   var l = getServers(), h = "", i;
-  for (i = 0; i < l.length && i < 4; i++)
+  for (i = 0; i < l.length && i < 6; i++)
     h += '<div class="hs" onclick="joinServer(' + i + ')"><img src="https://api.mcsrvstat.us/icon/' + encodeURIComponent(l[i][1]) + '" /><i>JOIN</i><b>' + esc(l[i][0]) + '</b><span>' + esc(l[i][1]) + '</span></div>';
   $("hsrvlist").innerHTML = h;
   var q = "";
-  for (i = 0; i < l.length && i < 7; i++) q += '<img class="qpi" title="' + esc(l[i][0]) + '" onclick="joinServer(' + i + ')" src="https://api.mcsrvstat.us/icon/' + encodeURIComponent(l[i][1]) + '" />';
+  for (i = 0; i < l.length && i < 9; i++) q += '<img class="qpi" title="' + esc(l[i][0]) + '" onclick="joinServer(' + i + ')" src="https://api.mcsrvstat.us/icon/' + encodeURIComponent(l[i][1]) + '" />';
   $("qplist").innerHTML = q;
 }
 function renderHome() {
@@ -1084,7 +1104,7 @@ function renderHome() {
     var v = $("versions").value || "", name = $("who").innerText;
     $("herotitle").innerText = v ? "Minecraft " + v : "Minecraft";
     $("hname").innerText = (name && name != "No account") ? "signed in as " + name : "not signed in";
-    $("herodesc").innerText = v ? (miniFor(v) ? "Fabric with the Mini Client mod, Sodium and your settings. One click and you are in game." : "Your last version is ready. One click and you are in game.") : "Loading your versions...";
+    $("herodesc").innerText = v ? (miniFor(v) ? "Mini Client with your settings. One click and you are in game." : "Your last version is ready. One click and you are in game.") : "Loading your versions...";
     $("wname").innerText = (name && name != "No account") ? name : "player";
     $("herobtn").innerHTML = "LAUNCH " + (v || "") + '<span id="herorty">READY TO LAUNCH</span>';
     try { var an = (name && name != "No account") ? name : ""; if (an) $("acctimg").src = "https://mc-heads.net/avatar/" + encodeURIComponent(an) + "/34"; } catch (e1) {}
@@ -1136,7 +1156,7 @@ function renderCards() {
       d.style.cssText = artStyle(i, 260 + (i % 3) * 40);
       d.setAttribute("data-v", ids[i]);
       d.onclick = (function (id) { return function () { pickVersion(id); }; })(ids[i]);
-      d.innerHTML = '<div class="vtag">' + (isModVer(ids[i]) ? "Fabric" : "Vanilla") + '</div><div class="vband"></div><div class="vname">' + ids[i] + '</div><div class="vsub">' + (isModVer(ids[i]) ? "Mods ready" : "Plain game") + '</div>';
+      d.innerHTML = '<div class="vtag">' + (isModVer(ids[i]) ? "Mods" : "Vanilla") + '</div><div class="vband"></div><div class="vname">' + ids[i] + '</div><div class="vsub">' + (isModVer(ids[i]) ? "Mods ready" : "Plain game") + '</div>';
       box.appendChild(d);
     }
     setTimeout(fillThumbs, 60);
@@ -1152,11 +1172,11 @@ function renderSelected() {
     if (skinName) { var u = "https://mc-heads.net/body/" + encodeURIComponent(skinName) + "/160"; if (sk.getAttribute("data-u") != u) { sk.setAttribute("data-u", u); sk.src = u; } sk.style.display = "block"; }
     else sk.style.display = "none";
     var mod = isModVer(v);
-    tags += '<span class="vt hot">' + (mod ? "Fabric" : "Vanilla") + '</span>';
-    if (mod && cfgBool("builtinOn", false)) tags += (miniFor(v) ? '<span class="vt">Mini Client</span>' : '<span class="vt">HUD+</span>') + '<span class="vt">Sodium</span>';
-    if (cfgBool("capeOn", false) && CAPE_VERSIONS.indexOf("," + v + ",") >= 0) tags += '<span class="vt">Capes</span>';
+    tags += '<span class="vt hot">' + (mod ? "Mods" : "Vanilla") + '</span>';
+    if (mod && cfgBool("builtinOn", true)) tags += '<span class="vt">Mini Client</span>';
+    if (cfgBool("capeOn", true) && CAPE_VERSIONS.indexOf("," + v + ",") >= 0) tags += '<span class="vt">Capes</span>';
     $("vtags").innerHTML = tags;
-    if (mod) desc = cfgBool("builtinOn", false) ? (miniFor(v) ? "Fabric with the Mini Client mod. In game, press Esc and click Mini Client to change the FPS and CPS bar and the menu style." : "Fabric with your built-in mods. In game, press Right Shift to move the FPS and CPS counters.") : "Built-in mods are off. Turn them on in Settings to get FPS and CPS counters.";
+    if (mod) desc = cfgBool("builtinOn", true) ? (miniFor(v) ? "Fabric with the Mini Client mod. In game, press Esc and click Mini Client to change the FPS and CPS bar and the menu style." : "Fabric with your built-in mods. In game, press Right Shift to move the FPS and CPS counters.") : "Built-in mods are off. Turn them on in Settings to get FPS and CPS counters.";
     else desc = "Plain Minecraft. The built-in mods need a 1.21 version.";
     $("vdesc").innerText = desc;
     $("vram").innerText = (cfg.ram || "2") + " GB";
@@ -1463,7 +1483,7 @@ function launchGame() {
     natives_directory: fwd(gameDir + "\\versions\\" + c.id + "\\natives"),
     launcher_name: "MiniClient", launcher_version: "1.0", classpath: cpf.join(";")
   };
-  if (cfgBool("capeOn", false)) ensureBuiltinCape();
+  if (cfgBool("capeOn", true)) ensureBuiltinCape();
   applyPack();
   applyFpsOptions();
   syncBuiltinMods(c.addMods || []);
@@ -1493,7 +1513,7 @@ function launchGame() {
   $("playbtn").disabled = false; $("herobtn").disabled = false;
   var nMods = (c.addMods && c.addMods.length) ? c.addMods.length : 0;
   var skip = (c.skipped && c.skipped.length) ? " Skipped (not out for this version): " + c.skipped.join(", ") + "." : "";
-  var hints = (cfgBool("builtinOn", false) ? " Right Shift opens the HUD editor." : "") + (cfgBool("capeOn", false) ? " Press Change Cape on the main menu." : "");
+  var hints = (cfgBool("builtinOn", true) ? " Right Shift opens the HUD editor." : "") + (cfgBool("capeOn", true) ? " Press Change Cape on the main menu." : "");
   if (nMods) setStatus("Minecraft " + c.id + " is starting with " + nMods + " mods." + hints + skip);
   else if (useFabric()) {
     setStatus("Minecraft " + c.id + " started WITHOUT mods: " + (c.modsNote || "none are available for this version") + ". Try another version.", true);
@@ -1559,7 +1579,7 @@ function watchWindow(id) {
 
 // ---------- self-update ----------
 // The client can replace itself with a newer copy from a web address you set in Settings.
-var APP_VERSION = 45;
+var APP_VERSION = 46;
 
 // ---------- drag the borderless window by its title bar ----------
 var dragOn = false, dragDX = 0, dragDY = 0;
@@ -1628,11 +1648,11 @@ function applySettingsToUI() {
   $("s_ram").value = String(cfg.ram || "2");
   $("s_size").value = cfg.size || "default";
   $("s_full").checked = cfgBool("fullscreen", false);
-  $("s_mods").checked = cfgBool("builtinOn", false);
+  $("s_mods").checked = cfgBool("builtinOn", true);
   $("s_hud").checked = cfgBool("bmHud", true);
   $("s_sodium").checked = cfgBool("bmSodium", true);
   $("s_fps").checked = cfgBool("fpsBoost", true);
-  $("s_cape").checked = cfgBool("capeOn", false);
+  $("s_cape").checked = cfgBool("capeOn", true);
   $("s_pack").checked = cfgBool("packOn", true);
   modsEnabledUI();
   loadCapes();
@@ -1661,11 +1681,11 @@ function saveSettings() {
 // Built-in mods only exist for some Minecraft versions.
 // HUD+ and Sodium: 1.21 to 1.21.11. Client Capes (per its Modrinth page): the versions listed below.
 var CAPE_VERSIONS = ",1.21.7,1.21.5,1.21.4,1.21.1,1.21,1.20.6,1.20.4,1.20.1,";
-function useFabric() { return cfgBool("builtinOn", false) || cfgBool("capeOn", false); }
+function useFabric() { return cfgBool("builtinOn", true) || cfgBool("capeOn", true); }
 function modVersionOk(v) {
   v = String(v);
-  if (cfgBool("builtinOn", false) && !/^1\.21(\.\d+)?$/.test(v)) return false;
-  if (cfgBool("capeOn", false) && CAPE_VERSIONS.indexOf("," + v + ",") < 0) return false;
+  if (cfgBool("builtinOn", true) && !/^1\.21(\.\d+)?$/.test(v)) return false;
+  if (cfgBool("capeOn", true) && CAPE_VERSIONS.indexOf("," + v + ",") < 0) return false;
   return true;
 }
 function preferModVersion() {
@@ -1694,12 +1714,12 @@ function modsEnabledUI() {
 }
 function modSig() {
   if (!useFabric()) return "v";
-  var b = cfgBool("builtinOn", false);
-  return "m5" + (b && cfgBool("bmHud", true) ? "h" : "") + (b && cfgBool("bmSodium", true) ? "s" : "") + (cfgBool("capeOn", false) ? "c" : "");
+  var b = cfgBool("builtinOn", true);
+  return "m5" + (b && cfgBool("bmHud", true) ? "h" : "") + (b && cfgBool("bmSodium", true) ? "s" : "") + (cfgBool("capeOn", true) ? "c" : "");
 }
 // Our own in-game mod (built by GitHub from the "mod" folder of the repository). Only made for Minecraft 1.21.7 so far.
 var MINI_REPO = "xomaim/miniclient";
-function miniFor(id) { return cfgBool("builtinOn", false) && String(id) == "1.21.7"; }
+function miniFor(id) { return cfgBool("builtinOn", true) && String(id) == "1.21.7"; }
 function miniModFile() {
   var url = "https://github.com/" + MINI_REPO + "/releases/download/latest/miniclient-mod.jar", stamp = "latest", size = 0;
   try {
@@ -1713,24 +1733,24 @@ function miniModFile() {
   return { url: url, name: "miniclient-mod-" + stamp + ".jar", size: size, version: stamp };
 }
 function wantedMods(id) {
-  var out = [{ slug: "fabric-api", label: "Fabric API" }];
-  if (cfgBool("builtinOn", false)) {
+  var out = [{ slug: "fabric-api", label: "Mini Client" }];
+  if (cfgBool("builtinOn", true)) {
     if (miniFor(id)) out.push({ slug: "@mini", label: "Mini Client" });
-    else if (cfgBool("bmHud", true)) out.push({ slug: "hud-plus", label: "HUD+" });
-    if (cfgBool("bmSodium", true)) out.push({ slug: "sodium", label: "Sodium" });
+    else if (cfgBool("bmHud", true)) out.push({ slug: "hud-plus", label: "Mini Client" });
+    if (cfgBool("bmSodium", true)) out.push({ slug: "sodium", label: "Mini Client" });
     if (cfgBool("fpsBoost", true)) {
-      out.push({ slug: "lithium", label: "Lithium" });
-      out.push({ slug: "ferrite-core", label: "FerriteCore" });
-      out.push({ slug: "entityculling", label: "Entity Culling" });
-      out.push({ slug: "immediatelyfast", label: "ImmediatelyFast" });
+      out.push({ slug: "lithium", label: "Mini Client" });
+      out.push({ slug: "ferrite-core", label: "Mini Client" });
+      out.push({ slug: "entityculling", label: "Mini Client" });
+      out.push({ slug: "immediatelyfast", label: "Mini Client" });
     }
   }
-  if (cfgBool("capeOn", false)) out.push({ slug: "client-capes", label: "Client Capes" });
+  if (cfgBool("capeOn", true)) out.push({ slug: "client-capes", label: "Mini Client" });
   return out;
 }
 
 // ---------- custom cape: your own PNG files in .minecraft\Capes (shown only to you) ----------
-var CHERRY_CAPE = "iVBORw0KGgoAAAANSUhEUgAAAEAAAAAgCAYAAACinX6EAAABQ0lEQVR42u3WsUsCURzA8e8dQhI0t0m6NQhHUwTNSkNb/QEObaGbcENDmKDbra1u1hiCcyBNcVvgEOUQtLSI6empDfFE4aJFB3/+PvDg947f8n7vvd89CyBFfMoSvTKwWBP2she/ioKutAAmeCxWIhMuM6dIZq1qt9blGtgAfr688NHM/Xx5NqSyoxY9z/FcHM/984qIKYDjufj5Mo7nRiYeV4qyC2CKsGns/xKk9wArRXy6SwyA88wJ9WaD1tstAEd7FwvJn4Qy/wJGvdmg1fZg2Idh/zcG7os3sk/APlsA3D1fRyadHVwB8EIg9wSkE0kmX2HkeGdEOpGU2wTTiSQPnTalXI2gN6aQrVLIVgl6Y0q5mvyn8PZcKziM7SwkPIXdWfzNRHYTBPgIB7OFm3jj3gFm1zuMUEoppZRSSimllDg/FoZ8ftdqmwcAAAAASUVORK5CYII=";
+var CHERRY_CAPE = "iVBORw0KGgoAAAANSUhEUgAAAEAAAAAgCAYAAACinX6EAAABNklEQVR42u2WwamDQBRFz5hPBN0MrqxBSCXCtOFaUkcKSAE2MMXYgjbgIg4Z/2ryEzDwF3GR51wQnnIR7nnPN6osyzgejwsf1DzPii9R8unwAFu8czMAoTDGrBpOpxOSpbTWm3TrWz6DZK374d4Y87ikKlkL/SxrLdZasRCS56DGGKy1q8Z3z8UAkBzy3wDWJH0HKK31cjgcAKiqir7vOZ/PAFwulxfz/X6XeQoE9X1P27Z47/He07YtAHVdy56ANE0BaJpm1XS9XgG43W7iJuAnFEVRvA04zzNlWTIMg8wlWBQF4zhircU5R9d1dF2Hc078yaC01otSf9Oa5/mLYZqmR70si+wlGMY9BA/17v4DQtedc+IBqCzL2LMSdq4IIAKIACKACCACiAAigAggAogAIoBd6hf0V3iEHt9/IQAAAABJRU5ErkJggg==";
 function applyFpsOptions() {
   try {
     if (!cfgBool("fpsBoost", true)) return;
@@ -1751,14 +1771,14 @@ function applyFpsOptions() {
 }
 function ensureBuiltinCape() {
   try {
-    var dir = gameDir + "\\Capes", dest = dir + "\\Minicraft Cherry.png";
+    var dir = gameDir + "\\Capes", dest = dir + "\\Mini Client.png";
     if (fso.FileExists(dest)) return;
     mkdirs(dir); mkdirs(cfgDir);
     var tmp = cfgDir + "\\cape.b64";
     var f = fso.CreateTextFile(tmp, true, false); f.Write(CHERRY_CAPE); f.Close();
     sh.Run('cmd /c certutil -f -decode "' + tmp + '" "' + dest + '" >nul 2>&1', 0, true);
     try { fso.DeleteFile(tmp); } catch (e0) {}
-    log(fso.FileExists(dest) ? "Added the built-in Minicraft Cherry cape." : "Could not add the built-in cape.");
+    log(fso.FileExists(dest) ? "Added the built-in cape." : "Could not add the built-in cape.");
   } catch (e) { log("Built-in cape failed: " + e.message); }
 }
 function loadCapes() {
@@ -1952,7 +1972,12 @@ function loadMods() {
   var vid = "";
   try { vid = $("versions").value; } catch (e) {}
   var items = jarsIn(gameDir + "\\mods", false);
-  for (var k = 0; k < items.length; k++) items[k].builtin = /^minicraft-/i.test(fso.GetFileName(items[k].path));
+  var own = [];
+  for (var k = 0; k < items.length; k++) {
+    if (/^minicraft-|fabric-api|sodium|lithium|ferrite|entityculling|immediatelyfast|hud-plus|clientcapes|client-capes|capes/i.test(fso.GetFileName(items[k].path))) continue;
+    items[k].builtin = false; own.push(items[k]);
+  }
+  items = own;
   items.sort(function (a, b) { return (b.builtin ? 1 : 0) - (a.builtin ? 1 : 0); });
   $("modCount").innerText = items.length ? items.length + " mod" + (items.length == 1 ? "" : "s") : "";
   var box = $("modList");
@@ -2047,9 +2072,9 @@ window.onresize = function () { try { buildScene(); } catch (e) {} };
     <div id="wpanel">
       <img id="wlogo" src="data:image/png;base64,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" width="56" height="56" />
       <span id="wclose" onclick="closeWelcome()">&times;</span>
-      <div class="wf"><b>Boosted Frames</b><span>Tuned Java flags, Sodium and friends for best-in-class FPS on any hardware.</span></div>
-      <div class="wf"><b>Capes &amp; Cosmetics</b><span>Add your own cape and pick it in game from the Wardrobe button.</span></div>
-      <div class="wf"><b>Countless Mods</b><span>Mini Client HUD, Sodium, Lithium and your own Fabric mods in one easy list.</span></div>
+      <div class="wf"><b>Boosted Frames</b><span>Built-in performance tuning for best-in-class FPS on any hardware.</span></div>
+      <div class="wf"><b>Capes &amp; Cosmetics</b><span>Your Mini Client cape is built in and ready in game.</span></div>
+      <div class="wf"><b>Countless Mods</b><span>The Mini Client HUD and your own mods in one easy list.</span></div>
       <div class="wf"><b>Multi Version</b><span>Play 1.21.x with mods, plus any other Java version, all from one place.</span></div>
       <button id="wlogin" onclick="closeWelcome(); startLogin()">Login with Microsoft Account</button>
       <button id="wguest" onclick="closeWelcome()">Continue as Guest</button>
@@ -2057,7 +2082,7 @@ window.onresize = function () { try { buildScene(); } catch (e) {} };
     </div>
   </div>
   <div id="loginov" style="display:none;position:absolute;left:0;top:0;right:0;bottom:0;z-index:50;background:rgba(0,0,0,0.72);">
-    <div id="logwin"><div id="logbar">Sign in with Microsoft<span id="logx" onclick="closeLogin()">&times;</span><span id="logcode" onclick="codeInstead()">Use a code instead</span></div><div id="wbhost"></div></div>
+    <div id="logwin"><div id="logbar">Sign in with Microsoft<span id="logx" onclick="closeLogin()">&times;</span></div><div id="wbhost"></div></div>
   </div>
 
   <div id="updglobal" style="display:none;position:absolute;right:60px;top:2px;z-index:30;background:#ebebeb;color:#ffffff;border-radius:14px;padding:4px 6px 4px 14px;font-size:12px;font-weight:700;"><span id="updglobaltext"></span> <button class="btn small" style="margin:0 0 0 8px;height:22px;padding:0 12px;" onclick="applyUpdate()">Update now</button></div>
@@ -2071,10 +2096,10 @@ window.onresize = function () { try { buildScene(); } catch (e) {} };
 
     <div id="side">
       <div id="slogo"><img src="data:image/png;base64,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" /></div>
-      <div class="sn on" id="nav_home" onclick="show('home')" title="Launch"><svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="11" rx="5"/><line x1="7" y1="10.5" x2="7" y2="14.5"/><line x1="5" y1="12.5" x2="9" y2="12.5"/><circle cx="16" cy="11.5" r="0.8"/><circle cx="18.2" cy="13.5" r="0.8"/></svg><span>Home</span></div>
-      <div class="sn" id="nav_play" onclick="show('play')" title="Versions"><svg viewBox="0 0 24 24"><path d="M9 3h4v3a2 2 0 1 0 4 0V3h3v6h-3a2 2 0 1 0 0 4h3v8H4v-6h3a2 2 0 1 0 0-4H4V3z"/></svg><span>Versions</span></div>
+      <div class="sn on" id="nav_home" onclick="show('home')" title="Launch"><svg viewBox="0 0 24 24"><path d="M12 2c3 2 5 6 5 10l-2 3H9l-2-3c0-4 2-8 5-10z"/><circle cx="12" cy="9" r="1.6"/><path d="M7 13l-3 3v3l4-2M17 13l3 3v3l-4-2"/><path d="M10 18l2 4 2-4"/></svg><span>Home</span></div>
+      <div class="sn" id="nav_play" onclick="show('play')" title="Versions"><svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="11" rx="5"/><line x1="7" y1="10.5" x2="7" y2="14.5"/><line x1="5" y1="12.5" x2="9" y2="12.5"/><circle cx="16" cy="11.5" r="0.8"/><circle cx="18.2" cy="13.5" r="0.8"/></svg><span>Versions</span></div>
       <div class="sn" id="nav_servers" onclick="show('servers')" title="Servers"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/><line x1="3" y1="12" x2="21" y2="12"/></svg><span>Servers</span></div>
-      <div class="sn" id="nav_mods" onclick="show('mods')" title="Mods"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="15" height="16" rx="2"/><path d="M18 8h3v10a2 2 0 0 1-2 2"/><line x1="7" y1="9" x2="14" y2="9"/><line x1="7" y1="13" x2="14" y2="13"/><line x1="7" y1="16.5" x2="11" y2="16.5"/></svg><span>Mods</span></div>
+      <div class="sn" id="nav_mods" onclick="show('mods')" title="Mods"><svg viewBox="0 0 24 24"><path d="M9 3h4v3a2 2 0 1 0 4 0V3h3v6h-3a2 2 0 1 0 0 4h3v8H4v-6h3a2 2 0 1 0 0-4H4V3z"/></svg><span>Mods</span></div>
       <div class="sn" id="nav_saves" onclick="show('saves')"><svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg><span>Saves</span></div>
       <div class="sn" id="nav_account" onclick="show('account')"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Account</span></div>
       <div class="sn" id="nav_settings" onclick="show('settings')" title="Settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg><span>Settings</span></div>
@@ -2084,15 +2109,8 @@ window.onresize = function () { try { buildScene(); } catch (e) {} };
 
     <!-- HOME -->
     <div class="page" id="page_home" style="display:block">
-      <div id="topbar">
-        <div id="qp"><span id="qplabel">QUICK PLAY</span><span id="qplist"></span></div>
-        <div id="acctpill" onclick="show('account')"><img id="acctimg" width="34" height="34" /><span id="acctsmall">Playing as</span><b id="wname">player</b></div>
-      </div>
-      <div id="promo"><div id="promox" onclick="$('promo').style.display='none'">&times;</div>
-        <span id="promobadge" class="pill">NEW</span>
-        <div id="promotext"><b id="promotitle"></b><span id="promodesc"></span></div>
-        <button class="btn small" id="promobtn" onclick="openPromo()">Open</button>
-      </div>
+      <div id="hwelcome">Welcome Back, <span id="wname">player</span> <span id="wcaret" onclick="show('account')">&#9662;</span></div>
+      <div id="topbar" style="display:none"><span id="qplabel"></span><span id="qp"></span><div id="acctpill"><img id="acctimg" /><span id="acctsmall"></span></div></div>
       <div id="hero">
         <div id="herofade"></div>
         <div id="herogl1"></div><div id="herogl2"></div>
@@ -2101,9 +2119,15 @@ window.onresize = function () { try { buildScene(); } catch (e) {} };
         <div id="heroalt" onclick="show('play')">Choose a version</div>
         <div id="hhead" style="display:none"><span id="ptitle"></span><span id="psub"></span><span id="hname"></span><span id="herotag"></span></div>
       </div>
-      <div id="hnewshead">LATEST NEWS</div>
+      <div id="qpbar"><span id="qplist"></span></div>
+      <div id="hnewshead">Latest News</div>
       <div id="hnews"></div>
-      <div id="hsrv"><div id="hsrvh">SERVERS</div><div id="hsrvlist"></div></div>
+      <div id="hsrv"><div id="hsrvh">Servers</div><div id="hsrvlist"></div></div>
+      <div id="promo"><div id="promox" onclick="$('promo').style.display='none'">&times;</div>
+        <span id="promobadge" class="pill">NEW</span>
+        <div id="promotext"><b id="promotitle"></b><span id="promodesc"></span></div>
+        <button class="btn small" id="promobtn" onclick="openPromo()">Open</button>
+      </div>
     </div>
 
     <!-- SERVERS -->
@@ -2133,7 +2157,7 @@ window.onresize = function () { try { buildScene(); } catch (e) {} };
         </div>
       </div>
 
-      <div id="vtabs"><span class="vtab on" id="vt_all" onclick="setVTab('all')">All</span><span class="vtab" id="vt_fab" onclick="setVTab('fab')">Fabric</span><span class="vtab" id="vt_van" onclick="setVTab('van')">Vanilla</span><input type="text" id="vsearch" placeholder="Search versions" onkeyup="renderCards()" /></div>
+      <div id="vtabs"><span class="vtab on" id="vt_all" onclick="setVTab('all')">All</span><span class="vtab" id="vt_fab" onclick="setVTab('fab')">Mods</span><span class="vtab" id="vt_van" onclick="setVTab('van')">Vanilla</span><input type="text" id="vsearch" placeholder="Search versions" onkeyup="renderCards()" /></div>
       <div id="vgrid"></div>
 
       <div class="card" id="vpanel">
@@ -2244,16 +2268,16 @@ window.onresize = function () { try { buildScene(); } catch (e) {} };
         </div>
 
         <div class="card">
-          <div class="label">Built-in mods</div>
-          <div class="srow">
+          <div class="label">Built-in</div>
+          <div class="srow" style="display:none">
             <span class="sname">Use built-in mods<span class="sdesc">Off by default. Turn on to set up Fabric and the mods below (needs Minecraft 1.21 to 1.21.11)</span></span>
             <input type="checkbox" id="s_mods" onclick="saveSettings()" />
           </div>
           <div class="srow">
-            <span class="sname">FPS boost<span class="sdesc">Tuned Java memory flags and low-cost video options. With built-in mods on, also adds Lithium, FerriteCore, Entity Culling and ImmediatelyFast</span></span>
+            <span class="sname">FPS boost<span class="sdesc">Tuned Java memory flags, low-cost video options and built-in performance mods</span></span>
             <input type="checkbox" id="s_fps" onclick="saveSettings()" />
           </div>
-          <div id="modopts">
+          <div id="modopts" style="display:none">
             <div class="srow">
               <span class="sname">HUD+<span class="sdesc">FPS counter, CPS counter, keystrokes, coordinates, armor status</span></span>
               <input type="checkbox" id="s_hud" onclick="saveSettings()" />
@@ -2274,7 +2298,7 @@ window.onresize = function () { try { buildScene(); } catch (e) {} };
           </div>
         </div>
 
-        <div class="card">
+        <div class="card" style="display:none">
           <div class="label">Custom cape</div>
           <div class="srow">
             <span class="sname">Use a custom cape<span class="sdesc">Adds the Client Capes mod. Only you can see your cape, not other players.</span></span>
