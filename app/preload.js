@@ -10,5 +10,9 @@ contextBridge.exposeInMainWorld('mc', {
   updInstall: () => ipcRenderer.invoke('upd-install'),
   onUpd: (cb) => ipcRenderer.on('upd', (e, s) => cb(s)),
   channel: () => ipcRenderer.invoke('channel-get'),
-  setChannel: (c) => ipcRenderer.invoke('channel-set', c)
+  setChannel: (c) => ipcRenderer.invoke('channel-set', c),
+  launch: (server) => ipcRenderer.invoke('launch', server),
+  gameOpts: () => ipcRenderer.invoke('game-opts'),
+  setGameOpts: (o) => ipcRenderer.invoke('game-opts-set', o),
+  onGame: (cb) => ipcRenderer.on('game', (e, s) => cb(s))
 });

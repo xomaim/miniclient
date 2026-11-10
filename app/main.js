@@ -3,9 +3,11 @@ const path = require('path');
 const fs = require('fs');
 const auth = require('./auth');
 const { autoUpdater } = require('electron-updater');
+const { Launcher } = require('./launcher');
 
 let win = null;
 let account = null;   // { name, uuid, token } kept in memory only
+let tokenTime = 0;
 const store = () => path.join(app.getPath('userData'), 'login.bin');
 
 function saveRefresh(t) {
@@ -33,13 +35,13 @@ function createWindow() {
 
 ipcMain.handle('state', () => ({ account: account ? { name: account.name, uuid: account.uuid } : null, version: app.getVersion() }));
 ipcMain.handle('login', async () => {
-  try { account = await auth.signIn(win); saveRefresh(account.refresh); return { ok: true, account: { name: account.name, uuid: account.uuid } }; }
+  try { account = await auth.signIn(win); tokenTime = Date.now(); saveRefresh(account.refresh); return { ok: true, account: { name: account.name, uuid: account.uuid } }; }
   catch (e) { return { ok: false, error: e.message }; }
 });
 ipcMain.handle('silent', async () => {
   const t = loadRefresh();
   if (!t) return { ok: false };
-  try { account = await auth.silent(t); saveRefresh(account.refresh || t); return { ok: true, account: { name: account.name, uuid: account.uuid } }; }
+  try { account = await auth.silent(t); tokenTime = Date.now(); saveRefresh(account.refresh || t); return { ok: true, account: { name: account.name, uuid: account.uuid } }; }
   catch (e) { saveRefresh(''); return { ok: false }; }
 });
 ipcMain.handle('logout', () => { account = null; saveRefresh(''); return { ok: true }; });
@@ -50,6 +52,41 @@ ipcMain.handle('win', (e, what) => {
 });
 ipcMain.handle('open', (e, url) => { if (/^https:\/\//.test(url)) shell.openExternal(url); });
 
+
+// ---------- game launch ----------
+const GAME_DEFAULTS = { version: '1.21.7', ram: 4, fpsBoost: true, builtinOn: true, capeOn: true, fullscreen: false };
+let launcher = null;
+function gameOpts() { return Object.assign({}, GAME_DEFAULTS, readCfg().game || {}); }
+const sendGame = (s) => { if (win && !win.isDestroyed()) win.webContents.send('game', s); };
+function getLauncher() {
+  if (!launcher) launcher = new Launcher({
+    cfgDir: app.getPath('userData'),
+    log: (t) => { try { fs.appendFileSync(path.join(app.getPath('userData'), 'launcher.log'), new Date().toISOString() + ' ' + t + '\n'); } catch (e) {} },
+    progress: (text, pct) => sendGame({ state: 'progress', text, pct })
+  });
+  return launcher;
+}
+ipcMain.handle('game-opts', () => gameOpts());
+ipcMain.handle('game-opts-set', (e, o) => {
+  const c = readCfg(), g = Object.assign(gameOpts(), o || {});
+  g.ram = Math.min(32, Math.max(1, parseInt(g.ram, 10) || 4));
+  c.game = g; writeCfg(c); return g;
+});
+ipcMain.handle('launch', async (e, server) => {
+  if (!account) return { ok: false, error: 'Sign in with Microsoft first.' };
+  try {
+    if (Date.now() - tokenTime > 20 * 3600 * 1000) {   // Minecraft tokens last ~24h
+      const t = loadRefresh();
+      if (t) { account = await auth.silent(t); tokenTime = Date.now(); saveRefresh(account.refresh || t); }
+    }
+    const L = getLauncher();
+    const r = await L.launch(account, Object.assign(gameOpts(), { server: typeof server === 'string' ? server : '' }));
+    sendGame({ state: 'running', id: r.id });
+    const watch = setInterval(() => { if (!L.running()) { clearInterval(watch); sendGame({ state: 'idle' }); if (win && win.isMinimized()) win.restore(); } }, 2000);
+    if (win) win.minimize();
+    return r;
+  } catch (err) { sendGame({ state: 'idle' }); return { ok: false, error: err.message }; }
+});
 
 // ---------- updater (stable and beta channels, both published on GitHub) ----------
 const cfgFile = () => path.join(app.getPath('userData'), 'config.json');

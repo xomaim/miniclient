@@ -48,6 +48,12 @@ h3 { font-size:14px; margin-bottom:10px; }
 #settings { position:fixed; inset:34px 0 0 68px; z-index:9; display:none; background:var(--bg); padding:28px 34px; }
 #settings h2 { font-size:22px; margin-bottom:16px; } .row { display:flex; align-items:center; justify-content:space-between; max-width:560px; padding:14px 16px; margin-bottom:10px; background:var(--panel); border:1px solid var(--line); border-radius:12px; font-size:13px; } .row span { color:var(--mute); font-size:11px; display:block; margin-top:2px; }
 .seg { display:flex; background:#0d0d10; border-radius:9px; padding:3px; } .seg div { padding:6px 16px; border-radius:7px; font-size:12px; font-weight:700; cursor:pointer; color:var(--mute); } .seg div.on { background:#f2f2f2; color:#0a0a0a; }
+.sbtn:disabled{opacity:.5}
+#launch:disabled { cursor:default; transform:translateX(-50%); }
+#pbar { position:absolute; left:50%; top:136px; transform:translateX(-50%); width:310px; height:4px; border-radius:2px; background:rgba(255,255,255,.1); overflow:hidden; display:none; } #pbar i { display:block; height:100%; width:0; background:#fff; transition:width .2s; }
+#herosub.err { color:#ff8d8d; }
+.tog { width:40px; height:22px; border-radius:11px; background:#2a2a30; position:relative; cursor:pointer; transition:.15s; } .tog:after { content:""; position:absolute; top:3px; left:3px; width:16px; height:16px; border-radius:50%; background:#888; transition:.15s; } .tog.on { background:#f2f2f2; } .tog.on:after { left:21px; background:#0a0a0a; }
+#settings { overflow-y:auto; } #settings h4 { font-size:12px; letter-spacing:1.2px; color:var(--mute); margin:18px 0 8px; }
 .sbtn { border:0; border-radius:8px; background:#f2f2f2; color:#0a0a0a; font:700 12px "Segoe UI"; padding:8px 16px; cursor:pointer; }
 </style></head>
 <body>
@@ -70,7 +76,7 @@ h3 { font-size:14px; margin-bottom:10px; }
   <div id="main">
     <div id="hello">Welcome Back, <b id="who">player</b></div>
     <div id="left">
-      <div id="hero"><button id="launch" onclick="launch()">LAUNCH<small>READY TO LAUNCH</small></button><div id="herosub">Minecraft 1.21.7 with Mini Client</div></div>
+      <div id="hero"><button id="launch" onclick="launch()">LAUNCH<small id="lsub">READY TO LAUNCH</small></button><div id="pbar"><i id="pfill"></i></div><div id="herosub">Minecraft 1.21.7 with Mini Client</div></div>
       <div class="card" id="qp"></div>
       <div><h3>Latest News</h3>
         <div id="news">
@@ -88,6 +94,12 @@ h3 { font-size:14px; margin-bottom:10px; }
   <div class="row"><div>Version<span id="ver">-</span></div><button class="sbtn" onclick="mc.updCheck()">Check for updates</button></div>
   <div class="row"><div>Update channel<span>Beta gets new features first and may be less stable.</span></div><div class="seg"><div id="ch_stable" onclick="setCh('stable')">Stable</div><div id="ch_beta" onclick="setCh('beta')">Beta</div></div></div>
   <div class="row"><div id="updline">Updates are checked every 5 minutes.</div></div>
+  <h4>GAME</h4>
+  <div class="row"><div>Memory<span>RAM given to Minecraft.</span></div><div class="seg" id="ramseg"></div></div>
+  <div class="row"><div>FPS boost<span>Performance mods, tuned Java flags and lighter video settings.</span></div><div class="tog" data-k="fpsBoost"></div></div>
+  <div class="row"><div>Mini Client mods<span>HUD, menus and Sodium. Turn off for plain Minecraft.</span></div><div class="tog" data-k="builtinOn"></div></div>
+  <div class="row"><div>Built-in cape<span>Your Mini Client cape (only you can see it).</span></div><div class="tog" data-k="capeOn"></div></div>
+  <div class="row"><div>Fullscreen<span>Start the game in fullscreen.</span></div><div class="tog" data-k="fullscreen"></div></div>
 </div>
 <div id="welcome">
   <div id="wart"><div class="mt"></div></div>
@@ -107,7 +119,7 @@ h3 { font-size:14px; margin-bottom:10px; }
 const SERVERS=[['Hypixel','mc.hypixel.net'],['Wynncraft','play.wynncraft.com'],['CubeCraft','play.cubecraft.net'],['2b2t','2b2t.org'],['Minemen Club','minemen.club']];
 const icon=(ip)=>'https://api.mcsrvstat.us/icon/'+encodeURIComponent(ip);
 document.getElementById('qp').innerHTML=SERVERS.map(s=>`<img loading="lazy" title="${s[0]}" src="${icon(s[1])}">`).join('');
-document.getElementById('svl').innerHTML=SERVERS.map(s=>`<div class="sv"><img loading="lazy" src="${icon(s[1])}"><div>${s[0]}<span>${s[1]}</span></div><button class="join">JOIN</button></div>`).join('');
+document.getElementById('svl').innerHTML=SERVERS.map(s=>`<div class="sv"><img loading="lazy" src="${icon(s[1])}"><div>${s[0]}<span>${s[1]}</span></div><button class="join" onclick="launch('${s[1]}')">JOIN</button></div>`).join('');
 let acct=null;
 function toggleSettings(){const s=document.getElementById('settings');s.style.display=s.style.display==='block'?'none':'block';}
 async function setCh(c){await mc.setChannel(c);showCh(c);}
@@ -130,7 +142,32 @@ async function login(){const b=document.getElementById('wl');b.textContent='Wait
   if(r.ok)setAcct(r.account);else document.getElementById('err').textContent=r.error;}
 function guest(){document.getElementById('welcome').style.display='none';}
 async function signOut(){await mc.logout();setAcct(null);}
-function launch(){ if(!acct){document.getElementById('welcome').style.display='flex';return;} alert('Game launching is the next step.'); }
+const $=(i)=>document.getElementById(i);
+let gameBusy=false;
+function heroState(main,sub,pct,err){ $('launch').firstChild.nodeValue=main; $('lsub').textContent=sub;
+  $('pbar').style.display=pct==null?'none':'block'; if(pct!=null)$('pfill').style.width=pct+'%';
+  if(err!==undefined){$('herosub').textContent=err||('Minecraft '+(gopts.version||'1.21.7')+' with Mini Client');$('herosub').className=err?'err':'';} }
+async function launch(server){
+  if(!acct){$('welcome').style.display='flex';return;}
+  if(gameBusy)return; gameBusy=true; $('launch').disabled=true;
+  heroState('LAUNCHING','PREPARING',0,'');
+  const r=await mc.launch(server||'');
+  if(!r.ok){gameBusy=false;$('launch').disabled=false;heroState('LAUNCH','READY TO LAUNCH',null,r.error);return;}
+  if(r.modsNote)$('herosub').textContent='Started without mods: '+r.modsNote;
+}
+mc.onGame((s)=>{
+  if(s.state==='progress')heroState('LAUNCHING',s.text.toUpperCase(),s.pct);
+  else if(s.state==='running'){heroState('PLAYING','MINECRAFT '+s.id+' IS RUNNING',null);}
+  else if(s.state==='idle'){gameBusy=false;$('launch').disabled=false;heroState('LAUNCH','READY TO LAUNCH',null);}
+});
+let gopts={};
+function drawOpts(){
+  document.querySelectorAll('.tog').forEach(t=>t.className='tog'+(gopts[t.dataset.k]?' on':''));
+  $('ramseg').innerHTML=[2,4,6,8].map(n=>`<div class="${gopts.ram==n?'on':''}" onclick="setOpt('ram',${n})">${n} GB</div>`).join('');
+}
+async function setOpt(k,v){gopts=await mc.setGameOpts({[k]:v});drawOpts();}
+document.querySelectorAll('.tog').forEach(t=>t.onclick=()=>setOpt(t.dataset.k,!gopts[t.dataset.k]));
+mc.gameOpts().then(o=>{gopts=o;drawOpts();});
 requestAnimationFrame(()=>setTimeout(async()=>{const s=await mc.silent();if(s.ok)setAcct(s.account);},50));
 </script>
 </body></html>

@@ -19,6 +19,7 @@
       "main.js",
       "preload.js",
       "auth.js",
+      "launcher.js",
       "ui/**/*",
       "icon.ico"
     ],
