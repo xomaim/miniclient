@@ -3,7 +3,7 @@
   "id": "miniclient",
   "version": "${version}",
   "name": "Mini Client",
-  "description": "Minicraft in-game client: HUD bar, settings screen and menu style.",
+  "description": "Mini Client in-game client: HUD bar, settings screen and menu style.",
   "authors": ["Mini Client"],
   "license": "All-Rights-Reserved",
   "environment": "client",
