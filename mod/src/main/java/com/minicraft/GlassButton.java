@@ -31,10 +31,10 @@ public class GlassButton extends AbstractWidget {
 		int w = this.getWidth();
 		int h = this.getHeight();
 		int fill = hot ? 0x30FFFFFF : 0x14FFFFFF;
-		int line = hot ? 0xFFFFFFFF : 0x99C8D0D8;
+		int line = hot ? 0xFFFFFFFF : 0x99D0D0D0;
 		int r = Math.max(2, Math.round(h / 7f));
 		roundRect(g, x, y, w, h, r, line);
-		roundRect(g, x + 1, y + 1, w - 2, h - 2, Math.max(1, r - 1), 0xFF141F2A);
+		roundRect(g, x + 1, y + 1, w - 2, h - 2, Math.max(1, r - 1), 0xFF0E0E10);
 		roundRect(g, x + 1, y + 1, w - 2, h - 2, Math.max(1, r - 1), fill);
 		String text = this.getMessage().getString();
 		float s = textScale;
@@ -42,7 +42,7 @@ public class GlassButton extends AbstractWidget {
 		g.pose().translate(x + w / 2f, y + h / 2f);
 		g.pose().scale(s, s);
 		int tw = mc.font.width(text);
-		g.drawString(mc.font, text, -tw / 2, -mc.font.lineHeight / 2 + 1, 0xFFF2F4F6, false);
+		g.drawString(mc.font, text, -tw / 2, -mc.font.lineHeight / 2 + 1, 0xFFF4F4F4, false);
 		g.pose().popMatrix();
 	}
 

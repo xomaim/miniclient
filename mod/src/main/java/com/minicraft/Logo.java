@@ -4,6 +4,25 @@ import net.minecraft.client.gui.GuiGraphics;
 
 /** The Mini Client logo drawn from a 48x48 mask, so it works before any texture is loaded. */
 public final class Logo {
+	private static net.minecraft.resources.ResourceLocation tex = null;
+	private static boolean tried = false;
+
+	/** Loads the 256px logo straight from the mod jar (works even before resource packs load) with smooth filtering. */
+	private static net.minecraft.resources.ResourceLocation tex() {
+		if (tried) return tex;
+		tried = true;
+		try (java.io.InputStream in = Logo.class.getResourceAsStream("/assets/miniclient/logo.png")) {
+			com.mojang.blaze3d.platform.NativeImage img = com.mojang.blaze3d.platform.NativeImage.read(in);
+			net.minecraft.client.renderer.texture.DynamicTexture dt = new net.minecraft.client.renderer.texture.DynamicTexture(() -> "miniclient_logo", img);
+			try { dt.getClass().getMethod("setFilter", boolean.class, boolean.class).invoke(dt, true, false); } catch (Throwable ignored) {}
+			net.minecraft.resources.ResourceLocation id = net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("miniclient", "logo_dyn");
+			net.minecraft.client.Minecraft.getInstance().getTextureManager().register(id, dt);
+			tex = id;
+		} catch (Throwable e) {
+			tex = null;
+		}
+		return tex;
+	}
 	private static final int[][] RUNS = {
 		{},
 		{},
@@ -56,6 +75,16 @@ public final class Logo {
 	};
 
 	public static void draw(GuiGraphics g, float cx, float cy, float size, int argb) {
+		net.minecraft.resources.ResourceLocation t = tex();
+		if (t != null) {
+			int sz = Math.round(size);
+			g.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, t, Math.round(cx - size / 2f), Math.round(cy - size / 2f), 0f, 0f, sz, sz, sz, sz, argb);
+			return;
+		}
+		drawMask(g, cx, cy, size, argb);
+	}
+
+	public static void drawMask(GuiGraphics g, float cx, float cy, float size, int argb) {
 		float c = size / 48f, x0 = cx - size / 2f, y0 = cy - size / 2f;
 		for (int y = 0; y < 48; y++) {
 			int[] r = RUNS[y];

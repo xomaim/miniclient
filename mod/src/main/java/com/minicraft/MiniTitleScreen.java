@@ -91,7 +91,7 @@ public class MiniTitleScreen extends Screen {
 
 	@Override
 	public void renderBackground(GuiGraphics g, int mouseX, int mouseY, float delta) {
-		g.fillGradient(0, 0, this.width, this.height, 0xFF0F1A25, 0xFF172431);
+		g.fillGradient(0, 0, this.width, this.height, 0xFF000000, 0xFF101012);
 		long t = System.currentTimeMillis();
 		for (int i = 0; i < PETALS; i++) {
 			float yy = (py[i] + (t % 10000000L) / 1000f * ps[i] * 0.25f) % 1f;
@@ -148,7 +148,7 @@ public class MiniTitleScreen extends Screen {
 		g.pose().pushMatrix();
 		g.pose().translate(X(36), Y(30) + S(36));
 		g.pose().scale(ds, ds);
-		g.drawString(this.font, date, 0, 0, 0xFF9AA7B4, false);
+		g.drawString(this.font, date, 0, 0, 0xFFA0A0A0, false);
 		g.pose().popMatrix();
 
 		String word = "MINI CLIENT";
@@ -166,6 +166,6 @@ public class MiniTitleScreen extends Screen {
 			p0 += this.font.width(ch) + 2;
 		}
 		g.pose().popMatrix();
-		g.drawString(this.font, "Mini Client 1.21.7", 6, this.height - 12, 0xFF62717F, false);
+		g.drawString(this.font, "Mini Client 1.21.7", 6, this.height - 12, 0xFF6A6A6A, false);
 	}
 }
