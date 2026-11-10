@@ -24,13 +24,9 @@
     ],
     "win": {
       "target": [
-        "nsis",
-        "portable"
+        "nsis"
       ],
       "icon": "icon.ico"
-    },
-    "portable": {
-      "artifactName": "MiniClient-Portable.exe"
     },
     "nsis": {
       "oneClick": true,
@@ -40,6 +36,15 @@
       "deleteAppDataOnUninstall": false
     },
     "compression": "normal",
-    "asar": true
+    "asar": true,
+    "publish": [
+      {
+        "provider": "generic",
+        "url": "https://github.com/xomaim/miniclient/releases/download/app-latest"
+      }
+    ]
+  },
+  "dependencies": {
+    "electron-updater": "6.3.9"
   }
 }

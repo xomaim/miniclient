@@ -2,6 +2,7 @@ name: Build Mini Client app
 
 on:
   push:
+    branches: [main, beta]
     paths:
       - 'app/**'
       - '.github/workflows/app.yml'
@@ -22,16 +23,18 @@ jobs:
         working-directory: app
         shell: bash
         run: |
+          if [ "${GITHUB_REF_NAME}" = "beta" ]; then TAG=app-beta; else TAG=app-latest; fi
+          echo "TAG=$TAG" >> $GITHUB_ENV
           npm install --no-audit --no-fund 2>&1 | tail -5
-          npx electron-builder --win nsis portable --publish never 2>&1 | tee ../app-build.log | tail -30
+          npm version "1.0.${GITHUB_RUN_NUMBER}" --no-git-tag-version --allow-same-version
+          npx electron-builder --win nsis --publish never 2>&1 | tee ../app-build.log | tail -30
       - name: Publish release asset
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release view app-latest >/dev/null 2>&1 || gh release create app-latest --title "Mini Client app" --notes "Latest Mini Client.exe" 
-          gh release upload app-latest app/dist/MiniClient-Setup.exe app/dist/MiniClient-Portable.exe --clobber
-          gh release delete-asset app-latest MiniClient.exe -y 2>/dev/null || true
+          gh release view $TAG >/dev/null 2>&1 || gh release create $TAG --title "Mini Client app ($TAG)" --notes "Mini Client $TAG build" --target $GITHUB_SHA
+          gh release upload $TAG app/dist/MiniClient-Setup.exe app/dist/latest.yml app/dist/MiniClient-Setup.exe.blockmap --clobber
       - name: Push build log
         if: always()
         shell: bash

@@ -43,10 +43,17 @@ h3 { font-size:14px; margin-bottom:10px; }
 #wpanel .grow { flex:1; } .wb { height:48px; border:0; border-radius:10px; font:700 15px "Segoe UI"; cursor:pointer; margin-top:10px; transition:.15s; }
 .wb.p { background:#f2f2f2; color:#0a0a0a; } .wb.p:hover { background:#fff; } .wb.g { background:rgba(255,255,255,.1); color:#fff; } .wb.g:hover { background:rgba(255,255,255,.18); }
 #err { color:#ff8d8d; font-size:12px; min-height:16px; margin-top:8px; text-align:center; }
+#upd { -webkit-app-region:no-drag; position:fixed; top:5px; right:150px; z-index:22; display:none; font-size:12px; font-weight:700; padding:4px 14px; border-radius:14px; background:#f2f2f2; color:#0a0a0a; cursor:pointer; }
+#upd.busy { background:rgba(255,255,255,.12); color:#fff; cursor:default; }
+#settings { position:fixed; inset:34px 0 0 68px; z-index:9; display:none; background:var(--bg); padding:28px 34px; }
+#settings h2 { font-size:22px; margin-bottom:16px; } .row { display:flex; align-items:center; justify-content:space-between; max-width:560px; padding:14px 16px; margin-bottom:10px; background:var(--panel); border:1px solid var(--line); border-radius:12px; font-size:13px; } .row span { color:var(--mute); font-size:11px; display:block; margin-top:2px; }
+.seg { display:flex; background:#0d0d10; border-radius:9px; padding:3px; } .seg div { padding:6px 16px; border-radius:7px; font-size:12px; font-weight:700; cursor:pointer; color:var(--mute); } .seg div.on { background:#f2f2f2; color:#0a0a0a; }
+.sbtn { border:0; border-radius:8px; background:#f2f2f2; color:#0a0a0a; font:700 12px "Segoe UI"; padding:8px 16px; cursor:pointer; }
 </style></head>
 <body>
 <div id="bgglow"></div>
 <div id="title">Mini Client</div>
+<div id="upd" onclick="updClick()"></div>
 <div id="wc"><div onclick="mc.win('min')">&#8211;</div><div onclick="mc.win('max')">&#9633;</div><div class="x" onclick="mc.win('close')">&#10005;</div></div>
 
 <div id="app">
@@ -57,7 +64,7 @@ h3 { font-size:14px; margin-bottom:10px; }
     <div class="nav" title="Servers"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/><line x1="3" y1="12" x2="21" y2="12"/></svg></div>
     <div class="nav" title="Mods"><svg viewBox="0 0 24 24"><path d="M9 3h4v3a2 2 0 1 0 4 0V3h3v6h-3a2 2 0 1 0 0 4h3v8H4v-6h3a2 2 0 1 0 0-4H4V3z"/></svg></div>
     <div class="sp"></div>
-    <div class="nav" title="Settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2"/></svg></div>
+    <div class="nav" title="Settings" onclick="toggleSettings()"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2"/></svg></div>
     <div class="nav" title="Sign out" onclick="signOut()"><svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></div>
   </div>
   <div id="main">
@@ -76,6 +83,12 @@ h3 { font-size:14px; margin-bottom:10px; }
   </div>
 </div>
 
+<div id="settings">
+  <h2>Settings</h2>
+  <div class="row"><div>Version<span id="ver">-</span></div><button class="sbtn" onclick="mc.updCheck()">Check for updates</button></div>
+  <div class="row"><div>Update channel<span>Beta gets new features first and may be less stable.</span></div><div class="seg"><div id="ch_stable" onclick="setCh('stable')">Stable</div><div id="ch_beta" onclick="setCh('beta')">Beta</div></div></div>
+  <div class="row"><div id="updline">Updates are checked every 5 minutes.</div></div>
+</div>
 <div id="welcome">
   <div id="wart"><div class="mt"></div></div>
   <div id="wpanel">
@@ -96,6 +109,21 @@ const icon=(ip)=>'https://api.mcsrvstat.us/icon/'+encodeURIComponent(ip);
 document.getElementById('qp').innerHTML=SERVERS.map(s=>`<img loading="lazy" title="${s[0]}" src="${icon(s[1])}">`).join('');
 document.getElementById('svl').innerHTML=SERVERS.map(s=>`<div class="sv"><img loading="lazy" src="${icon(s[1])}"><div>${s[0]}<span>${s[1]}</span></div><button class="join">JOIN</button></div>`).join('');
 let acct=null;
+function toggleSettings(){const s=document.getElementById('settings');s.style.display=s.style.display==='block'?'none':'block';}
+async function setCh(c){await mc.setChannel(c);showCh(c);}
+function showCh(c){document.getElementById('ch_stable').className=c==='beta'?'':'on';document.getElementById('ch_beta').className=c==='beta'?'on':'';}
+function updClick(){const e=document.getElementById('upd');if(e.dataset.ready)mc.updInstall();}
+mc.onUpd((s)=>{
+  const e=document.getElementById('upd'),l=document.getElementById('updline');e.dataset.ready='';e.className='';
+  if(s.state==='downloading'){e.style.display='block';e.className='busy';e.textContent='Downloading update '+(s.pct||0)+'%';l.textContent='Downloading v'+s.version+'...';}
+  else if(s.state==='ready'){e.style.display='block';e.dataset.ready='1';e.textContent='Update ready - click to restart';l.textContent='v'+s.version+' is ready. It installs when you restart.';}
+  else if(s.state==='none'){e.style.display='none';l.textContent='You are on the latest version.';}
+  else if(s.state==='error'){e.style.display='none';l.textContent='Update check failed: '+s.error;}
+  else if(s.state==='checking'){l.textContent='Checking for updates...';}
+});
+mc.state().then(s=>{document.getElementById('ver').textContent='v'+s.version;});
+mc.channel().then(showCh);
+
 function setAcct(a){acct=a;document.getElementById('who').textContent=a?a.name:'player';document.getElementById('welcome').style.display=a?'none':'flex';}
 async function login(){const b=document.getElementById('wl');b.textContent='Waiting for Microsoft...';document.getElementById('err').textContent='';
   const r=await mc.login();b.textContent='Login with Microsoft Account';

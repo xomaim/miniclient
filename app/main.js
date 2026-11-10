@@ -2,6 +2,7 @@ const { app, BrowserWindow, ipcMain, safeStorage, shell } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const auth = require('./auth');
+const { autoUpdater } = require('electron-updater');
 
 let win = null;
 let account = null;   // { name, uuid, token } kept in memory only
@@ -49,8 +50,41 @@ ipcMain.handle('win', (e, what) => {
 });
 ipcMain.handle('open', (e, url) => { if (/^https:\/\//.test(url)) shell.openExternal(url); });
 
+
+// ---------- updater (stable and beta channels, both published on GitHub) ----------
+const cfgFile = () => path.join(app.getPath('userData'), 'config.json');
+function readCfg() { try { return JSON.parse(fs.readFileSync(cfgFile(), 'utf8')); } catch (e) { return {}; } }
+function writeCfg(c) { try { fs.writeFileSync(cfgFile(), JSON.stringify(c)); } catch (e) {} }
+const feed = (ch) => 'https://github.com/xomaim/miniclient/releases/download/' + (ch === 'beta' ? 'app-beta' : 'app-latest');
+let updState = { state: 'idle' };
+function sendUpd(s) { updState = s; if (win && !win.isDestroyed()) win.webContents.send('upd', s); }
+function setupUpdater() {
+  if (!app.isPackaged) return;
+  autoUpdater.autoDownload = true;
+  autoUpdater.autoInstallOnAppQuit = true;
+  autoUpdater.allowDowngrade = true;
+  autoUpdater.setFeedURL({ provider: 'generic', url: feed(readCfg().channel) });
+  autoUpdater.on('checking-for-update', () => sendUpd({ state: 'checking' }));
+  autoUpdater.on('update-available', (i) => sendUpd({ state: 'downloading', version: i.version, pct: 0 }));
+  autoUpdater.on('update-not-available', () => sendUpd({ state: 'none' }));
+  autoUpdater.on('download-progress', (p) => sendUpd({ state: 'downloading', version: updState.version, pct: Math.round(p.percent) }));
+  autoUpdater.on('update-downloaded', (i) => sendUpd({ state: 'ready', version: i.version }));
+  autoUpdater.on('error', (e) => sendUpd({ state: 'error', error: String(e && e.message || e).slice(0, 160) }));
+  const check = () => autoUpdater.checkForUpdates().catch(() => {});
+  setTimeout(check, 4000);
+  setInterval(check, 5 * 60 * 1000);
+}
+ipcMain.handle('upd-check', () => { if (!app.isPackaged) { sendUpd({ state: 'none' }); return; } autoUpdater.checkForUpdates().catch(() => {}); });
+ipcMain.handle('upd-install', () => { if (app.isPackaged) autoUpdater.quitAndInstall(false, true); });
+ipcMain.handle('channel-get', () => readCfg().channel || 'stable');
+ipcMain.handle('channel-set', (e, ch) => {
+  const c = readCfg(); c.channel = ch === 'beta' ? 'beta' : 'stable'; writeCfg(c);
+  if (app.isPackaged) { autoUpdater.setFeedURL({ provider: 'generic', url: feed(c.channel) }); autoUpdater.checkForUpdates().catch(() => {}); }
+  return c.channel;
+});
+
 if (!app.requestSingleInstanceLock()) app.quit();
 app.on('second-instance', () => { if (win) { if (win.isMinimized()) win.restore(); win.focus(); } });
 app.commandLine.appendSwitch('disable-features', 'CalculateNativeWinOcclusion');
-app.whenReady().then(createWindow);
+app.whenReady().then(() => { createWindow(); setupUpdater(); });
 app.on('window-all-closed', () => app.quit());

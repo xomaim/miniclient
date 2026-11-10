@@ -5,5 +5,10 @@ contextBridge.exposeInMainWorld('mc', {
   silent: () => ipcRenderer.invoke('silent'),
   logout: () => ipcRenderer.invoke('logout'),
   win: (w) => ipcRenderer.invoke('win', w),
-  open: (u) => ipcRenderer.invoke('open', u)
+  open: (u) => ipcRenderer.invoke('open', u),
+  updCheck: () => ipcRenderer.invoke('upd-check'),
+  updInstall: () => ipcRenderer.invoke('upd-install'),
+  onUpd: (cb) => ipcRenderer.on('upd', (e, s) => cb(s)),
+  channel: () => ipcRenderer.invoke('channel-get'),
+  setChannel: (c) => ipcRenderer.invoke('channel-set', c)
 });
