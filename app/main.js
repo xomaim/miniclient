@@ -3,7 +3,7 @@ const path = require('path');
 const fs = require('fs');
 const auth = require('./auth');
 const { autoUpdater } = require('electron-updater');
-const { Launcher } = require('./launcher');
+const { Launcher, releases } = require('./launcher');
 
 let win = null;
 let account = null;   // { name, uuid, token } kept in memory only
@@ -82,6 +82,7 @@ function getLauncher() {
   return launcher;
 }
 ipcMain.handle('game-opts', () => gameOpts());
+ipcMain.handle('versions', async () => { try { return await releases(); } catch (e) { return []; } });
 ipcMain.handle('user-mods', () => getLauncher().userMods());
 ipcMain.handle('open-folder', (e, which) => {
   const mcDir = path.join(process.env.APPDATA || app.getPath('appData'), '.minecraft');

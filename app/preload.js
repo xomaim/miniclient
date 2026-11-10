@@ -15,6 +15,7 @@ contextBridge.exposeInMainWorld('mc', {
   launch: (server) => ipcRenderer.invoke('launch', server),
   openFolder: (w) => ipcRenderer.invoke('open-folder', w),
   userMods: () => ipcRenderer.invoke('user-mods'),
+  versions: () => ipcRenderer.invoke('versions'),
   gameOpts: () => ipcRenderer.invoke('game-opts'),
   setGameOpts: (o) => ipcRenderer.invoke('game-opts-set', o),
   onGame: (cb) => ipcRenderer.on('game', (e, s) => cb(s))

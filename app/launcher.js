@@ -142,12 +142,17 @@ class Launcher {
     const vi = manifest.versions.find((v) => v.id === id);
     if (!vi) throw new Error('Minecraft ' + id + ' was not found in the version list.');
     const ver = await getJson(vi.url);
-    if (!ver.arguments || !ver.downloads || !ver.downloads.client) throw new Error('Version ' + id + ' is too old for this launcher (1.19 or later).');
+    if ((!ver.arguments && !ver.minecraftArguments) || !ver.downloads || !ver.downloads.client) throw new Error('Version ' + id + ' is too old for this launcher.');
 
-    const q = [], cp = [], vanilla = [];
+    const q = [], cp = [], vanilla = [], natives = [];
     const lib = (rel) => path.join(this.mcDir, 'libraries', ...rel.split('/'));
     for (const l of ver.libraries) {
       if (!rulesOk(l.rules)) continue;
+      // Older versions (before 1.19) keep Windows natives in a separate "classifier" jar to unpack.
+      if (l.natives && l.natives.windows && l.downloads && l.downloads.classifiers) {
+        const nat = l.downloads.classifiers[l.natives.windows.replace('${arch}', archKey === 'x86' ? '32' : '64')];
+        if (nat) { const np = lib(nat.path); q.push({ url: nat.url, path: np, size: nat.size }); natives.push(np); }
+      }
       const art = l.downloads && l.downloads.artifact;
       if (!art) continue;
       const lp = lib(art.path);
@@ -219,6 +224,15 @@ class Launcher {
 
     await this.fetchAll(q);
     if (rtNew) await fsp.writeFile(path.join(rtDir, '.ready'), 'ok');
+    if (natives.length) {
+      this.progress('Unpacking natives...', 98);
+      const nd = path.join(this.mcDir, 'versions', id, 'natives');
+      await fsp.mkdir(nd, { recursive: true });
+      for (const n of natives) await new Promise((res) => {
+        const t = spawn('tar', ['-xf', n, '-C', nd, '--exclude', 'META-INF'], { windowsHide: true });
+        t.on('error', () => res()); t.on('exit', () => res());
+      });
+    }
     const d = { id, ver, cp, rtDir, addMods, modsNote, modsFailed };
     if (!modsFailed) { await fsp.mkdir(this.cfgDir, { recursive: true }); await fsp.writeFile(this.fastFile(id, o), JSON.stringify(d)); }
     return d;
@@ -314,19 +328,29 @@ class Launcher {
       await this.syncMods(c.addMods || []).catch((e) => this.log('Mods copy: ' + e.message));
 
       const ram = Math.min(32, Math.max(1, parseInt(o.ram, 10) || 2));
+      const legacy = !ver.arguments;
       const jvm = [];
-      collectArgs(ver.arguments.jvm, vars, jvm);
+      if (legacy) jvm.push('-Djava.library.path=' + vars.natives_directory, '-cp', vars.classpath);
+      else collectArgs(ver.arguments.jvm, vars, jvm);
       if (!jvm.includes('-cp') && !jvm.includes('-classpath')) jvm.push('-cp', vars.classpath);
       const args = ['-Xmx' + ram + 'G', '-Xms512M', ...jvm, ...(o.fpsBoost ? FPS_FLAGS : []), ver.mainClass];
-      collectArgs(ver.arguments.game, vars, args);
-      if (o.server) args.push('--quickPlayMultiplayer', o.server);
+      if (legacy) {
+        Object.assign(vars, { auth_session: account.token, user_properties: '{}', game_assets: vars.assets_root });
+        for (const a of ver.minecraftArguments.split(' ')) if (a) args.push(subst(a, vars));
+      } else collectArgs(ver.arguments.game, vars, args);
+      if (o.server) {
+        if (!legacy && JSON.stringify(ver.arguments.game).includes('quickPlayMultiplayer')) args.push('--quickPlayMultiplayer', o.server);
+        else { const hp = String(o.server).split(':'); args.push('--server', hp[0], '--port', hp[1] || '25565'); }
+      }
       if (o.fullscreen) args.push('--fullscreen');
 
-      // Args file keeps the token off the visible command line and avoids Windows' length limit.
+      // Java 9+: an args file keeps the token off the visible command line and avoids Windows' length limit.
+      // Java 8 (old versions) has no args files, so the arguments are passed directly.
       const af = path.join(this.cfgDir, 'launch_args.txt');
-      await fsp.writeFile(af, args.map((a) => '"' + String(a).replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '"').join('\n'));
+      const java8 = ver.javaVersion ? ver.javaVersion.majorVersion < 9 : true;
+      if (!java8) await fsp.writeFile(af, args.map((a) => '"' + String(a).replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '"').join('\n'));
       const logFd = fs.openSync(path.join(this.cfgDir, 'game.log'), 'w');
-      const p = spawn(java, ['@' + af], { cwd: this.mcDir, detached: true, stdio: ['ignore', logFd, logFd], windowsHide: true });
+      const p = spawn(java, java8 ? args : ['@' + af], { cwd: this.mcDir, detached: true, stdio: ['ignore', logFd, logFd], windowsHide: true });
       p.on('error', (e) => this.log('Java failed to start: ' + e.message));
       p.unref();
       this.proc = p;
@@ -338,4 +362,10 @@ class Launcher {
   running() { return !!(this.proc && this.proc.exitCode === null); }
 }
 
-module.exports = { Launcher };
+// Every release from 1.8 on, newest first.
+async function releases() {
+  const m = await getJson(VERSIONS_URL);
+  return m.versions.filter((v) => v.type === 'release' && v.releaseTime >= '2014-09-01').map((v) => ({ id: v.id, date: v.releaseTime.slice(0, 10) }));
+}
+
+module.exports = { Launcher, releases };
