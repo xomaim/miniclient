@@ -10,18 +10,26 @@ let account = null;   // { name, uuid, token } kept in memory only
 let tokenTime = 0;
 const store = () => path.join(app.getPath('userData'), 'login.bin');
 
-function saveRefresh(t) {
+// Saved login: { refresh, name, uuid } encrypted with Windows' own protection (safeStorage).
+function saveLogin(d) {
   try {
-    if (!t) { fs.rmSync(store(), { force: true }); return; }
+    if (!d || !d.refresh) { fs.rmSync(store(), { force: true }); return; }
+    const t = JSON.stringify({ refresh: d.refresh, name: d.name, uuid: d.uuid });
     fs.writeFileSync(store(), safeStorage.isEncryptionAvailable() ? safeStorage.encryptString(t) : Buffer.from(t));
   } catch (e) {}
 }
-function loadRefresh() {
+function loadLogin() {
   try {
     const b = fs.readFileSync(store());
-    return safeStorage.isEncryptionAvailable() ? safeStorage.decryptString(b) : b.toString();
-  } catch (e) { return ''; }
+    const t = safeStorage.isEncryptionAvailable() ? safeStorage.decryptString(b) : b.toString();
+    if (t.charAt(0) === '{') return JSON.parse(t);
+    return { refresh: t };   // older builds saved only the refresh token
+  } catch (e) { return null; }
 }
+const saveRefresh = (t) => saveLogin(t ? { refresh: t, name: account && account.name, uuid: account && account.uuid } : null);
+const loadRefresh = () => (loadLogin() || {}).refresh || '';
+// Only a real "token revoked/expired" answer from Microsoft signs you out; network hiccups keep you signed in.
+const isExpired = (e) => /expired|refused|invalid_grant/i.test(String(e && e.message));
 
 function createWindow() {
   win = new BrowserWindow({
@@ -35,14 +43,21 @@ function createWindow() {
 
 ipcMain.handle('state', () => ({ account: account ? { name: account.name, uuid: account.uuid } : null, version: app.getVersion() }));
 ipcMain.handle('login', async () => {
-  try { account = await auth.signIn(win); tokenTime = Date.now(); saveRefresh(account.refresh); return { ok: true, account: { name: account.name, uuid: account.uuid } }; }
+  try { account = await auth.signIn(win); tokenTime = Date.now(); saveLogin(account); return { ok: true, account: { name: account.name, uuid: account.uuid } }; }
   catch (e) { return { ok: false, error: e.message }; }
 });
+ipcMain.handle('saved', () => { const d = loadLogin(); return d && d.name ? { name: d.name, uuid: d.uuid } : null; });
 ipcMain.handle('silent', async () => {
-  const t = loadRefresh();
-  if (!t) return { ok: false };
-  try { account = await auth.silent(t); tokenTime = Date.now(); saveRefresh(account.refresh || t); return { ok: true, account: { name: account.name, uuid: account.uuid } }; }
-  catch (e) { saveRefresh(''); return { ok: false }; }
+  const d = loadLogin();
+  if (!d || !d.refresh) return { ok: false };
+  try {
+    account = await auth.silent(d.refresh); tokenTime = Date.now();
+    saveLogin({ refresh: account.refresh || d.refresh, name: account.name, uuid: account.uuid });
+    return { ok: true, account: { name: account.name, uuid: account.uuid } };
+  } catch (e) {
+    if (isExpired(e)) { saveLogin(null); return { ok: false }; }
+    return { ok: d.name ? true : false, offline: true, account: d.name ? { name: d.name, uuid: d.uuid } : null };
+  }
 });
 ipcMain.handle('logout', () => { account = null; saveRefresh(''); return { ok: true }; });
 ipcMain.handle('win', (e, what) => {
@@ -73,11 +88,14 @@ ipcMain.handle('game-opts-set', (e, o) => {
   c.game = g; writeCfg(c); return g;
 });
 ipcMain.handle('launch', async (e, server) => {
-  if (!account) return { ok: false, error: 'Sign in with Microsoft first.' };
   try {
-    if (Date.now() - tokenTime > 20 * 3600 * 1000) {   // Minecraft tokens last ~24h
-      const t = loadRefresh();
-      if (t) { account = await auth.silent(t); tokenTime = Date.now(); saveRefresh(account.refresh || t); }
+    if (!account || Date.now() - tokenTime > 20 * 3600 * 1000) {
+      const d = loadLogin();
+      if (!d || !d.refresh) return { ok: false, error: 'Sign in with Microsoft first.' };   // Minecraft tokens last ~24h
+      try { account = await auth.silent(d.refresh); }
+      catch (e) { if (isExpired(e)) saveLogin(null); throw new Error(isExpired(e) ? 'Your saved login expired. Sign in again.' : 'Could not reach Microsoft. Check your internet.'); }
+      tokenTime = Date.now();
+      saveLogin({ refresh: account.refresh || d.refresh, name: account.name, uuid: account.uuid });
     }
     const L = getLauncher();
     const r = await L.launch(account, Object.assign(gameOpts(), { server: typeof server === 'string' ? server : '' }));

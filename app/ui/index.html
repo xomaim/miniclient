@@ -206,6 +206,9 @@ function drawOpts(){
 async function setOpt(k,v){gopts=await mc.setGameOpts({[k]:v});drawOpts();}
 document.querySelectorAll('.tog').forEach(t=>t.onclick=()=>setOpt(t.dataset.k,!gopts[t.dataset.k]));
 mc.gameOpts().then(o=>{gopts=o;drawOpts();});
-requestAnimationFrame(()=>setTimeout(async()=>{const s=await mc.silent();if(s.ok)setAcct(s.account);},50));
+// Show the saved account straight away (no welcome screen flash), then refresh it in the background.
+$('welcome').style.display='none';
+mc.saved().then(a=>{ if(a) setAcct(a); });
+requestAnimationFrame(()=>setTimeout(async()=>{const s=await mc.silent();if(s.ok&&s.account)setAcct(s.account);else if(!s.ok)setAcct(null);},50));
 </script>
 </body></html>
