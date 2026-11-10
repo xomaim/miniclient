@@ -22,10 +22,11 @@ function loadRefresh() {
 
 function createWindow() {
   win = new BrowserWindow({
-    width: 1000, height: 680, minWidth: 900, minHeight: 600, frame: false, backgroundColor: '#0b0b0d',
+    width: 1000, height: 680, minWidth: 900, minHeight: 600, frame: false, show: false, backgroundColor: '#0b0b0d',
     icon: path.join(__dirname, 'icon.ico'), title: 'Mini Client',
     webPreferences: { preload: path.join(__dirname, 'preload.js'), contextIsolation: true, nodeIntegration: false }
   });
+  win.once('ready-to-show', () => win.show());
   win.loadFile(path.join(__dirname, 'ui', 'index.html'));
 }
 
@@ -48,5 +49,8 @@ ipcMain.handle('win', (e, what) => {
 });
 ipcMain.handle('open', (e, url) => { if (/^https:\/\//.test(url)) shell.openExternal(url); });
 
+if (!app.requestSingleInstanceLock()) app.quit();
+app.on('second-instance', () => { if (win) { if (win.isMinimized()) win.restore(); win.focus(); } });
+app.commandLine.appendSwitch('disable-features', 'CalculateNativeWinOcclusion');
 app.whenReady().then(createWindow);
 app.on('window-all-closed', () => app.quit());

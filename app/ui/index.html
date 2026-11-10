@@ -93,8 +93,8 @@ h3 { font-size:14px; margin-bottom:10px; }
 <script>
 const SERVERS=[['Hypixel','mc.hypixel.net'],['Wynncraft','play.wynncraft.com'],['CubeCraft','play.cubecraft.net'],['2b2t','2b2t.org'],['Minemen Club','minemen.club']];
 const icon=(ip)=>'https://api.mcsrvstat.us/icon/'+encodeURIComponent(ip);
-document.getElementById('qp').innerHTML=SERVERS.map(s=>`<img title="${s[0]}" src="${icon(s[1])}">`).join('');
-document.getElementById('svl').innerHTML=SERVERS.map(s=>`<div class="sv"><img src="${icon(s[1])}"><div>${s[0]}<span>${s[1]}</span></div><button class="join">JOIN</button></div>`).join('');
+document.getElementById('qp').innerHTML=SERVERS.map(s=>`<img loading="lazy" title="${s[0]}" src="${icon(s[1])}">`).join('');
+document.getElementById('svl').innerHTML=SERVERS.map(s=>`<div class="sv"><img loading="lazy" src="${icon(s[1])}"><div>${s[0]}<span>${s[1]}</span></div><button class="join">JOIN</button></div>`).join('');
 let acct=null;
 function setAcct(a){acct=a;document.getElementById('who').textContent=a?a.name:'player';document.getElementById('welcome').style.display=a?'none':'flex';}
 async function login(){const b=document.getElementById('wl');b.textContent='Waiting for Microsoft...';document.getElementById('err').textContent='';
@@ -103,6 +103,6 @@ async function login(){const b=document.getElementById('wl');b.textContent='Wait
 function guest(){document.getElementById('welcome').style.display='none';}
 async function signOut(){await mc.logout();setAcct(null);}
 function launch(){ if(!acct){document.getElementById('welcome').style.display='flex';return;} alert('Game launching is the next step.'); }
-(async()=>{const s=await mc.silent();if(s.ok)setAcct(s.account);})();
+requestAnimationFrame(()=>setTimeout(async()=>{const s=await mc.silent();if(s.ok)setAcct(s.account);},50));
 </script>
 </body></html>
