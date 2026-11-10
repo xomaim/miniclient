@@ -45,7 +45,7 @@ h3 { font-size:14px; margin-bottom:10px; }
 #err { color:#ff8d8d; font-size:12px; min-height:16px; margin-top:8px; text-align:center; }
 #upd { -webkit-app-region:no-drag; position:fixed; top:5px; right:150px; z-index:22; display:none; font-size:12px; font-weight:700; padding:4px 14px; border-radius:14px; background:#f2f2f2; color:#0a0a0a; cursor:pointer; }
 #upd.busy { background:rgba(255,255,255,.12); color:#fff; cursor:default; }
-#settings { position:fixed; inset:34px 0 0 68px; z-index:9; display:none; background:var(--bg); padding:28px 34px; }
+#settings { position:fixed; inset:34px 0 0 72px; z-index:9; display:none; background:var(--bg); padding:28px 34px; }
 #settings h2 { font-size:22px; margin-bottom:16px; } .row { display:flex; align-items:center; justify-content:space-between; max-width:560px; padding:14px 16px; margin-bottom:10px; background:var(--panel); border:1px solid var(--line); border-radius:12px; font-size:13px; } .row span { color:var(--mute); font-size:11px; display:block; margin-top:2px; }
 .seg { display:flex; background:#0d0d10; border-radius:9px; padding:3px; } .seg div { padding:6px 16px; border-radius:7px; font-size:12px; font-weight:700; cursor:pointer; color:var(--mute); } .seg div.on { background:#f2f2f2; color:#0a0a0a; }
 .sbtn:disabled{opacity:.5}
@@ -55,6 +55,39 @@ h3 { font-size:14px; margin-bottom:10px; }
 .tog { width:40px; height:22px; border-radius:11px; background:#2a2a30; position:relative; cursor:pointer; transition:.15s; } .tog:after { content:""; position:absolute; top:3px; left:3px; width:16px; height:16px; border-radius:50%; background:#888; transition:.15s; } .tog.on { background:#f2f2f2; } .tog.on:after { left:21px; background:#0a0a0a; }
 #settings { overflow-y:auto; } #settings h4 { font-size:12px; letter-spacing:1.2px; color:var(--mute); margin:18px 0 8px; }
 .sbtn { border:0; border-radius:8px; background:#f2f2f2; color:#0a0a0a; font:700 12px "Segoe UI"; padding:8px 16px; cursor:pointer; }
+
+/* ---- Lunar-style layout ---- */
+#rail { width:72px; background:#08080a; }
+.nav { width:48px; height:48px; } .nav.on { background:rgba(255,255,255,.1); color:#fff; box-shadow:inset 3px 0 0 #fff; }
+#main { grid-template-columns:1fr 280px; grid-template-rows:44px 1fr; padding:14px 22px 18px; gap:14px 18px; }
+#top { grid-column:1/3; display:flex; align-items:center; justify-content:space-between; }
+#crumb { font-size:20px; font-weight:800; letter-spacing:.3px; }
+#acc { display:flex; align-items:center; gap:10px; padding:6px 14px 6px 6px; border-radius:22px; background:var(--panel); border:1px solid var(--line); cursor:pointer; font-size:13px; font-weight:700; }
+#acc:hover { border-color:rgba(255,255,255,.25); } #acc img { width:28px; height:28px; border-radius:50%; background:#222; } #acc i { font-style:normal; color:var(--mute); font-size:11px; }
+#left { overflow-y:auto; padding-right:4px; gap:18px; }
+#hero { height:300px; flex:none; border-radius:18px; background:linear-gradient(180deg,#2b2b31 0%,#141417 55%,#0b0b0d 100%); }
+#hero:before { right:auto; left:50%; transform:translateX(-50%); top:-140px; bottom:auto; width:620px; height:360px; background:radial-gradient(circle,rgba(255,255,255,.18),transparent 65%); }
+.hills { position:absolute; left:0; right:0; bottom:0; height:44%; background:
+  linear-gradient(135deg,transparent 50%,#1a1a1e 50%) 0 0/90px 70px repeat-x, linear-gradient(225deg,transparent 50%,#1a1a1e 50%) 0 0/90px 70px repeat-x, linear-gradient(#1a1a1e,#1a1a1e) 0 70px/100% 100% no-repeat; opacity:.9; }
+.hills.h2 { height:26%; filter:brightness(.6); background-size:60px 46px,60px 46px,100% 100%; background-position:30px 0,30px 0,0 46px; }
+#hbox { position:absolute; left:0; right:0; top:50%; transform:translateY(-50%); display:flex; flex-direction:column; align-items:center; gap:12px; z-index:2; }
+#launch { position:static; transform:none; width:340px; height:70px; border-radius:10px; font-size:24px; letter-spacing:1.5px; }
+#launch:hover { transform:translateY(-2px); } #launch:disabled { transform:none; }
+#pbar { position:static; transform:none; width:340px; margin-top:-4px; }
+#vchip { display:flex; align-items:center; gap:8px; padding:7px 16px; border-radius:18px; background:rgba(0,0,0,.45); border:1px solid var(--line); font-size:12px; font-weight:600; backdrop-filter:blur(6px); }
+#vchip .dot { width:7px; height:7px; border-radius:50%; background:#fff; box-shadow:0 0 8px #fff; }
+#herosub { position:static; color:#ddd; } #herosub.err { color:#ff8d8d; }
+.sect h3 { font-size:13px; letter-spacing:1px; text-transform:uppercase; color:var(--mute); margin-bottom:10px; }
+#qp { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:10px; padding:0; }
+#qp .q { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; }
+#qp .q { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:12px; display:flex; flex-direction:column; align-items:center; gap:8px; cursor:pointer; transition:.15s; font-size:12px; font-weight:700; }
+#qp .q:hover { border-color:rgba(255,255,255,.3); transform:translateY(-2px); } #qp .q img { width:40px; height:40px; border-radius:8px; background:#1b1b20; }
+#news { grid-template-columns:repeat(3,1fr); }
+#news .n { height:auto; padding:0; overflow:hidden; }
+.n .art { height:84px; background:linear-gradient(135deg,#2a2a30,#101013); position:relative; } .n .a2 { background:linear-gradient(135deg,#3a3a40,#141416); } .n .a3 { background:linear-gradient(135deg,#1f1f24,#050506); }
+.n .art:after { content:""; position:absolute; inset:0; background:radial-gradient(120px 60px at 70% 20%,rgba(255,255,255,.18),transparent 70%); }
+.n .nb { padding:12px 14px 14px; } .n b { font-size:15px; }
+#side { overflow-y:auto; }
 </style></head>
 <body>
 <div id="bgglow"></div>
@@ -74,14 +107,19 @@ h3 { font-size:14px; margin-bottom:10px; }
     <div class="nav" title="Sign out" onclick="signOut()"><svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></div>
   </div>
   <div id="main">
-    <div id="hello">Welcome Back, <b id="who">player</b></div>
+    <div id="top"><div id="crumb">Home</div><div id="acc" onclick="toggleSettings()"><img id="face" alt=""><span id="who">player</span><i>&#9662;</i></div></div>
     <div id="left">
-      <div id="hero"><button id="launch" onclick="launch()">LAUNCH<small id="lsub">READY TO LAUNCH</small></button><div id="pbar"><i id="pfill"></i></div><div id="herosub">Minecraft 1.21.7 with Mini Client</div></div>
-      <div class="card" id="qp"></div>
-      <div><h3>Latest News</h3>
+      <div id="hero"><div class="hills"></div><div class="hills h2"></div>
+        <div id="hbox"><button id="launch" onclick="launch()">LAUNCH GAME<small id="lsub">READY TO LAUNCH</small></button>
+          <div id="pbar"><i id="pfill"></i></div>
+          <div id="vchip"><span class="dot"></span><span id="herosub">Minecraft 1.21.7 &middot; Mini Client</span></div></div>
+      </div>
+      <div class="sect"><h3>Quick Join</h3><div id="qp"></div></div>
+      <div class="sect"><h3>Latest News</h3>
         <div id="news">
-          <div class="n"><span class="tag">Update</span><b>New Mini Client</b><span>A brand new launcher and in-game menus.</span></div>
-          <div class="n"><span class="tag">Cosmetics</span><b>Built-in cape</b><span>Your Mini Client cape is ready in game.</span></div>
+          <div class="n"><div class="art a1"></div><div class="nb"><span class="tag">Update</span><b>New Mini Client</b><span>A brand new launcher and in-game menus.</span></div></div>
+          <div class="n"><div class="art a2"></div><div class="nb"><span class="tag">Cosmetics</span><b>Built-in cape</b><span>Your Mini Client cape is ready in game.</span></div></div>
+          <div class="n"><div class="art a3"></div><div class="nb"><span class="tag">Performance</span><b>FPS boost</b><span>Sodium and tuned Java flags, on by default.</span></div></div>
         </div>
       </div>
     </div>
@@ -118,7 +156,7 @@ h3 { font-size:14px; margin-bottom:10px; }
 <script>
 const SERVERS=[['Hypixel','mc.hypixel.net'],['Wynncraft','play.wynncraft.com'],['CubeCraft','play.cubecraft.net'],['2b2t','2b2t.org'],['Minemen Club','minemen.club']];
 const icon=(ip)=>'https://api.mcsrvstat.us/icon/'+encodeURIComponent(ip);
-document.getElementById('qp').innerHTML=SERVERS.map(s=>`<img loading="lazy" title="${s[0]}" src="${icon(s[1])}">`).join('');
+document.getElementById('qp').innerHTML=SERVERS.map(s=>`<div class="q" onclick="launch('${s[1]}')"><img loading="lazy" src="${icon(s[1])}">${s[0]}</div>`).join('');
 document.getElementById('svl').innerHTML=SERVERS.map(s=>`<div class="sv"><img loading="lazy" src="${icon(s[1])}"><div>${s[0]}<span>${s[1]}</span></div><button class="join" onclick="launch('${s[1]}')">JOIN</button></div>`).join('');
 let acct=null;
 function toggleSettings(){const s=document.getElementById('settings');s.style.display=s.style.display==='block'?'none':'block';}
@@ -136,7 +174,7 @@ mc.onUpd((s)=>{
 mc.state().then(s=>{document.getElementById('ver').textContent='v'+s.version;});
 mc.channel().then(showCh);
 
-function setAcct(a){acct=a;document.getElementById('who').textContent=a?a.name:'player';document.getElementById('welcome').style.display=a?'none':'flex';}
+function setAcct(a){acct=a;document.getElementById('who').textContent=a?a.name:'player';document.getElementById('face').src=a?'https://mc-heads.net/avatar/'+a.uuid+'/56':'';document.getElementById('welcome').style.display=a?'none':'flex';}
 async function login(){const b=document.getElementById('wl');b.textContent='Waiting for Microsoft...';document.getElementById('err').textContent='';
   const r=await mc.login();b.textContent='Login with Microsoft Account';
   if(r.ok)setAcct(r.account);else document.getElementById('err').textContent=r.error;}
@@ -146,19 +184,19 @@ const $=(i)=>document.getElementById(i);
 let gameBusy=false;
 function heroState(main,sub,pct,err){ $('launch').firstChild.nodeValue=main; $('lsub').textContent=sub;
   $('pbar').style.display=pct==null?'none':'block'; if(pct!=null)$('pfill').style.width=pct+'%';
-  if(err!==undefined){$('herosub').textContent=err||('Minecraft '+(gopts.version||'1.21.7')+' with Mini Client');$('herosub').className=err?'err':'';} }
+  if(err!==undefined){$('herosub').textContent=err||('Minecraft '+(gopts.version||'1.21.7')+' \u00b7 Mini Client');$('herosub').className=err?'err':'';} }
 async function launch(server){
   if(!acct){$('welcome').style.display='flex';return;}
   if(gameBusy)return; gameBusy=true; $('launch').disabled=true;
   heroState('LAUNCHING','PREPARING',0,'');
   const r=await mc.launch(server||'');
-  if(!r.ok){gameBusy=false;$('launch').disabled=false;heroState('LAUNCH','READY TO LAUNCH',null,r.error);return;}
+  if(!r.ok){gameBusy=false;$('launch').disabled=false;heroState('LAUNCH GAME','READY TO LAUNCH',null,r.error);return;}
   if(r.modsNote)$('herosub').textContent='Started without mods: '+r.modsNote;
 }
 mc.onGame((s)=>{
   if(s.state==='progress')heroState('LAUNCHING',s.text.toUpperCase(),s.pct);
   else if(s.state==='running'){heroState('PLAYING','MINECRAFT '+s.id+' IS RUNNING',null);}
-  else if(s.state==='idle'){gameBusy=false;$('launch').disabled=false;heroState('LAUNCH','READY TO LAUNCH',null);}
+  else if(s.state==='idle'){gameBusy=false;$('launch').disabled=false;heroState('LAUNCH GAME','READY TO LAUNCH',null);}
 });
 let gopts={};
 function drawOpts(){
