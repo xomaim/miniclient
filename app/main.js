@@ -69,7 +69,7 @@ ipcMain.handle('open', (e, url) => { if (/^https:\/\//.test(url)) shell.openExte
 
 
 // ---------- game launch ----------
-const GAME_DEFAULTS = { version: '1.21.7', ram: 4, fpsBoost: true, builtinOn: true, capeOn: true, fullscreen: false };
+const GAME_DEFAULTS = { version: '1.21.7', ram: 4, fpsBoost: true, builtinOn: true, capeOn: true, fullscreen: false, keepOpen: false };
 let launcher = null;
 function gameOpts() { return Object.assign({}, GAME_DEFAULTS, readCfg().game || {}); }
 const sendGame = (s) => { if (win && !win.isDestroyed()) win.webContents.send('game', s); };
@@ -82,9 +82,15 @@ function getLauncher() {
   return launcher;
 }
 ipcMain.handle('game-opts', () => gameOpts());
+ipcMain.handle('open-folder', (e, which) => {
+  const mcDir = path.join(process.env.APPDATA || app.getPath('appData'), '.minecraft');
+  const p = which === 'logs' ? app.getPath('userData') : which === 'shots' ? path.join(mcDir, 'screenshots') : mcDir;
+  try { fs.mkdirSync(p, { recursive: true }); } catch (err) {}
+  return require('electron').shell.openPath(p);
+});
 ipcMain.handle('game-opts-set', (e, o) => {
   const c = readCfg(), g = Object.assign(gameOpts(), o || {});
-  g.ram = Math.min(32, Math.max(1, parseInt(g.ram, 10) || 4));
+  g.ram = Math.min(16, Math.max(1, parseInt(g.ram, 10) || 4));
   c.game = g; writeCfg(c); return g;
 });
 ipcMain.handle('launch', async (e, server) => {
@@ -101,7 +107,7 @@ ipcMain.handle('launch', async (e, server) => {
     const r = await L.launch(account, Object.assign(gameOpts(), { server: typeof server === 'string' ? server : '' }));
     sendGame({ state: 'running', id: r.id });
     const watch = setInterval(() => { if (!L.running()) { clearInterval(watch); sendGame({ state: 'idle' }); if (win && win.isMinimized()) win.restore(); } }, 2000);
-    if (win) win.minimize();
+    if (win && !gameOpts().keepOpen) win.minimize();
     return r;
   } catch (err) { sendGame({ state: 'idle' }); return { ok: false, error: err.message }; }
 });

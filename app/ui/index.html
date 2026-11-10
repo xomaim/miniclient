@@ -88,6 +88,32 @@ h3 { font-size:14px; margin-bottom:10px; }
 .n .art:after { content:""; position:absolute; inset:0; background:radial-gradient(120px 60px at 70% 20%,rgba(255,255,255,.18),transparent 70%); }
 .n .nb { padding:12px 14px 14px; } .n b { font-size:15px; }
 #side { overflow-y:auto; }
+
+/* ---- Settings (Lunar-style) ---- */
+#settings { position:fixed; inset:34px 0 0 72px; z-index:9; display:none; background:var(--bg); padding:0; grid-template-columns:220px 1fr; }
+#settings.open { display:grid; }
+#snav { border-right:1px solid var(--line); padding:22px 14px; display:flex; flex-direction:column; gap:2px; background:#0b0b0d; }
+#snav .sh { font-size:20px; font-weight:800; padding:0 10px 16px; }
+.si { padding:10px 12px; border-radius:9px; font-size:13px; font-weight:600; color:var(--mute); cursor:pointer; transition:.12s; }
+.si:hover { background:rgba(255,255,255,.05); color:#fff; } .si.on { background:rgba(255,255,255,.09); color:#fff; }
+.si.back { color:#888; } .grow { flex:1; }
+#sbody { overflow-y:auto; padding:26px 40px 40px; scroll-behavior:smooth; }
+#sbody section { max-width:680px; margin-bottom:30px; }
+#sbody h2 { font-size:13px; letter-spacing:1.2px; text-transform:uppercase; color:var(--mute); margin:0 0 10px 2px; font-weight:700; }
+.grp { background:var(--panel); border:1px solid var(--line); border-radius:14px; overflow:hidden; }
+.grp .row { max-width:none; margin:0; border:none; border-radius:0; background:transparent; border-bottom:1px solid var(--line); padding:16px 18px; gap:16px; }
+.grp .row:last-child { border-bottom:none; }
+.row > div:first-child { font-size:14px; font-weight:600; } .row span { display:block; font-size:12px; color:var(--mute); font-weight:500; margin-top:3px; }
+.row.col { flex-direction:column; align-items:stretch; } .rtop { display:flex; justify-content:space-between; align-items:center; }
+.row.acc { justify-content:flex-start; } .row.acc img { width:42px; height:42px; border-radius:10px; background:#1c1c20; } .row.acc > div { flex:1; } .row.acc b { font-size:15px; }
+.chip { padding:6px 12px; border-radius:8px; background:#16161a; border:1px solid var(--line); font-size:12px; font-weight:700; }
+.sbtn.ghost { background:transparent; color:#fff; border:1px solid rgba(255,255,255,.22); } .sbtn.ghost:hover { background:rgba(255,255,255,.08); }
+input[type=range] { -webkit-appearance:none; width:100%; height:6px; border-radius:3px; margin-top:16px; background:linear-gradient(90deg,#fff var(--p,25%),#26262b var(--p,25%)); outline:none; }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:18px; height:18px; border-radius:50%; background:#fff; border:3px solid #0a0a0a; box-shadow:0 0 0 1px #fff; cursor:pointer; }
+.ticks { display:flex; justify-content:space-between; font-size:10px; color:#666; margin-top:8px; font-weight:600; }
+#ramv { font-size:15px; }
+.foot { color:#555; font-size:11px; max-width:680px; text-align:center; }
+#fx { position:absolute; inset:0; width:100%; height:100%; z-index:1; pointer-events:none; } #hbox { z-index:3; }
 </style></head>
 <body>
 <div id="bgglow"></div>
@@ -109,7 +135,7 @@ h3 { font-size:14px; margin-bottom:10px; }
   <div id="main">
     <div id="top"><div id="crumb">Home</div><div id="acc" onclick="toggleSettings()"><img id="face" alt=""><span id="who">player</span><i>&#9662;</i></div></div>
     <div id="left">
-      <div id="hero"><div class="hills"></div><div class="hills h2"></div>
+      <div id="hero"><canvas id="fx"></canvas><div class="hills"></div><div class="hills h2"></div>
         <div id="hbox"><button id="launch" onclick="launch()">LAUNCH GAME<small id="lsub">READY TO LAUNCH</small></button>
           <div id="pbar"><i id="pfill"></i></div>
           <div id="vchip"><span class="dot"></span><span id="herosub">Minecraft 1.21.7 &middot; Mini Client</span></div></div>
@@ -128,16 +154,58 @@ h3 { font-size:14px; margin-bottom:10px; }
 </div>
 
 <div id="settings">
-  <h2>Settings</h2>
-  <div class="row"><div>Version<span id="ver">-</span></div><button class="sbtn" onclick="mc.updCheck()">Check for updates</button></div>
-  <div class="row"><div>Update channel<span>Beta gets new features first and may be less stable.</span></div><div class="seg"><div id="ch_stable" onclick="setCh('stable')">Stable</div><div id="ch_beta" onclick="setCh('beta')">Beta</div></div></div>
-  <div class="row"><div id="updline">Updates are checked every 5 minutes.</div></div>
-  <h4>GAME</h4>
-  <div class="row"><div>Memory<span>RAM given to Minecraft.</span></div><div class="seg" id="ramseg"></div></div>
-  <div class="row"><div>FPS boost<span>Performance mods, tuned Java flags and lighter video settings.</span></div><div class="tog" data-k="fpsBoost"></div></div>
-  <div class="row"><div>Mini Client mods<span>HUD, menus and Sodium. Turn off for plain Minecraft.</span></div><div class="tog" data-k="builtinOn"></div></div>
-  <div class="row"><div>Built-in cape<span>Your Mini Client cape (only you can see it).</span></div><div class="tog" data-k="capeOn"></div></div>
-  <div class="row"><div>Fullscreen<span>Start the game in fullscreen.</span></div><div class="tog" data-k="fullscreen"></div></div>
+  <div id="snav">
+    <div class="sh">Settings</div>
+    <div class="si on" data-s="s-general">General</div>
+    <div class="si" data-s="s-game">Game</div>
+    <div class="si" data-s="s-perf">Performance</div>
+    <div class="si" data-s="s-cos">Cosmetics</div>
+    <div class="si" data-s="s-upd">Updates</div>
+    <div class="si" data-s="s-files">Files</div>
+    <div class="grow"></div>
+    <div class="si back" onclick="toggleSettings()">&#8592; Back to Home</div>
+  </div>
+  <div id="sbody">
+    <section id="s-general"><h2>General</h2>
+      <div class="grp">
+        <div class="row acc"><img id="sface" alt=""><div><b id="sname">Not signed in</b><span id="smode">Microsoft account</span></div><button class="sbtn ghost" onclick="acct?signOut():login()" id="sacct">Sign out</button></div>
+        <div class="row"><div>Keep launcher open while playing<span>Off: the launcher minimises when the game starts.</span></div><div class="tog" data-k="keepOpen"></div></div>
+      </div>
+    </section>
+    <section id="s-game"><h2>Game</h2>
+      <div class="grp">
+        <div class="row"><div>Version<span>Mini Client is built for this version.</span></div><div class="chip">1.21.7 &middot; Fabric</div></div>
+        <div class="row col"><div class="rtop"><div>Memory<span>RAM given to Minecraft. 4 GB is best for most PCs.</span></div><b id="ramv">4 GB</b></div>
+          <input type="range" id="ram" min="1" max="16" step="1"><div class="ticks"><span>1 GB</span><span>4</span><span>8</span><span>12</span><span>16 GB</span></div></div>
+        <div class="row"><div>Fullscreen<span>Start the game in fullscreen.</span></div><div class="tog" data-k="fullscreen"></div></div>
+      </div>
+    </section>
+    <section id="s-perf"><h2>Performance</h2>
+      <div class="grp">
+        <div class="row"><div>FPS boost<span>Performance mods, tuned Java flags and lighter video settings.</span></div><div class="tog" data-k="fpsBoost"></div></div>
+        <div class="row"><div>Mini Client mods<span>HUD, menus, loading screen and Sodium. Off = plain Minecraft.</span></div><div class="tog" data-k="builtinOn"></div></div>
+      </div>
+    </section>
+    <section id="s-cos"><h2>Cosmetics</h2>
+      <div class="grp">
+        <div class="row"><div>Built-in cape<span>Your Mini Client cape. Only you can see it.</span></div><div class="tog" data-k="capeOn"></div></div>
+      </div>
+    </section>
+    <section id="s-upd"><h2>Updates</h2>
+      <div class="grp">
+        <div class="row"><div>Mini Client <b id="ver">-</b><span id="updline">Updates are checked every 5 minutes.</span></div><button class="sbtn" onclick="mc.updCheck()">Check for updates</button></div>
+        <div class="row"><div>Update channel<span>Beta gets new features first and may be less stable.</span></div><div class="seg"><div id="ch_stable" onclick="setCh('stable')">Stable</div><div id="ch_beta" onclick="setCh('beta')">Beta</div></div></div>
+      </div>
+    </section>
+    <section id="s-files"><h2>Files</h2>
+      <div class="grp">
+        <div class="row"><div>Game folder<span>.minecraft: worlds, screenshots, resource packs.</span></div><button class="sbtn ghost" onclick="mc.openFolder('game')">Open</button></div>
+        <div class="row"><div>Screenshots</div><button class="sbtn ghost" onclick="mc.openFolder('shots')">Open</button></div>
+        <div class="row"><div>Launcher logs<span>Send these if a launch fails.</span></div><button class="sbtn ghost" onclick="mc.openFolder('logs')">Open</button></div>
+      </div>
+    </section>
+    <div class="foot">Mini Client &middot; not affiliated with Mojang or Microsoft</div>
+  </div>
 </div>
 <div id="welcome">
   <div id="wart"><div class="mt"></div></div>
@@ -159,7 +227,12 @@ const icon=(ip)=>'https://api.mcsrvstat.us/icon/'+encodeURIComponent(ip);
 document.getElementById('qp').innerHTML=SERVERS.map(s=>`<div class="q" onclick="launch('${s[1]}')"><img loading="lazy" src="${icon(s[1])}">${s[0]}</div>`).join('');
 document.getElementById('svl').innerHTML=SERVERS.map(s=>`<div class="sv"><img loading="lazy" src="${icon(s[1])}"><div>${s[0]}<span>${s[1]}</span></div><button class="join" onclick="launch('${s[1]}')">JOIN</button></div>`).join('');
 let acct=null;
-function toggleSettings(){const s=document.getElementById('settings');s.style.display=s.style.display==='block'?'none':'block';}
+function toggleSettings(){const s=$('settings'),o=!s.classList.contains('open');s.classList.toggle('open',o);
+  document.querySelectorAll('#rail .nav').forEach(n=>n.classList.toggle('on',o?n.title==='Settings':n.title==='Launch'));
+  $('crumb').textContent=o?'Settings':'Home';}
+document.querySelectorAll('.si[data-s]').forEach(i=>i.onclick=()=>{document.getElementById(i.dataset.s).scrollIntoView();});
+document.getElementById('sbody').addEventListener('scroll',function(){let cur=null;this.querySelectorAll('section').forEach(sc=>{if(sc.offsetTop-this.offsetTop-80<=this.scrollTop)cur=sc.id;});
+  document.querySelectorAll('.si[data-s]').forEach(i=>i.classList.toggle('on',i.dataset.s===cur));});
 async function setCh(c){await mc.setChannel(c);showCh(c);}
 function showCh(c){document.getElementById('ch_stable').className=c==='beta'?'':'on';document.getElementById('ch_beta').className=c==='beta'?'on':'';}
 function updClick(){const e=document.getElementById('upd');if(e.dataset.ready)mc.updInstall();}
@@ -174,7 +247,7 @@ mc.onUpd((s)=>{
 mc.state().then(s=>{document.getElementById('ver').textContent='v'+s.version;});
 mc.channel().then(showCh);
 
-function setAcct(a){acct=a;document.getElementById('who').textContent=a?a.name:'player';document.getElementById('face').src=a?'https://mc-heads.net/avatar/'+a.uuid+'/56':'';document.getElementById('welcome').style.display=a?'none':'flex';}
+function setAcct(a){acct=a;$('sname').textContent=a?a.name:'Not signed in';$('smode').textContent=a?'Microsoft account':'Sign in to play online';$('sacct').textContent=a?'Sign out':'Sign in';$('sface').src=a?'https://mc-heads.net/avatar/'+a.uuid+'/84':'';document.getElementById('who').textContent=a?a.name:'player';document.getElementById('face').src=a?'https://mc-heads.net/avatar/'+a.uuid+'/56':'';document.getElementById('welcome').style.display=a?'none':'flex';}
 async function login(){const b=document.getElementById('wl');b.textContent='Waiting for Microsoft...';document.getElementById('err').textContent='';
   const r=await mc.login();b.textContent='Login with Microsoft Account';
   if(r.ok)setAcct(r.account);else document.getElementById('err').textContent=r.error;}
@@ -201,8 +274,10 @@ mc.onGame((s)=>{
 let gopts={};
 function drawOpts(){
   document.querySelectorAll('.tog').forEach(t=>t.className='tog'+(gopts[t.dataset.k]?' on':''));
-  $('ramseg').innerHTML=[2,4,6,8].map(n=>`<div class="${gopts.ram==n?'on':''}" onclick="setOpt('ram',${n})">${n} GB</div>`).join('');
+  const r=$('ram');r.value=gopts.ram;$('ramv').textContent=gopts.ram+' GB';r.style.setProperty('--p',((gopts.ram-1)/15*100)+'%');
 }
+$('ram').oninput=function(){$('ramv').textContent=this.value+' GB';this.style.setProperty('--p',((this.value-1)/15*100)+'%');};
+$('ram').onchange=function(){setOpt('ram',+this.value);};
 async function setOpt(k,v){gopts=await mc.setGameOpts({[k]:v});drawOpts();}
 document.querySelectorAll('.tog').forEach(t=>t.onclick=()=>setOpt(t.dataset.k,!gopts[t.dataset.k]));
 mc.gameOpts().then(o=>{gopts=o;drawOpts();});
@@ -210,5 +285,12 @@ mc.gameOpts().then(o=>{gopts=o;drawOpts();});
 $('welcome').style.display='none';
 mc.saved().then(a=>{ if(a) setAcct(a); });
 requestAnimationFrame(()=>setTimeout(async()=>{const s=await mc.silent();if(s.ok&&s.account)setAcct(s.account);else if(!s.ok)setAcct(null);},50));
+(function(){const c=$('fx'),x=c.getContext('2d');let W,H,P=[];
+function rs(){W=c.width=c.offsetWidth*devicePixelRatio;H=c.height=c.offsetHeight*devicePixelRatio;}
+rs();addEventListener('resize',rs);
+for(let i=0;i<46;i++)P.push({x:Math.random(),y:Math.random(),s:.00004+Math.random()*.00012,r:(Math.random()<.25?2.4:1.2)*devicePixelRatio,a:Math.random()<.3?.8:.3});
+function f(){x.clearRect(0,0,W,H);for(const p of P){p.y+=p.s*16;p.x+=p.s*10;if(p.y>1)p.y=0;if(p.x>1)p.x=0;
+const g=x.createRadialGradient(p.x*W,p.y*H,0,p.x*W,p.y*H,p.r*4);g.addColorStop(0,'rgba(255,255,255,'+p.a+')');g.addColorStop(1,'rgba(255,255,255,0)');
+x.fillStyle=g;x.beginPath();x.arc(p.x*W,p.y*H,p.r*4,0,7);x.fill();}requestAnimationFrame(f);}f();})();
 </script>
 </body></html>
