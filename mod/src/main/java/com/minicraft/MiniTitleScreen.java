@@ -131,8 +131,25 @@ public class MiniTitleScreen extends Screen {
 		g.pose().popMatrix();
 
 		int cx = X(253);
-		star(g, cx, Y(174), S(24), 0xFFFFFFFF);
-		star(g, cx, Y(174), S(9), 0xFF111C27);
+		Logo.draw(g, cx, Y(174), S(54), 0xFFFFFFFF);
+
+		// clock + date, top left
+		java.time.LocalDateTime now = java.time.LocalDateTime.now();
+		String time = now.format(java.time.format.DateTimeFormatter.ofPattern("HH:mm"));
+		String date = now.format(java.time.format.DateTimeFormatter.ofPattern("EEEE, d MMMM", java.util.Locale.ENGLISH));
+		float ts = S(30) / 7f;
+		g.pose().pushMatrix();
+		g.pose().translate(X(34), Y(30));
+		g.pose().scale(ts, ts);
+		g.drawString(this.font, time, 0, 0, 0xFFFFFFFF, false);
+		g.drawString(this.font, time, 1, 0, 0xFFFFFFFF, false);
+		g.pose().popMatrix();
+		float ds = Math.max(0.6f, k * 1.25f);
+		g.pose().pushMatrix();
+		g.pose().translate(X(36), Y(30) + S(36));
+		g.pose().scale(ds, ds);
+		g.drawString(this.font, date, 0, 0, 0xFF9AA7B4, false);
+		g.pose().popMatrix();
 
 		String word = "MINI CLIENT";
 		float sc = S(20) / 7f;

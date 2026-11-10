@@ -1,0 +1,7 @@
+{
+  "required": true,
+  "package": "com.minicraft.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "client": ["LoadingOverlayMixin"],
+  "injectors": { "defaultRequire": 1 }
+}
