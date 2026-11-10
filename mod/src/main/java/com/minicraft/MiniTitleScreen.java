@@ -84,9 +84,7 @@ public class MiniTitleScreen extends Screen {
 			new GlassButton(rx, Y(394), rw, S(28), "\u2666  Wardrobe", () -> mc.setScreen(new MiniSettingsScreen(this)))
 		};
 		for (GlassButton b : right) { b.textScale = Math.max(0.6f, k * 1.32f); addRenderableWidget(b); }
-		GlassButton q = new GlassButton(this.width - S(30), S(8), S(22), S(22), "\u2715", () -> mc.stop());
-		q.textScale = Math.max(0.6f, k * 1.2f);
-		addRenderableWidget(q);
+
 	}
 
 	@Override
