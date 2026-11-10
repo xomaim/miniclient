@@ -39,54 +39,51 @@ public class MiniTitleScreen extends Screen {
 		return false;
 	}
 
+	private int colX() { return (int) (this.width * 0.28); }
+
 	@Override
 	protected void init() {
 		Minecraft mc = this.minecraft;
-		int cx = (int) (this.width * 0.36);
-		int y = this.height / 2 - 6;
-		int step = 26;
-		addRenderableWidget(new GlassButton(cx - 100, y, 200, 22, "Singleplayer", () -> mc.setScreen(new SelectWorldScreen(this))));
-		y += step;
-		addRenderableWidget(new GlassButton(cx - 100, y, 200, 22, "Multiplayer", () -> mc.setScreen(new JoinMultiplayerScreen(this))));
-		y += step;
-		addRenderableWidget(new GlassButton(cx - 100, y, 200, 22, "Realms", () -> mc.setScreen(new RealmsMainScreen(this))));
-		y += step;
-		addRenderableWidget(new GlassButton(cx - 100, y, 98, 22, "Settings", () -> mc.setScreen(new OptionsScreen(this, mc.options))));
-		addRenderableWidget(new GlassButton(cx + 2, y, 98, 22, "Mini Client", () -> mc.setScreen(new MiniSettingsScreen(this))));
-		y += step + 8;
-		addRenderableWidget(new GlassButton(cx - 100, y, 200, 20, "Quit Game", () -> mc.stop()));
+		int cx = colX();
+		int bw = 200, y = this.height / 2 - 6, step = 25;
+		addRenderableWidget(new GlassButton(cx - bw / 2, y, bw, 20, "\u263A  Singleplayer", () -> mc.setScreen(new SelectWorldScreen(this))));
+		addRenderableWidget(new GlassButton(cx - bw / 2, y + step, bw, 20, "\u263B  Multiplayer", () -> mc.setScreen(new JoinMultiplayerScreen(this))));
+		addRenderableWidget(new GlassButton(cx - bw / 2, y + step * 2, bw, 20, "\u25CE  Realms", () -> mc.setScreen(new RealmsMainScreen(this))));
+		addRenderableWidget(new GlassButton(cx - bw / 2, y + step * 3, bw / 2 - 3, 20, "\u2699  Settings", () -> mc.setScreen(new OptionsScreen(this, mc.options))));
+		addRenderableWidget(new GlassButton(cx + 3, y + step * 3, bw / 2 - 3, 20, "\u2630  Mods", () -> mc.setScreen(new MiniSettingsScreen(this))));
 
-		// right column (OneClient style): account, host world, quick play, wardrobe
-		int rx = this.width - 210;
-		int ry = this.height / 2 - 6;
-		addRenderableWidget(new GlassButton(rx + 24, ry, 166, 22, mc.getUser().getName(), () -> { }));
-		int tx = this.width - 26;
-		addRenderableWidget(new GlassButton(tx, 6, 20, 20, "X", () -> mc.stop()));
-		addRenderableWidget(new GlassButton(tx - 24, 6, 20, 20, "F", () -> mc.getWindow().toggleFullScreen()));
-		addRenderableWidget(new GlassButton(tx - 48, 6, 20, 20, "S", () -> mc.setScreen(new MiniSettingsScreen(this))));
-		addRenderableWidget(new GlassButton(tx - 72, 6, 20, 20, "M", () -> mc.setScreen(new MiniSettingsScreen(this))));
-		addRenderableWidget(new GlassButton(rx, ry + 26, 190, 22, "Host World", () -> mc.setScreen(new SelectWorldScreen(this))));
-		addRenderableWidget(new GlassButton(rx, ry + 52, 190, 22, "Quick Play: Hypixel", () -> {
+		// right column: skin model, account, host world, social, wardrobe
+		int rw = 170, rx = this.width - rw - 14;
+		try {
+			net.minecraft.client.gui.components.PlayerSkinWidget skin = new net.minecraft.client.gui.components.PlayerSkinWidget(
+				60, 100, mc.getEntityModels(), () -> mc.getSkinManager().getInsecureSkin(mc.getGameProfile()));
+			skin.setPosition(rx + rw / 2 - 30, y - 108);
+			addRenderableWidget(skin);
+		} catch (Throwable ignored) {
+		}
+		addRenderableWidget(new GlassButton(rx, y, rw, 20, mc.getUser().getName(), () -> mc.setScreen(new MiniSettingsScreen(this))));
+		addRenderableWidget(new GlassButton(rx, y + step, rw, 20, "\u21E5  Host World", () -> mc.setScreen(new SelectWorldScreen(this))));
+		addRenderableWidget(new GlassButton(rx, y + step * 2, rw, 20, "\u2709  Social", () -> {
 			ServerData hd = new ServerData("Hypixel", "mc.hypixel.net", ServerData.Type.OTHER);
 			ConnectScreen.startConnecting(this, mc, ServerAddress.parseString(hd.ip), hd, false, null);
 		}));
-		addRenderableWidget(new GlassButton(rx, ry + 78, 190, 22, "Mini Client settings", () -> mc.setScreen(new MiniSettingsScreen(this))));
+		addRenderableWidget(new GlassButton(rx, y + step * 3, rw, 20, "\u2666  Wardrobe", () -> mc.setScreen(new MiniSettingsScreen(this))));
+		addRenderableWidget(new GlassButton(this.width - 24, 6, 18, 18, "\u2715", () -> mc.stop()));
 	}
 
 	@Override
 	public void renderBackground(GuiGraphics g, int mouseX, int mouseY, float delta) {
-		g.fillGradient(0, 0, this.width, this.height, 0xFF161616, 0xFF1F1F1F);
-		g.fillGradient(0, this.height / 2, this.width, this.height, 0x002B2B2B, 0x402B2B2B);
+		g.fillGradient(0, 0, this.width, this.height, 0xFF0F1924, 0xFF16222E);
 		long t = System.currentTimeMillis();
 		for (int i = 0; i < PETALS; i++) {
-			float yy = (py[i] + (t % 1000000L) / 1000f * ps[i] * 0.4f) % 1f;
-			float xx = (px[i] + (float) Math.sin((t / 1000.0) * 0.3 + i) * 0.01f) % 1f;
-			int x = (int) (xx * this.width);
-			int y = (int) (yy * this.height);
-			int s = (i % 5 == 0) ? 3 : 2;
-			int a = (i % 3 == 0) ? 0x70 : 0x38;
-			g.fill(x - 1, y - 1, x + s + 1, y + s + 1, (a / 3) << 24 | 0x6C9BFF);
-			g.fill(x, y, x + s, y + s, a << 24 | 0xC8DCFF);
+			float yy = (py[i] + (t % 10000000L) / 1000f * ps[i] * 0.25f) % 1f;
+			float xx = (px[i] + (t % 10000000L) / 1000f * ps[i] * 0.18f + (float) Math.sin(t / 1600.0 + i) * 0.006f) % 1f;
+			int x = (int) (xx * this.width), yv = (int) (yy * this.height);
+			int a = (i % 3 == 0) ? 0xC0 : 0x50;
+			int s = (i % 4 == 0) ? 2 : 1;
+			g.fill(x - s - 1, yv - s - 1, x + s + 2, yv + s + 2, (a / 6) << 24 | 0xFFFFFF);
+			g.fill(x - s, yv - s, x + s + 1, yv + s + 1, (a / 3) << 24 | 0xFFFFFF);
+			g.fill(x, yv, x + 1, yv + 1, a << 24 | 0xFFFFFF);
 		}
 	}
 
@@ -103,33 +100,35 @@ public class MiniTitleScreen extends Screen {
 	@Override
 	public void render(GuiGraphics g, int mouseX, int mouseY, float delta) {
 		super.render(g, mouseX, mouseY, delta);
+		int y = this.height / 2 - 6, rw = 170, rx = this.width - rw - 14;
 		try {
-			net.minecraft.client.gui.components.PlayerFaceRenderer.draw(g, this.minecraft.getSkinManager().getInsecureSkin(this.minecraft.getGameProfile()), this.width - 210, this.height / 2 - 6, 22);
+			net.minecraft.client.gui.components.PlayerFaceRenderer.draw(g, this.minecraft.getSkinManager().getInsecureSkin(this.minecraft.getGameProfile()), rx + 6, y + 4, 12);
 		} catch (Throwable ignored) {
 		}
-		int cx = (int) (this.width * 0.36);
-		int top = this.height / 2 - 100;
-		star(g, cx, top + 22, 20, 0xFFFFFFFF);
-		star(g, cx, top + 22, 9, 0xFFEBEBEB);
+		g.drawString(this.font, "\u2304", rx + rw - 14, y + 4, 0xFFEBEBEB, false);
 
-		float s = 2.4f;
-		String word = "MINICRAFT";
-		int gap = 2;
+		int cx = colX(), top = y - 96;
+		star(g, cx, top + 18, 18, 0xFFFFFFFF);
+		star(g, cx, top + 18, 7, 0xFF16222E);
+		float sc = 2.2f;
+		String word = "MINI CLIENT";
+		int gap = 1;
 		float total = 0;
-		for (int i = 0; i < word.length(); i++) total += (this.font.width(String.valueOf(word.charAt(i))) + gap) * s;
-		total -= gap * s;
+		for (int i = 0; i < word.length(); i++) total += (this.font.width(String.valueOf(word.charAt(i))) + gap + 1) * sc;
+		total -= gap * sc;
 		g.pose().pushMatrix();
-		g.pose().translate(cx - total / 2f, (float) (top + 62));
-		g.pose().scale(s, s);
+		g.pose().translate(cx - total / 2f, (float) (top + 50));
+		g.pose().scale(sc, sc);
 		int px0 = 0;
 		for (int i = 0; i < word.length(); i++) {
 			String ch = String.valueOf(word.charAt(i));
-			g.drawString(this.font, ch, px0, 0, 0xFFFFFFFF, true);
-			px0 += this.font.width(ch) + gap;
+			g.drawString(this.font, ch, px0, 0, 0xFFFFFFFF, false);
+			g.drawString(this.font, ch, px0 + 1, 0, 0xFFFFFFFF, false);  // faux bold
+			px0 += this.font.width(ch) + gap + 1;
 		}
 		g.pose().popMatrix();
 
-		String v = "Minicraft 1.21.7";
-		g.drawString(this.font, v, this.width - this.font.width(v) - 8, this.height - 14, 0xFF8D8BA0, false);
+		String v = "Mini Client 1.21.7";
+		g.drawString(this.font, v, 8, this.height - 14, 0xFF6F7C8A, false);
 	}
 }
