@@ -119,7 +119,23 @@ class Launcher {
 
   async prepare(id, o) {
     const fast = await this.fastLoad(id, o);
-    if (fast) { this.log('Fast start: ' + id + ' already set up.'); return fast; }
+    if (fast) {
+      this.log('Fast start: ' + id + ' already set up.');
+      // The Mini Client mod changes often: always pick up the newest build, even on fast start.
+      if (o.builtinOn && id === '1.21.7') {
+        const mf = await miniModFile();
+        const mdir = path.join(this.cfgDir, 'builtin_mods', id), mp = path.join(mdir, mf.name);
+        const old = (fast.addMods || []).findIndex((x) => /miniclient-mod-/.test(path.basename(x)));
+        if (old < 0 || fast.addMods[old] !== mp) {
+          this.progress('Updating Mini Client mod...', 50);
+          await download(mf.url, mp);
+          if (old < 0) fast.addMods.push(mp); else fast.addMods[old] = mp;
+          await fsp.writeFile(this.fastFile(id, o), JSON.stringify(fast));
+          this.log('Mini Client mod updated to ' + mf.name);
+        }
+      }
+      return fast;
+    }
 
     this.progress('Reading version info...', 2);
     const manifest = await getJson(VERSIONS_URL);
