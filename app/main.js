@@ -82,9 +82,10 @@ function getLauncher() {
   return launcher;
 }
 ipcMain.handle('game-opts', () => gameOpts());
+ipcMain.handle('user-mods', () => getLauncher().userMods());
 ipcMain.handle('open-folder', (e, which) => {
   const mcDir = path.join(process.env.APPDATA || app.getPath('appData'), '.minecraft');
-  const p = which === 'logs' ? app.getPath('userData') : which === 'shots' ? path.join(mcDir, 'screenshots') : mcDir;
+  const p = which === 'logs' ? app.getPath('userData') : which === 'shots' ? path.join(mcDir, 'screenshots') : which === 'mods' ? path.join(mcDir, 'mods') : mcDir;
   try { fs.mkdirSync(p, { recursive: true }); } catch (err) {}
   return require('electron').shell.openPath(p);
 });

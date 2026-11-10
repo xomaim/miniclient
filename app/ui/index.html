@@ -114,6 +114,45 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:18px; h
 #ramv { font-size:15px; }
 .foot { color:#555; font-size:11px; max-width:680px; text-align:center; }
 #fx { position:absolute; inset:0; width:100%; height:100%; z-index:1; pointer-events:none; } #hbox { z-index:3; }
+
+/* ---- pages ---- */
+.page { position:fixed; inset:34px 0 0 72px; z-index:8; display:none; background:var(--bg); overflow-y:auto; padding:26px 34px 34px; }
+.page.open { display:block; }
+.phead h1 { font-size:24px; font-weight:800; } .phead span { color:var(--mute); font-size:13px; } .phead { margin-bottom:20px; }
+.vgrid { display:grid; grid-template-columns:repeat(auto-fill,minmax(210px,1fr)); gap:14px; }
+.ver { background:var(--panel); border:1px solid var(--line); border-radius:14px; overflow:hidden; cursor:pointer; transition:.15s; }
+.ver.on { border-color:#fff; box-shadow:0 0 0 1px #fff; } .ver.off { opacity:.45; cursor:default; } .ver:not(.off):hover { transform:translateY(-2px); }
+.vart { height:110px; background:linear-gradient(160deg,#3a3a40,#0d0d10); position:relative; } .vart:after { content:""; position:absolute; inset:0; background:radial-gradient(160px 70px at 70% 20%,rgba(255,255,255,.2),transparent 70%); }
+.v2 { background:linear-gradient(160deg,#2c2c31,#0a0a0c); } .v3 { background:linear-gradient(160deg,#25252a,#060607); } .v4 { background:linear-gradient(160deg,#1c1c20,#030303); }
+.vb { padding:14px 16px; position:relative; } .vb b { font-size:18px; display:block; } .vb span { font-size:12px; color:var(--mute); }
+.vb em { position:absolute; right:14px; top:16px; font-style:normal; font-size:11px; font-weight:700; padding:4px 9px; border-radius:6px; background:#fff; color:#000; } .off .vb em { background:#222; color:#aaa; }
+.addsv { display:flex; gap:10px; margin-bottom:18px; max-width:620px; }
+.addsv input { flex:1; height:40px; border-radius:10px; border:1px solid var(--line); background:var(--panel); color:#fff; padding:0 14px; font:500 13px inherit; outline:none; } .addsv input:focus { border-color:rgba(255,255,255,.4); }
+#sgrid { display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:12px; }
+.sc { background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:16px; display:flex; align-items:center; gap:14px; transition:.15s; }
+.sc:hover { border-color:rgba(255,255,255,.25); } .sc img { width:48px; height:48px; border-radius:10px; background:#1b1b20; }
+.sc div { flex:1; min-width:0; } .sc b { display:block; font-size:14px; } .sc span { font-size:12px; color:var(--mute); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; display:block; }
+.sc .x { background:none; border:0; color:#666; cursor:pointer; font-size:16px; } .sc .x:hover { color:#fff; }
+.mh { font-size:13px; letter-spacing:1px; text-transform:uppercase; color:var(--mute); margin:20px 0 10px; display:flex; align-items:center; gap:12px; max-width:680px; justify-content:space-between; }
+#p-mods .grp { max-width:680px; } .sbtn.sm { padding:6px 12px; font-size:11px; letter-spacing:0; text-transform:none; }
+.mrow { display:flex; align-items:center; gap:14px; padding:14px 18px; border-bottom:1px solid var(--line); } .mrow:last-child { border-bottom:none; }
+.mrow i { width:36px; height:36px; border-radius:9px; background:#1d1d22; display:grid; place-items:center; font-style:normal; font-weight:800; font-size:14px; }
+.mrow div { flex:1; } .mrow b { font-size:14px; display:block; } .mrow span { font-size:12px; color:var(--mute); }
+.mrow .st, .st { font-size:11px; font-weight:700; padding:4px 9px; border-radius:6px; background:#fff; color:#000; } .mrow .st.offs, .st.offs { background:#222; color:#888; } .mrow .st { color:#000; }
+.empty { padding:22px 18px; color:var(--mute); font-size:13px; }
+/* ---- terms / first run ---- */
+#tos { position:fixed; inset:34px 0 0 0; z-index:12; background:radial-gradient(900px 500px at 50% -10%,rgba(255,255,255,.10),transparent 60%),#070708; display:none; justify-content:center; overflow-y:auto; }
+#tos.open { display:flex; }
+.tbox { width:620px; max-width:calc(100% - 32px); display:flex; flex-direction:column; align-items:center; padding:44px 0 30px; }
+.tlogo { width:320px; height:186px; object-fit:contain; margin-bottom:10px; animation:drop .9s cubic-bezier(.34,1.56,.64,1) both; }
+@keyframes drop { from { transform:translateY(-90px); opacity:0; } to { transform:none; opacity:1; } }
+.tbox h1 { font-size:28px; font-weight:800; letter-spacing:.3px; } .tsub { color:var(--mute); font-size:13px; margin:6px 0 18px; }
+.tscroll { width:100%; height:250px; overflow-y:auto; background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:18px 22px; font-size:12.5px; line-height:1.6; color:#cfcfd4; }
+.tscroll h4 { color:#fff; font-size:14px; margin:4px 0 10px; } .tscroll h4:not(:first-child) { margin-top:18px; } .tscroll p { margin-bottom:10px; } .tscroll a { color:#fff; }
+.tchk { display:flex; align-items:center; gap:12px; width:100%; margin:16px 0 4px; font-size:13px; cursor:pointer; user-select:none; }
+.tchk input { display:none; } .tchk span { width:20px; height:20px; flex:none; border-radius:6px; border:1.5px solid rgba(255,255,255,.4); display:grid; place-items:center; }
+.tchk input:checked + span { background:#fff; border-color:#fff; } .tchk input:checked + span:after { content:"\2713"; color:#000; font-weight:900; font-size:13px; }
+#tgo { width:100%; } #tgo:disabled { opacity:.35; cursor:default; }
 </style></head>
 <body>
 <div id="bgglow"></div>
@@ -124,16 +163,16 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:18px; h
 <div id="app">
   <div id="rail">
     <img class="logo" id="logo" src="data:image/png;base64,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">
-    <div class="nav on" title="Launch"><svg viewBox="0 0 24 24"><path d="M12 2c3 2 5 6 5 10l-2 3H9l-2-3c0-4 2-8 5-10z"/><circle cx="12" cy="9" r="1.6"/><path d="M7 13l-3 3v3l4-2M17 13l3 3v3l-4-2"/></svg></div>
-    <div class="nav" title="Versions"><svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="11" rx="5"/><line x1="7" y1="10.5" x2="7" y2="14.5"/><line x1="5" y1="12.5" x2="9" y2="12.5"/></svg></div>
-    <div class="nav" title="Servers"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/><line x1="3" y1="12" x2="21" y2="12"/></svg></div>
-    <div class="nav" title="Mods"><svg viewBox="0 0 24 24"><path d="M9 3h4v3a2 2 0 1 0 4 0V3h3v6h-3a2 2 0 1 0 0 4h3v8H4v-6h3a2 2 0 1 0 0-4H4V3z"/></svg></div>
+    <div class="nav on" title="Launch" data-p="home" onclick="go('home')"><svg viewBox="0 0 24 24"><path d="M12 2c3 2 5 6 5 10l-2 3H9l-2-3c0-4 2-8 5-10z"/><circle cx="12" cy="9" r="1.6"/><path d="M7 13l-3 3v3l4-2M17 13l3 3v3l-4-2"/></svg></div>
+    <div class="nav" title="Versions" data-p="versions" onclick="go('versions')"><svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="11" rx="5"/><line x1="7" y1="10.5" x2="7" y2="14.5"/><line x1="5" y1="12.5" x2="9" y2="12.5"/></svg></div>
+    <div class="nav" title="Servers" data-p="servers" onclick="go('servers')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/><line x1="3" y1="12" x2="21" y2="12"/></svg></div>
+    <div class="nav" title="Mods" data-p="mods" onclick="go('mods')"><svg viewBox="0 0 24 24"><path d="M9 3h4v3a2 2 0 1 0 4 0V3h3v6h-3a2 2 0 1 0 0 4h3v8H4v-6h3a2 2 0 1 0 0-4H4V3z"/></svg></div>
     <div class="sp"></div>
-    <div class="nav" title="Settings" onclick="toggleSettings()"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2"/></svg></div>
+    <div class="nav" title="Settings" data-p="settings" onclick="go('settings')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2"/></svg></div>
     <div class="nav" title="Sign out" onclick="signOut()"><svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></div>
   </div>
   <div id="main">
-    <div id="top"><div id="crumb">Home</div><div id="acc" onclick="toggleSettings()"><img id="face" alt=""><span id="who">player</span><i>&#9662;</i></div></div>
+    <div id="top"><div id="crumb">Home</div><div id="acc" onclick="go('settings')"><img id="face" alt=""><span id="who">player</span><i>&#9662;</i></div></div>
     <div id="left">
       <div id="hero"><canvas id="fx"></canvas><div class="hills"></div><div class="hills h2"></div>
         <div id="hbox"><button id="launch" onclick="launch()">LAUNCH GAME<small id="lsub">READY TO LAUNCH</small></button>
@@ -153,6 +192,19 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:18px; h
   </div>
 </div>
 
+<div class="page" id="p-versions"><div class="phead"><h1>Versions</h1><span>Pick the Minecraft version Mini Client plays.</span></div>
+  <div class="vgrid">
+    <div class="ver on"><div class="vart"></div><div class="vb"><b>1.21.7</b><span>Fabric &middot; Mini Client mods</span><em>Selected</em></div></div>
+    <div class="ver off"><div class="vart v2"></div><div class="vb"><b>1.21.8</b><span>Coming soon</span><em>Soon</em></div></div>
+    <div class="ver off"><div class="vart v3"></div><div class="vb"><b>1.20.1</b><span>Coming soon</span><em>Soon</em></div></div>
+    <div class="ver off"><div class="vart v4"></div><div class="vb"><b>1.8.9</b><span>PvP &middot; coming soon</span><em>Soon</em></div></div>
+  </div></div>
+<div class="page" id="p-servers"><div class="phead"><h1>Servers</h1><span>Join in one click. Minecraft opens straight into the server.</span></div>
+  <div class="addsv"><input id="svip" placeholder="Server address, e.g. play.example.net" spellcheck="false"><button class="sbtn" onclick="addServer()">Add server</button></div>
+  <div id="sgrid"></div></div>
+<div class="page" id="p-mods"><div class="phead"><h1>Mods</h1><span>Mini Client's built-in mods, plus any mods you add yourself.</span></div>
+  <h3 class="mh">Built in</h3><div class="grp" id="mbuilt"></div>
+  <h3 class="mh">Your mods <button class="sbtn ghost sm" onclick="mc.openFolder('mods')">Open mods folder</button></h3><div class="grp" id="muser"></div></div>
 <div id="settings">
   <div id="snav">
     <div class="sh">Settings</div>
@@ -163,7 +215,7 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:18px; h
     <div class="si" data-s="s-upd">Updates</div>
     <div class="si" data-s="s-files">Files</div>
     <div class="grow"></div>
-    <div class="si back" onclick="toggleSettings()">&#8592; Back to Home</div>
+    <div class="si back" onclick="go('home')">&#8592; Back to Home</div>
   </div>
   <div id="sbody">
     <section id="s-general"><h2>General</h2>
@@ -207,6 +259,27 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:18px; h
     <div class="foot">Mini Client &middot; not affiliated with Mojang or Microsoft</div>
   </div>
 </div>
+<div id="tos"><div class="tbox">
+  <img class="tlogo" src="data:image/png;base64,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" alt="Mini Client">
+  <h1>Welcome to Mini Client</h1>
+  <p class="tsub">Before you start, please read and accept the terms below.</p>
+  <div class="tscroll">
+    <h4>Mini Client Terms of Service</h4>
+    <p><b>1. What Mini Client is.</b> Mini Client is a free, unofficial launcher and client mod for Minecraft: Java Edition. It is not made by, endorsed by or affiliated with Mojang Studios or Microsoft.</p>
+    <p><b>2. Your Minecraft account.</b> You sign in with your own Microsoft account through Microsoft's official sign-in page. Mini Client never sees your password. Your login is stored only on this PC, encrypted by Windows, and is used only to start Minecraft. You can sign out at any time in Settings.</p>
+    <p><b>3. You must own Minecraft.</b> Mini Client does not give you the game. You need a Microsoft account that owns Minecraft: Java Edition to play online.</p>
+    <p><b>4. Fair play.</b> Mini Client is for performance, menus and cosmetics. Do not use it, or mods you add to it, to cheat or break the rules of any server. Servers may ban you for their own reasons, and Mini Client is not responsible for that.</p>
+    <p><b>5. Downloads.</b> Mini Client downloads Minecraft files from Mojang, Fabric from FabricMC, mods from Modrinth and its own files from GitHub. Third-party mods keep their own licences.</p>
+    <p><b>6. Updates.</b> Mini Client updates itself automatically to fix problems and add features.</p>
+    <p><b>7. No warranty.</b> Mini Client is provided "as is", without any warranty. Use it at your own risk. Keep backups of worlds you care about.</p>
+    <p><b>8. Privacy.</b> Mini Client does not collect or sell personal data. It contacts only the services above to sign you in, download files and show server icons and skins.</p>
+    <p><b>9. Changes.</b> These terms may change. If they do, you will be asked to accept them again.</p>
+    <h4>Minecraft and Microsoft terms</h4>
+    <p>Playing Minecraft also means agreeing to Mojang's and Microsoft's own terms. By continuing you confirm you accept the <a href="https://www.minecraft.net/eula" target="_blank">Minecraft End User License Agreement</a>, the <a href="https://www.minecraft.net/usage-guidelines" target="_blank">Minecraft Usage Guidelines</a> and the <a href="https://www.microsoft.com/servicesagreement" target="_blank">Microsoft Services Agreement</a>.</p>
+  </div>
+  <label class="tchk"><input type="checkbox" id="tagree"><span></span>I have read and agree to the Mini Client Terms of Service and the Minecraft EULA</label>
+  <button class="wb p" id="tgo" disabled onclick="acceptTos()">Continue</button>
+</div></div>
 <div id="welcome">
   <div id="wart"><div class="mt"></div></div>
   <div id="wpanel">
@@ -227,9 +300,13 @@ const icon=(ip)=>'https://api.mcsrvstat.us/icon/'+encodeURIComponent(ip);
 document.getElementById('qp').innerHTML=SERVERS.map(s=>`<div class="q" onclick="launch('${s[1]}')"><img loading="lazy" src="${icon(s[1])}">${s[0]}</div>`).join('');
 document.getElementById('svl').innerHTML=SERVERS.map(s=>`<div class="sv"><img loading="lazy" src="${icon(s[1])}"><div>${s[0]}<span>${s[1]}</span></div><button class="join" onclick="launch('${s[1]}')">JOIN</button></div>`).join('');
 let acct=null;
-function toggleSettings(){const s=$('settings'),o=!s.classList.contains('open');s.classList.toggle('open',o);
-  document.querySelectorAll('#rail .nav').forEach(n=>n.classList.toggle('on',o?n.title==='Settings':n.title==='Launch'));
-  $('crumb').textContent=o?'Settings':'Home';}
+const PAGES={versions:'p-versions',servers:'p-servers',mods:'p-mods',settings:'settings'};
+let page='home';
+function go(p){page=p;
+  for(const k in PAGES)document.getElementById(PAGES[k]).classList.toggle('open',k===p);
+  document.querySelectorAll('#rail .nav[data-p]').forEach(n=>n.classList.toggle('on',n.dataset.p===p));
+  if(p==='mods')drawMods(); if(p==='servers')drawServers();}
+function toggleSettings(){go(page==='settings'?'home':'settings');}
 document.querySelectorAll('.si[data-s]').forEach(i=>i.onclick=()=>{document.getElementById(i.dataset.s).scrollIntoView();});
 document.getElementById('sbody').addEventListener('scroll',function(){let cur=null;this.querySelectorAll('section').forEach(sc=>{if(sc.offsetTop-this.offsetTop-80<=this.scrollTop)cur=sc.id;});
   document.querySelectorAll('.si[data-s]').forEach(i=>i.classList.toggle('on',i.dataset.s===cur));});
@@ -272,6 +349,23 @@ mc.onGame((s)=>{
   else if(s.state==='idle'){gameBusy=false;$('launch').disabled=false;heroState('LAUNCH GAME','READY TO LAUNCH',null);}
 });
 let gopts={};
+function myServers(){try{return JSON.parse(localStorage.getItem('miniServers')||'[]');}catch(e){return [];}}
+function drawServers(){const all=SERVERS.map(s=>[s[0],s[1],0]).concat(myServers().map(ip=>[ip,ip,1]));
+  $('sgrid').innerHTML=all.map(s=>`<div class="sc"><img loading="lazy" src="${icon(s[1])}"><div><b>${s[0]}</b><span>${s[1]}</span></div>${s[2]?`<button class="x" title="Remove" onclick="delServer('${s[1]}')">&#10005;</button>`:''}<button class="join" onclick="launch('${s[1]}')">JOIN</button></div>`).join('');}
+function addServer(){const v=$('svip').value.trim().replace(/[^a-zA-Z0-9.:\-_]/g,'');if(!v)return;const l=myServers();if(!l.includes(v))l.push(v);try{localStorage.setItem('miniServers',JSON.stringify(l));}catch(e){}$('svip').value='';drawServers();}
+function delServer(ip){try{localStorage.setItem('miniServers',JSON.stringify(myServers().filter(x=>x!==ip)));}catch(e){}drawServers();}
+$('svip').addEventListener('keydown',e=>{if(e.key==='Enter')addServer();});
+const BUILT=[['Fabric API','Mod loader library',()=>true,'F'],['Mini Client','HUD, menus, loading screen',()=>gopts.builtinOn,'M'],['Sodium','Faster rendering',()=>gopts.builtinOn,'S'],
+  ['Lithium','Faster game logic',()=>gopts.builtinOn&&gopts.fpsBoost,'L'],['FerriteCore','Less memory use',()=>gopts.builtinOn&&gopts.fpsBoost,'Fe'],['Entity Culling','Skips hidden mobs',()=>gopts.builtinOn&&gopts.fpsBoost,'E'],
+  ['ImmediatelyFast','Faster HUD and text',()=>gopts.builtinOn&&gopts.fpsBoost,'I'],['Capes','Shows your Mini Client cape',()=>gopts.capeOn,'C']];
+async function drawMods(){
+  $('mbuilt').innerHTML=BUILT.map(m=>{const on=m[2]();return `<div class="mrow"><i>${m[3]}</i><div><b>${m[0]}</b><span>${m[1]}</span></div><span class="st${on?'':' offs'}">${on?'ON':'OFF'}</span></div>`;}).join('')+
+    `<div class="mrow"><div><span>Turn these on or off in Settings &rarr; Performance and Cosmetics.</span></div><button class="sbtn ghost sm" onclick="go('settings')">Open settings</button></div>`;
+  const u=await mc.userMods();
+  $('muser').innerHTML=u.length?u.map(n=>`<div class="mrow"><i>${n.charAt(0).toUpperCase()}</i><div><b>${n.replace(/\.jar$/i,'')}</b><span>${n}</span></div><span class="st">ON</span></div>`).join(''):'<div class="empty">No extra mods yet. Drop Fabric 1.21.7 .jar files into the mods folder.</div>';}
+function acceptTos(){try{localStorage.setItem('miniTos','1');}catch(e){}$('tos').classList.remove('open');}
+$('tagree').onchange=function(){$('tgo').disabled=!this.checked;};
+try{if(localStorage.getItem('miniTos')!=='1')$('tos').classList.add('open');}catch(e){$('tos').classList.add('open');}
 function drawOpts(){
   document.querySelectorAll('.tog').forEach(t=>t.className='tog'+(gopts[t.dataset.k]?' on':''));
   const r=$('ram');r.value=gopts.ram;$('ramv').textContent=gopts.ram+' GB';r.style.setProperty('--p',((gopts.ram-1)/15*100)+'%');

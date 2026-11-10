@@ -261,6 +261,20 @@ class Launcher {
     for (const k of Object.keys(FPS_OPTIONS)) if (!seen.has(k)) lines.push(k + ':' + FPS_OPTIONS[k]);
     await fsp.writeFile(of, lines.join('\n') + '\n');
   }
+  // The old HTA launcher enabled a pink "Minicraft" resource pack; Mini Client is black and white now.
+  async dropOldPack() {
+    const of = path.join(this.mcDir, 'options.txt');
+    let t; try { t = await fsp.readFile(of, 'utf8'); } catch (e) { return; }
+    let changed = false;
+    t = t.replace(/^(resourcePacks|incompatibleResourcePacks):(.*)$/mg, (line, k, v) => {
+      try { const a = JSON.parse(v), b = a.filter((x) => !/minicraft/i.test(x)); if (b.length !== a.length) { changed = true; return k + ':' + JSON.stringify(b); } } catch (e) {}
+      return line;
+    });
+    if (changed) { await fsp.writeFile(of, t); this.log('Turned off the old Minicraft resource pack.'); }
+  }
+  async userMods() {
+    try { return (await fsp.readdir(path.join(this.mcDir, 'mods'))).filter((n) => /\.jar$/i.test(n) && !/^minicraft-/i.test(n)); } catch (e) { return []; }
+  }
   async syncMods(list) {
     const md = path.join(this.mcDir, 'mods');
     await fsp.mkdir(md, { recursive: true });
@@ -294,6 +308,7 @@ class Launcher {
         user_type: 'msa', version_type: ver.type || 'release', natives_directory: fwd(natives),
         launcher_name: 'MiniClient', launcher_version: '1.0', classpath: c.cp.map(fwd).join(';')
       };
+      await this.dropOldPack().catch(() => {});
       if (o.capeOn) await this.ensureCape().catch((e) => this.log('Cape: ' + e.message));
       if (o.fpsBoost) await this.applyFpsOptions().catch((e) => this.log('FPS options: ' + e.message));
       await this.syncMods(c.addMods || []).catch((e) => this.log('Mods copy: ' + e.message));
