@@ -79,6 +79,48 @@ ipcMain.handle('friend-lookup', async (e, name) => {
 ipcMain.handle('open', (e, url) => { if (/^https:\/\//.test(url)) shell.openExternal(url); });
 
 
+// ---------- friends server ----------
+let serverUrl = null;
+async function getServer() {
+  if (serverUrl) return serverUrl;
+  try {
+    const r = await fetch('https://github.com/xomaim/miniclient/releases/download/server/server.json');
+    if (r.ok) { const j = await r.json(); if (/^https:\/\//.test(j.url)) serverUrl = j.url.replace(/\/$/, ''); }
+  } catch (e) {}
+  return serverUrl;
+}
+async function freshAccount() {
+  if (account && Date.now() - tokenTime < 20 * 3600 * 1000) return account;
+  const d = loadLogin();
+  if (!d || !d.refresh) return null;
+  account = await auth.silent(d.refresh); tokenTime = Date.now();
+  saveLogin({ refresh: account.refresh || d.refresh, name: account.name, uuid: account.uuid });
+  return account;
+}
+async function api(pathname, body) {
+  const base = await getServer();
+  if (!base) return { ok: false, offline: true, error: 'The friends server is not set up yet.' };
+  const a = await freshAccount().catch(() => null);
+  if (!a) return { ok: false, error: 'Sign in first.' };
+  try {
+    const r = await fetch(base + pathname, {
+      method: body ? 'POST' : 'GET',
+      headers: Object.assign({ authorization: 'Bearer ' + a.token }, body ? { 'content-type': 'application/json' } : {}),
+      body: body ? JSON.stringify(body) : undefined
+    });
+    return await r.json();
+  } catch (e) { return { ok: false, error: 'Could not reach the friends server.' }; }
+}
+ipcMain.handle('friends', (e, action, data) => {
+  const ok = ['request', 'accept', 'decline', 'cancel', 'remove'];
+  if (action === 'list') return api('/friends');
+  if (ok.includes(action)) return api('/' + action, data || {});
+  return { ok: false };
+});
+function presence(status) { if (account) api('/presence', { status }).catch(() => {}); }
+setInterval(() => presence(launcher && launcher.running() ? 'playing' : 'online'), 45000);
+app.on('before-quit', () => presence('offline'));
+
 // ---------- game log window ----------
 let logWin = null, logBuf = [], logState = 'idle';
 function classify(t) {
@@ -93,20 +135,30 @@ function logLine(text, kind) {
   if (logWin && !logWin.isDestroyed()) logWin.webContents.send('log', l);
 }
 function setLogState(s) { logState = s; if (logWin && !logWin.isDestroyed()) logWin.webContents.send('log-state', s); }
-function openLog() {
-  if (logWin && !logWin.isDestroyed()) { logWin.webContents.send('log-reset'); logWin.showInactive(); return; }
+function openLog(reset) {
+  if (logWin && !logWin.isDestroyed()) { if (reset) logWin.webContents.send('log-reset'); logWin.show(); return; }
   logWin = new BrowserWindow({
     width: 780, height: 470, minWidth: 480, minHeight: 260, frame: false, show: false, backgroundColor: '#000000',
     icon: path.join(__dirname, 'icon.ico'), title: 'Mini Client - Game log',
     webPreferences: { preload: path.join(__dirname, 'preload.js'), contextIsolation: true, nodeIntegration: false }
   });
-  logWin.once('ready-to-show', () => logWin.showInactive());
+  logWin.once('ready-to-show', () => { if (logWin) logWin.show(); });
   logWin.loadFile(path.join(__dirname, 'ui', 'log.html'));
   logWin.on('closed', () => { logWin = null; });
 }
 ipcMain.handle('log-init', () => ({ lines: logBuf, state: logState }));
+const READY = /Sound engine started|Created: \d+x\d+x\d+ minecraft:textures\/atlas\/blocks/;
+function showLauncher() { if (win && !win.isDestroyed()) { win.show(); if (win.isMinimized()) win.restore(); win.focus(); } }
 function tailGame(file, proc) {
-  let pos = 0, rest = '';
+  let pos = 0, rest = '', ready = false;
+  const seen = (p) => {
+    logLine(p);
+    if (!ready && READY.test(p)) {
+      ready = true;
+      logLine('Minecraft is open. Have fun!', 'ok');
+      setTimeout(() => { if (logWin && !logWin.isDestroyed()) logWin.close(); }, 1200);
+    }
+  };
   const tick = () => {
     try {
       const st = fs.statSync(file);
@@ -114,14 +166,17 @@ function tailGame(file, proc) {
       const fd = fs.openSync(file, 'r'), buf = Buffer.alloc(st.size - pos);
       fs.readSync(fd, buf, 0, buf.length, pos); fs.closeSync(fd); pos = st.size;
       const parts = (rest + buf.toString('utf8')).split(/\r?\n/); rest = parts.pop();
-      for (const p of parts) if (p.trim()) logLine(p);
+      for (const p of parts) if (p.trim()) seen(p);
     } catch (e) {}
   };
   const iv = setInterval(tick, 250);
   proc.once('exit', (code) => setTimeout(() => {
     tick(); if (rest.trim()) logLine(rest); clearInterval(iv);
-    logLine(code ? 'Minecraft closed with error code ' + code + '.' : 'Minecraft closed.', code ? 'err' : 'info');
-    setLogState(code ? 'failed' : 'closed');
+    const crashed = !!code || !ready;
+    logLine(crashed ? 'Minecraft closed unexpectedly' + (code ? ' (error code ' + code + ')' : '') + '. Check the red lines above.' : 'Minecraft closed.', crashed ? 'err' : 'info');
+    setLogState(crashed ? 'failed' : 'closed');
+    if (crashed) openLog(false);      // bring the log back so you can see what went wrong
+    showLauncher();
   }, 400));
 }
 
@@ -170,18 +225,18 @@ ipcMain.handle('launch', async (e, server) => {
     const L = getLauncher();
     const opts = gameOpts();
     logBuf = []; progKey = ''; progPct = 0; setLogState('starting');
-    if (opts.showLog !== false) openLog();
+    if (opts.showLog !== false) openLog(true);
+    if (!opts.keepOpen && win) { if (opts.showLog !== false) win.hide(); else win.minimize(); }
     logLine('Mini Client ' + app.getVersion() + '  \u00b7  starting Minecraft ' + opts.version + ' as ' + account.name, 'info');
     const r = await L.launch(account, Object.assign(gameOpts(), { server: typeof server === 'string' ? server : '' }));
     sendGame({ state: 'running', id: r.id });
     if (r.modsNote) logLine('Mods could not be set up: ' + r.modsNote, 'err');
     else if (r.mods) logLine(r.mods + ' Mini Client mods ready.', 'ok');
-    logLine('Java started. Booting Minecraft...', 'ok'); setLogState('running');
+    logLine('Java started. Booting Minecraft...', 'ok'); setLogState('running'); presence('playing');
     if (L.proc) tailGame(path.join(app.getPath('userData'), 'game.log'), L.proc);
-    const watch = setInterval(() => { if (!L.running()) { clearInterval(watch); sendGame({ state: 'idle' }); if (win && win.isMinimized()) win.restore(); } }, 2000);
-    if (win && !gameOpts().keepOpen) win.minimize();
+    const watch = setInterval(() => { if (!L.running()) { clearInterval(watch); sendGame({ state: 'idle' }); showLauncher(); } }, 2000);
     return r;
-  } catch (err) { sendGame({ state: 'idle' }); logLine(err.message, 'err'); setLogState('failed'); return { ok: false, error: err.message }; }
+  } catch (err) { sendGame({ state: 'idle' }); logLine(err.message, 'err'); setLogState('failed'); showLauncher(); return { ok: false, error: err.message }; }
 });
 
 // ---------- updater (stable and beta channels, both published on GitHub) ----------
@@ -217,7 +272,7 @@ ipcMain.handle('channel-set', (e, ch) => {
 });
 
 if (!app.requestSingleInstanceLock()) app.quit();
-app.on('second-instance', () => { if (win) { if (win.isMinimized()) win.restore(); win.focus(); } });
+app.on('second-instance', () => showLauncher());
 app.commandLine.appendSwitch('disable-features', 'CalculateNativeWinOcclusion');
 app.whenReady().then(() => { createWindow(); setupUpdater(); });
 app.on('window-all-closed', () => app.quit());

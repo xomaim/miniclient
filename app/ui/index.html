@@ -190,6 +190,16 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:18px; h
 .fempty { color:var(--mute); font-size:12px; text-align:center; padding:26px 8px; line-height:1.6; }
 .fempty i { font-style:normal; font-size:26px; display:block; margin-bottom:6px; opacity:.6; }
 #fnote { font-size:10.5px; color:#5c5c62; margin-top:10px; line-height:1.5; }
+
+.fsec { font-size:10.5px; font-weight:800; letter-spacing:1px; text-transform:uppercase; color:var(--mute); margin:10px 6px 4px; display:flex; align-items:center; gap:6px; }
+.fsec em { font-style:normal; background:#fff; color:#000; border-radius:8px; padding:1px 6px; font-size:10px; }
+.fr .av:after { content:""; position:absolute; right:-2px; bottom:-2px; width:10px; height:10px; border-radius:50%; background:#3a3a40; border:2px solid var(--panel); display:none; }
+#flist .fr:not(.req):not(.pend) .av:after { display:block; } .fr.on .av:after { background:#4ade80; }
+.fr.pend { opacity:.65; }
+.fr.req { background:rgba(255,255,255,.05); } .fr.req button { opacity:1; }
+.fr button.yes { background:#fff; color:#000; font-weight:900; } .fr button.yes:hover { background:#dcdcdc; color:#000; }
+#fdot { display:none; width:7px; height:7px; border-radius:50%; background:#fff; margin-left:6px; vertical-align:middle; }
+.fh h3 { display:flex; align-items:center; }
 </style></head>
 <body>
 <div id="bgglow"></div>
@@ -225,7 +235,7 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:18px; h
       </div>
     </div>
     <div class="card" id="side">
-      <div class="fh"><h3>Friends</h3><span id="fcount">0</span></div>
+      <div class="fh"><h3>Friends <i id="fdot"></i></h3><span id="fcount">0</span></div>
       <div class="fadd"><input id="fname" placeholder="Add friend by username" maxlength="16" spellcheck="false"><button onclick="addFriend()" title="Add friend">+</button></div>
       <div id="fmsg"></div>
       <div id="flist"></div>
@@ -361,7 +371,7 @@ mc.onUpd((s)=>{
 mc.state().then(s=>{document.getElementById('ver').textContent='v'+s.version;});
 mc.channel().then(showCh);
 
-function setAcct(a){acct=a;$('sname').textContent=a?a.name:'Not signed in';$('smode').textContent=a?'Microsoft account':'Sign in to play online';$('sacct').textContent=a?'Sign out':'Sign in';$('sface').src=a?'https://mc-heads.net/avatar/'+a.uuid+'/84':'';document.getElementById('who').textContent=a?a.name:'player';document.getElementById('face').src=a?'https://mc-heads.net/avatar/'+a.uuid+'/56':'';document.getElementById('welcome').style.display=a?'none':'flex';}
+function setAcct(a){acct=a;setTimeout(loadFriends,0);$('sname').textContent=a?a.name:'Not signed in';$('smode').textContent=a?'Microsoft account':'Sign in to play online';$('sacct').textContent=a?'Sign out':'Sign in';$('sface').src=a?'https://mc-heads.net/avatar/'+a.uuid+'/84':'';document.getElementById('who').textContent=a?a.name:'player';document.getElementById('face').src=a?'https://mc-heads.net/avatar/'+a.uuid+'/56':'';document.getElementById('welcome').style.display=a?'none':'flex';}
 async function login(){const b=document.getElementById('wl');b.textContent='Waiting for Microsoft...';document.getElementById('err').textContent='';
   const r=await mc.login();b.textContent='Login with Microsoft Account';
   if(r.ok)setAcct(r.account);else document.getElementById('err').textContent=r.error;}
@@ -386,22 +396,46 @@ mc.onGame((s)=>{
   else if(s.state==='idle'){gameBusy=false;$('launch').disabled=false;heroState('LAUNCH GAME','READY TO LAUNCH',null);}
 });
 
-// ---- friends (saved on this PC) ----
+// ---- friends: requests through the Mini Client friends server, local list if it isn't set up ----
 function friends(){try{return JSON.parse(localStorage.getItem('miniFriends')||'[]');}catch(e){return [];}}
 function saveFriends(l){try{localStorage.setItem('miniFriends',JSON.stringify(l));}catch(e){}}
-function drawFriends(){const l=friends();$('fcount').textContent=l.length;
-  $('flist').innerHTML=l.length?l.map(f=>`<div class="fr" title="Click to copy name" onclick="navigator.clipboard.writeText('${f.name}');this.querySelector('span').textContent='Name copied'"><div class="av" data-l="${f.name[0].toUpperCase()}"><img src="https://mc-heads.net/avatar/${f.uuid}/68" alt="" onerror="this.style.visibility='hidden'"></div><div class="t"><b>${f.name}</b><span>Added ${new Date(f.added).toLocaleDateString(undefined,{day:'numeric',month:'short'})}</span></div><button title="Remove" onclick="event.stopPropagation();delFriend('${f.uuid}')">&#10005;</button></div>`).join('')
-    :'<div class="fempty"><i>&#9786;</i>No friends yet.<br>Add your friends by their Minecraft name.</div>';}
-async function addFriend(){const n=$('fname').value.trim();$('fmsg').textContent='';if(!n)return;
-  if(friends().some(f=>f.name.toLowerCase()===n.toLowerCase())){$('fmsg').textContent=n+' is already your friend.';return;}
-  if(acct&&acct.name&&acct.name.toLowerCase()===n.toLowerCase()){$('fmsg').textContent="That's you!";return;}
-  $('fmsg').style.color='#9a9a9a';$('fmsg').textContent='Looking up '+n+'...';
-  const r=await mc.friendLookup(n);$('fmsg').style.color='';
-  if(!r.ok){$('fmsg').textContent=r.error;return;}
-  const l=friends();l.unshift({name:r.name,uuid:r.uuid,added:Date.now()});saveFriends(l);$('fname').value='';$('fmsg').textContent='';drawFriends();}
+let FR=null, frMode='local';
+const head=(u,n)=>`<div class="av" data-l="${(n||'?')[0].toUpperCase()}"><img src="https://mc-heads.net/avatar/${u}/68" alt="" onerror="this.style.visibility='hidden'"></div>`;
+function ago(t){if(!t)return 'Offline';const m=Math.round((Date.now()-t)/60000);if(m<60)return 'Last seen '+Math.max(1,m)+'m ago';const h=Math.round(m/60);if(h<48)return 'Last seen '+h+'h ago';return 'Last seen '+Math.round(h/24)+'d ago';}
+function fmsg(t,good){$('fmsg').style.color=good?'#cfcfcf':'';$('fmsg').textContent=t||'';}
+function drawFriends(){
+  if(frMode==='local'){const l=friends();$('fcount').textContent=l.length;
+    $('flist').innerHTML=l.length?l.map(f=>`<div class="fr">${head(f.uuid,f.name)}<div class="t"><b>${f.name}</b><span>Added ${new Date(f.added).toLocaleDateString(undefined,{day:'numeric',month:'short'})}</span></div><button title="Remove" onclick="delFriend('${f.uuid}')">&#10005;</button></div>`).join('')
+      :'<div class="fempty"><i>&#9786;</i>No friends yet.<br>Add your friends by their Minecraft name.</div>';
+    $('fnote').textContent='Friend requests and online status turn on once the Mini Client friends server is set up.';return;}
+  const d=FR||{friends:[],incoming:[],outgoing:[]};$('fcount').textContent=d.friends.length;$('fnote').textContent='';
+  let o='';
+  if(d.incoming.length)o+=`<div class="fsec">Requests <em>${d.incoming.length}</em></div>`+d.incoming.map(f=>`<div class="fr req">${head(f.uuid,f.name)}<div class="t"><b>${f.name}</b><span>Wants to be friends</span></div><button class="yes" title="Accept" onclick="frAct('accept','${f.uuid}')">&#10003;</button><button class="no" title="Decline" onclick="frAct('decline','${f.uuid}')">&#10005;</button></div>`).join('');
+  if(d.friends.length)o+=(d.incoming.length?'<div class="fsec">Friends</div>':'')+d.friends.map(f=>`<div class="fr${f.online?' on':''}">${head(f.uuid,f.name)}<div class="t"><b>${f.name}</b><span>${f.online?(f.status==='playing'?'Playing Minecraft':'Online'):ago(f.seen)}</span></div><button title="Remove friend" onclick="frAct('remove','${f.uuid}')">&#10005;</button></div>`).join('');
+  if(d.outgoing.length)o+='<div class="fsec">Pending</div>'+d.outgoing.map(f=>`<div class="fr pend">${head(f.uuid,f.name)}<div class="t"><b>${f.name}</b><span>Request sent</span></div><button title="Cancel request" onclick="frAct('cancel','${f.uuid}')">&#10005;</button></div>`).join('');
+  $('flist').innerHTML=o||'<div class="fempty"><i>&#9786;</i>No friends yet.<br>Send a request with their Minecraft name.</div>';
+  $('fdot').style.display=d.incoming.length?'block':'none';}
+async function loadFriends(){
+  if(!acct){frMode='local';drawFriends();return;}
+  const r=await mc.friends('list');
+  if(r&&r.ok){frMode='server';FR=r;
+    const old=friends();if(old.length){saveFriends([]);for(const f of old)await mc.friends('request',{name:f.name});return loadFriends();}}
+  else if(r&&r.offline)frMode='local';
+  drawFriends();}
+async function addFriend(){const n=$('fname').value.trim();fmsg('');if(!n)return;
+  if(frMode==='server'){fmsg('Sending request to '+n+'...',true);const r=await mc.friends('request',{name:n});
+    if(!r.ok){fmsg(r.error||'Could not send the request.');return;}
+    $('fname').value='';fmsg(r.accepted?'You and '+r.name+' are now friends!':'Request sent to '+r.name+'.',true);loadFriends();return;}
+  if(friends().some(f=>f.name.toLowerCase()===n.toLowerCase())){fmsg(n+' is already your friend.');return;}
+  if(acct&&acct.name&&acct.name.toLowerCase()===n.toLowerCase()){fmsg("That's you!");return;}
+  fmsg('Looking up '+n+'...',true);const r=await mc.friendLookup(n);
+  if(!r.ok){fmsg(r.error);return;}
+  const l=friends();l.unshift({name:r.name,uuid:r.uuid,added:Date.now()});saveFriends(l);$('fname').value='';fmsg('');drawFriends();}
+async function frAct(a,u){const r=await mc.friends(a,{uuid:u});if(r&&!r.ok&&r.error)fmsg(r.error);else if(a==='accept')fmsg('Friend added!',true);loadFriends();}
 function delFriend(u){saveFriends(friends().filter(f=>f.uuid!==u));drawFriends();}
 $('fname').addEventListener('keydown',e=>{if(e.key==='Enter')addFriend();});
 drawFriends();
+setInterval(()=>{if(!document.hidden)loadFriends();},20000);
 let gopts={};
 function myServers(){try{return JSON.parse(localStorage.getItem('miniServers')||'[]');}catch(e){return [];}}
 function drawServers(){const all=SERVERS.map(s=>[s[0],s[1],0]).concat(myServers().map(ip=>[ip,ip,1]));

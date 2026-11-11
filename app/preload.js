@@ -20,6 +20,7 @@ contextBridge.exposeInMainWorld('mc', {
   setGameOpts: (o) => ipcRenderer.invoke('game-opts-set', o),
   onGame: (cb) => ipcRenderer.on('game', (e, s) => cb(s)),
   friendLookup: (n) => ipcRenderer.invoke('friend-lookup', n),
+  friends: (action, data) => ipcRenderer.invoke('friends', action, data),
   logInit: () => ipcRenderer.invoke('log-init'),
   onLog: (cb) => ipcRenderer.on('log', (e, l) => cb(l)),
   onLogState: (cb) => ipcRenderer.on('log-state', (e, s) => cb(s)),
