@@ -170,6 +170,26 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:18px; h
 .tcard img { width:128px; height:128px; }
 @keyframes hover { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-8px); } }
 .tbox { padding-top:30px; }
+
+/* ---- friends ---- */
+#side { display:flex; flex-direction:column; padding:16px; }
+.fh { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; } .fh h3 { margin:0; }
+#fcount { font-size:11px; font-weight:800; min-width:22px; height:20px; padding:0 7px; border-radius:10px; background:#fff; color:#000; display:grid; place-items:center; }
+.fadd { display:flex; gap:6px; margin-bottom:6px; }
+.fadd input { flex:1; min-width:0; height:34px; border-radius:9px; border:1px solid var(--line); background:#0d0d10; color:#fff; padding:0 11px; font:500 12px inherit; outline:none; }
+.fadd input:focus { border-color:rgba(255,255,255,.4); }
+.fadd button { width:34px; height:34px; border-radius:9px; border:0; background:#fff; color:#000; font:800 18px inherit; cursor:pointer; } .fadd button:hover { background:#dcdcdc; }
+#fmsg { font-size:11px; color:#ff8d8d; min-height:16px; margin-bottom:4px; }
+#flist { flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:4px; margin:0 -6px; padding:0 6px; }
+.fr { display:flex; align-items:center; gap:10px; padding:7px; border-radius:10px; transition:.12s; cursor:default; }
+.fr:hover { background:rgba(255,255,255,.06); }
+.fr .av { position:relative; flex:none; } .fr img { width:34px; height:34px; border-radius:8px; background:#1c1c20; image-rendering:auto; display:block; }
+.fr div.t { flex:1; min-width:0; } .fr b { display:block; font-size:13px; } .fr span { font-size:11px; color:var(--mute); }
+.fr button { opacity:0; border:0; background:transparent; color:#999; cursor:pointer; font-size:13px; width:26px; height:26px; border-radius:7px; }
+.fr:hover button { opacity:1; } .fr button:hover { background:rgba(255,255,255,.1); color:#fff; }
+.fempty { color:var(--mute); font-size:12px; text-align:center; padding:26px 8px; line-height:1.6; }
+.fempty i { font-style:normal; font-size:26px; display:block; margin-bottom:6px; opacity:.6; }
+#fnote { font-size:10.5px; color:#5c5c62; margin-top:10px; line-height:1.5; }
 </style></head>
 <body>
 <div id="bgglow"></div>
@@ -196,7 +216,6 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:18px; h
           <div id="pbar"><i id="pfill"></i></div>
           <div id="vchip"><span class="dot"></span><span id="herosub">Minecraft 1.21.7 &middot; Mini Client</span></div></div>
       </div>
-      <div class="sect"><h3>Quick Join</h3><div id="qp"></div></div>
       <div class="sect"><h3>Latest News</h3>
         <div id="news">
           <div class="n"><div class="art a1"></div><div class="nb"><span class="tag">Update</span><b>New Mini Client</b><span>A brand new launcher and in-game menus.</span></div></div>
@@ -205,7 +224,13 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:18px; h
         </div>
       </div>
     </div>
-    <div class="card" id="side"><h3>Servers</h3><div id="svl"></div></div>
+    <div class="card" id="side">
+      <div class="fh"><h3>Friends</h3><span id="fcount">0</span></div>
+      <div class="fadd"><input id="fname" placeholder="Add friend by username" maxlength="16" spellcheck="false"><button onclick="addFriend()" title="Add friend">+</button></div>
+      <div id="fmsg"></div>
+      <div id="flist"></div>
+      <div id="fnote">Online status and invites come with Mini Client accounts in a later update.</div>
+    </div>
   </div>
 </div>
 
@@ -234,6 +259,7 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:18px; h
     <section id="s-general"><h2>General</h2>
       <div class="grp">
         <div class="row acc"><img id="sface" alt=""><div><b id="sname">Not signed in</b><span id="smode">Microsoft account</span></div><button class="sbtn ghost" onclick="acct?signOut():login()" id="sacct">Sign out</button></div>
+        <div class="row"><div>Show game log window<span>A second window shows Minecraft booting: white is OK, green is mods working, red is an error.</span></div><div class="tog" data-k="showLog"></div></div>
         <div class="row"><div>Keep launcher open while playing<span>Off: the launcher minimises when the game starts.</span></div><div class="tog" data-k="keepOpen"></div></div>
       </div>
     </section>
@@ -310,8 +336,6 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:18px; h
 <script>
 const SERVERS=[['Hypixel','mc.hypixel.net'],['Wynncraft','play.wynncraft.com'],['CubeCraft','play.cubecraft.net'],['2b2t','2b2t.org'],['Minemen Club','minemen.club']];
 const icon=(ip)=>'https://api.mcsrvstat.us/icon/'+encodeURIComponent(ip);
-document.getElementById('qp').innerHTML=SERVERS.map(s=>`<div class="q" onclick="launch('${s[1]}')"><img loading="lazy" src="${icon(s[1])}">${s[0]}</div>`).join('');
-document.getElementById('svl').innerHTML=SERVERS.map(s=>`<div class="sv"><img loading="lazy" src="${icon(s[1])}"><div>${s[0]}<span>${s[1]}</span></div><button class="join" onclick="launch('${s[1]}')">JOIN</button></div>`).join('');
 let acct=null;
 const PAGES={versions:'p-versions',servers:'p-servers',mods:'p-mods',settings:'settings'};
 let page='home';
@@ -361,6 +385,23 @@ mc.onGame((s)=>{
   else if(s.state==='running'){heroState('PLAYING','MINECRAFT '+s.id+' IS RUNNING',null);}
   else if(s.state==='idle'){gameBusy=false;$('launch').disabled=false;heroState('LAUNCH GAME','READY TO LAUNCH',null);}
 });
+
+// ---- friends (saved on this PC) ----
+function friends(){try{return JSON.parse(localStorage.getItem('miniFriends')||'[]');}catch(e){return [];}}
+function saveFriends(l){try{localStorage.setItem('miniFriends',JSON.stringify(l));}catch(e){}}
+function drawFriends(){const l=friends();$('fcount').textContent=l.length;
+  $('flist').innerHTML=l.length?l.map(f=>`<div class="fr" title="Click to copy name" onclick="navigator.clipboard.writeText('${f.name}');this.querySelector('span').textContent='Name copied'"><div class="av"><img src="https://mc-heads.net/avatar/${f.uuid}/68" alt=""></div><div class="t"><b>${f.name}</b><span>Added ${new Date(f.added).toLocaleDateString(undefined,{day:'numeric',month:'short'})}</span></div><button title="Remove" onclick="event.stopPropagation();delFriend('${f.uuid}')">&#10005;</button></div>`).join('')
+    :'<div class="fempty"><i>&#9786;</i>No friends yet.<br>Add your friends by their Minecraft name.</div>';}
+async function addFriend(){const n=$('fname').value.trim();$('fmsg').textContent='';if(!n)return;
+  if(friends().some(f=>f.name.toLowerCase()===n.toLowerCase())){$('fmsg').textContent=n+' is already your friend.';return;}
+  if(acct&&acct.name&&acct.name.toLowerCase()===n.toLowerCase()){$('fmsg').textContent="That's you!";return;}
+  $('fmsg').style.color='#9a9a9a';$('fmsg').textContent='Looking up '+n+'...';
+  const r=await mc.friendLookup(n);$('fmsg').style.color='';
+  if(!r.ok){$('fmsg').textContent=r.error;return;}
+  const l=friends();l.unshift({name:r.name,uuid:r.uuid,added:Date.now()});saveFriends(l);$('fname').value='';$('fmsg').textContent='';drawFriends();}
+function delFriend(u){saveFriends(friends().filter(f=>f.uuid!==u));drawFriends();}
+$('fname').addEventListener('keydown',e=>{if(e.key==='Enter')addFriend();});
+drawFriends();
 let gopts={};
 function myServers(){try{return JSON.parse(localStorage.getItem('miniServers')||'[]');}catch(e){return [];}}
 function drawServers(){const all=SERVERS.map(s=>[s[0],s[1],0]).concat(myServers().map(ip=>[ip,ip,1]));

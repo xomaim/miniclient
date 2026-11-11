@@ -61,23 +61,85 @@ ipcMain.handle('silent', async () => {
 });
 ipcMain.handle('logout', () => { account = null; saveRefresh(''); return { ok: true }; });
 ipcMain.handle('win', (e, what) => {
-  if (!win) return;
-  if (what === 'close') win.close(); else if (what === 'min') win.minimize();
-  else if (what === 'max') win.isMaximized() ? win.unmaximize() : win.maximize();
+  const w = BrowserWindow.fromWebContents(e.sender) || win;
+  if (!w) return;
+  if (what === 'close') w.close(); else if (what === 'min') w.minimize();
+  else if (what === 'max') w.isMaximized() ? w.unmaximize() : w.maximize();
+});
+ipcMain.handle('friend-lookup', async (e, name) => {
+  if (!/^[A-Za-z0-9_]{2,16}$/.test(String(name))) return { ok: false, error: 'That is not a valid Minecraft name.' };
+  try {
+    const r = await fetch('https://api.mojang.com/users/profiles/minecraft/' + encodeURIComponent(name));
+    if (r.status === 404 || r.status === 204) return { ok: false, error: 'No player called ' + name + '.' };
+    if (!r.ok) return { ok: false, error: 'Could not reach Mojang (' + r.status + ').' };
+    const j = await r.json();
+    return { ok: true, name: j.name, uuid: j.id };
+  } catch (err) { return { ok: false, error: 'Could not reach Mojang. Check your internet.' }; }
 });
 ipcMain.handle('open', (e, url) => { if (/^https:\/\//.test(url)) shell.openExternal(url); });
 
 
+// ---------- game log window ----------
+let logWin = null, logBuf = [], logState = 'idle';
+function classify(t) {
+  if (/\b(ERROR|FATAL|SEVERE)\b|Exception|^\s*Caused by|^\s+at [\w.$]+\(|crash/i.test(t)) return 'err';
+  if (/Loading \d+ mods|^\s*(-|\|--|\\--)\s+\S+\s+\S+|Mini ?Client|Fabric .* with \d+|Fast start|Sound engine started|Sodium|ready/i.test(t)) return 'ok';
+  if (/\bWARN\b/.test(t)) return 'warn';
+  return 'info';
+}
+function logLine(text, kind) {
+  const l = { t: Date.now(), text: String(text).replace(/\s+$/, ''), kind: kind || classify(String(text)) };
+  logBuf.push(l); if (logBuf.length > 5000) logBuf.shift();
+  if (logWin && !logWin.isDestroyed()) logWin.webContents.send('log', l);
+}
+function setLogState(s) { logState = s; if (logWin && !logWin.isDestroyed()) logWin.webContents.send('log-state', s); }
+function openLog() {
+  if (logWin && !logWin.isDestroyed()) { logWin.webContents.send('log-reset'); logWin.showInactive(); return; }
+  logWin = new BrowserWindow({
+    width: 780, height: 470, minWidth: 480, minHeight: 260, frame: false, show: false, backgroundColor: '#000000',
+    icon: path.join(__dirname, 'icon.ico'), title: 'Mini Client - Game log',
+    webPreferences: { preload: path.join(__dirname, 'preload.js'), contextIsolation: true, nodeIntegration: false }
+  });
+  logWin.once('ready-to-show', () => logWin.showInactive());
+  logWin.loadFile(path.join(__dirname, 'ui', 'log.html'));
+  logWin.on('closed', () => { logWin = null; });
+}
+ipcMain.handle('log-init', () => ({ lines: logBuf, state: logState }));
+function tailGame(file, proc) {
+  let pos = 0, rest = '';
+  const tick = () => {
+    try {
+      const st = fs.statSync(file);
+      if (st.size <= pos) return;
+      const fd = fs.openSync(file, 'r'), buf = Buffer.alloc(st.size - pos);
+      fs.readSync(fd, buf, 0, buf.length, pos); fs.closeSync(fd); pos = st.size;
+      const parts = (rest + buf.toString('utf8')).split(/\r?\n/); rest = parts.pop();
+      for (const p of parts) if (p.trim()) logLine(p);
+    } catch (e) {}
+  };
+  const iv = setInterval(tick, 250);
+  proc.once('exit', (code) => setTimeout(() => {
+    tick(); if (rest.trim()) logLine(rest); clearInterval(iv);
+    logLine(code ? 'Minecraft closed with error code ' + code + '.' : 'Minecraft closed.', code ? 'err' : 'info');
+    setLogState(code ? 'failed' : 'closed');
+  }, 400));
+}
+
 // ---------- game launch ----------
-const GAME_DEFAULTS = { version: '1.21.7', ram: 4, fpsBoost: true, builtinOn: true, capeOn: true, fullscreen: false, keepOpen: false };
-let launcher = null;
+const GAME_DEFAULTS = { version: '1.21.7', ram: 4, fpsBoost: true, builtinOn: true, capeOn: true, fullscreen: false, keepOpen: false, showLog: true };
+let launcher = null, progKey = '', progPct = 0;
 function gameOpts() { return Object.assign({}, GAME_DEFAULTS, readCfg().game || {}); }
 const sendGame = (s) => { if (win && !win.isDestroyed()) win.webContents.send('game', s); };
 function getLauncher() {
   if (!launcher) launcher = new Launcher({
     cfgDir: app.getPath('userData'),
-    log: (t) => { try { fs.appendFileSync(path.join(app.getPath('userData'), 'launcher.log'), new Date().toISOString() + ' ' + t + '\n'); } catch (e) {} },
-    progress: (text, pct) => sendGame({ state: 'progress', text, pct })
+    log: (t) => { try { fs.appendFileSync(path.join(app.getPath('userData'), 'launcher.log'), new Date().toISOString() + ' ' + t + '\n'); } catch (e) {}
+      logLine(t, /unavailable|failed|error|not found/i.test(t) ? 'err' : /Fabric .* with|Fast start|updated|Turned off/i.test(t) ? 'ok' : 'info'); },
+    progress: (text, pct) => {
+      sendGame({ state: 'progress', text, pct });
+      const key = text.replace(/[\d\/ ]+/g, '');
+      if (key !== progKey || pct - progPct >= 10 || pct >= 98) { progKey = key; progPct = pct; logLine(text + (pct != null ? '   ' + pct + '%' : ''), 'info'); }
+    }
   });
   return launcher;
 }
@@ -106,12 +168,20 @@ ipcMain.handle('launch', async (e, server) => {
       saveLogin({ refresh: account.refresh || d.refresh, name: account.name, uuid: account.uuid });
     }
     const L = getLauncher();
+    const opts = gameOpts();
+    logBuf = []; progKey = ''; progPct = 0; setLogState('starting');
+    if (opts.showLog !== false) openLog();
+    logLine('Mini Client ' + app.getVersion() + '  \u00b7  starting Minecraft ' + opts.version + ' as ' + account.name, 'info');
     const r = await L.launch(account, Object.assign(gameOpts(), { server: typeof server === 'string' ? server : '' }));
     sendGame({ state: 'running', id: r.id });
+    if (r.modsNote) logLine('Mods could not be set up: ' + r.modsNote, 'err');
+    else if (r.mods) logLine(r.mods + ' Mini Client mods ready.', 'ok');
+    logLine('Java started. Booting Minecraft...', 'ok'); setLogState('running');
+    if (L.proc) tailGame(path.join(app.getPath('userData'), 'game.log'), L.proc);
     const watch = setInterval(() => { if (!L.running()) { clearInterval(watch); sendGame({ state: 'idle' }); if (win && win.isMinimized()) win.restore(); } }, 2000);
     if (win && !gameOpts().keepOpen) win.minimize();
     return r;
-  } catch (err) { sendGame({ state: 'idle' }); return { ok: false, error: err.message }; }
+  } catch (err) { sendGame({ state: 'idle' }); logLine(err.message, 'err'); setLogState('failed'); return { ok: false, error: err.message }; }
 });
 
 // ---------- updater (stable and beta channels, both published on GitHub) ----------

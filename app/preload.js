@@ -18,5 +18,10 @@ contextBridge.exposeInMainWorld('mc', {
   versions: () => ipcRenderer.invoke('versions'),
   gameOpts: () => ipcRenderer.invoke('game-opts'),
   setGameOpts: (o) => ipcRenderer.invoke('game-opts-set', o),
-  onGame: (cb) => ipcRenderer.on('game', (e, s) => cb(s))
+  onGame: (cb) => ipcRenderer.on('game', (e, s) => cb(s)),
+  friendLookup: (n) => ipcRenderer.invoke('friend-lookup', n),
+  logInit: () => ipcRenderer.invoke('log-init'),
+  onLog: (cb) => ipcRenderer.on('log', (e, l) => cb(l)),
+  onLogState: (cb) => ipcRenderer.on('log-state', (e, s) => cb(s)),
+  onLogReset: (cb) => ipcRenderer.on('log-reset', () => cb())
 });

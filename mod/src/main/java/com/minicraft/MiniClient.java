@@ -16,6 +16,33 @@ public class MiniClient implements ClientModInitializer {
 	public static Button capeBtn = null;
 	private int tick = 0;
 	private static boolean iconSet = false;
+	private static boolean darkDone = false;
+
+	/** Windows draws its own title bar for the game window. Make it black with only the logo (no white bar, no title text). */
+	public interface Dwm extends com.sun.jna.Library {
+		int DwmSetWindowAttribute(com.sun.jna.Pointer hwnd, int attr, com.sun.jna.ptr.IntByReference value, int size);
+	}
+
+	private static void darkTitle(Minecraft mc) {
+		if (darkDone) return;
+		darkDone = true;
+		if (!System.getProperty("os.name", "").toLowerCase(java.util.Locale.ROOT).contains("win")) return;
+		try {
+			long hwnd = org.lwjgl.glfw.GLFWNativeWin32.glfwGetWin32Window(mc.getWindow().getWindow());
+			if (hwnd == 0) return;
+			com.sun.jna.Pointer h = new com.sun.jna.Pointer(hwnd);
+			Dwm d = com.sun.jna.Native.load("dwmapi", Dwm.class);
+			dwm(d, h, 20, 1);          // dark mode: white minimise / maximise / close on a dark bar
+			dwm(d, h, 35, 0x000000);   // caption colour: black (Windows 11)
+			dwm(d, h, 36, 0x000000);   // title text colour: black = hidden, only the logo shows
+			dwm(d, h, 34, 0x1A1A1A);   // thin dark border
+		} catch (Throwable ignored) {
+		}
+	}
+
+	private static void dwm(Dwm d, com.sun.jna.Pointer h, int attr, int value) {
+		try { d.DwmSetWindowAttribute(h, attr, new com.sun.jna.ptr.IntByReference(value), 4); } catch (Throwable ignored) {}
+	}
 
 	/** Swap the grass-block window icon for the Mini Client logo. */
 	private static void setIcon(Minecraft mc) {
@@ -62,6 +89,7 @@ public class MiniClient implements ClientModInitializer {
 			if (tick % 20 == 0) {
 				GLFW.glfwSetWindowTitle(mc.getWindow().getWindow(), "Mini Client 1.21.7");
 				setIcon(mc);
+				darkTitle(mc);
 			}
 		});
 
