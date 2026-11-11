@@ -200,6 +200,12 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:18px; h
 .fr button.yes { background:#fff; color:#000; font-weight:900; } .fr button.yes:hover { background:#dcdcdc; color:#000; }
 #fdot { display:none; width:7px; height:7px; border-radius:50%; background:#fff; margin-left:6px; vertical-align:middle; }
 .fh h3 { display:flex; align-items:center; }
+
+#ftabs { display:flex; gap:4px; background:#0d0d10; border:1px solid var(--line); border-radius:10px; padding:3px; margin:4px 0 6px; }
+.ft { flex:1; text-align:center; font-size:11.5px; font-weight:700; color:var(--mute); padding:6px 4px; border-radius:7px; cursor:pointer; white-space:nowrap; transition:.12s; }
+.ft:hover { color:#fff; } .ft.on { background:#fff; color:#000; }
+.ft em { font-style:normal; font-size:10px; padding:0 5px; border-radius:6px; background:rgba(255,255,255,.14); margin-left:2px; } .ft.on em { background:#000; color:#fff; }
+.ft.hot:not(.on) em { background:#fff; color:#000; }
 </style></head>
 <body>
 <div id="bgglow"></div>
@@ -237,6 +243,7 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:18px; h
     <div class="card" id="side">
       <div class="fh"><h3>Friends <i id="fdot"></i></h3><span id="fcount">0</span></div>
       <div class="fadd"><input id="fname" placeholder="Add friend by username" maxlength="16" spellcheck="false"><button onclick="addFriend()" title="Add friend">+</button></div>
+      <div id="ftabs"></div>
       <div id="fmsg"></div>
       <div id="flist"></div>
       <div id="fnote">Online status and invites come with Mini Client accounts in a later update.</div>
@@ -403,34 +410,39 @@ let FR=null, frMode='local';
 const head=(u,n)=>`<div class="av" data-l="${(n||'?')[0].toUpperCase()}"><img src="https://mc-heads.net/avatar/${u}/68" alt="" onerror="this.style.visibility='hidden'"></div>`;
 function ago(t){if(!t)return 'Offline';const m=Math.round((Date.now()-t)/60000);if(m<60)return 'Last seen '+Math.max(1,m)+'m ago';const h=Math.round(m/60);if(h<48)return 'Last seen '+h+'h ago';return 'Last seen '+Math.round(h/24)+'d ago';}
 function fmsg(t,good){$('fmsg').style.color=good?'#cfcfcf':'';$('fmsg').textContent=t||'';}
+let ftab='friends';
+function setTab(t){ftab=t;drawFriends();}
 function drawFriends(){
-  if(frMode==='local'){const l=friends();$('fcount').textContent=l.length;
-    $('flist').innerHTML=l.length?l.map(f=>`<div class="fr">${head(f.uuid,f.name)}<div class="t"><b>${f.name}</b><span>Added ${new Date(f.added).toLocaleDateString(undefined,{day:'numeric',month:'short'})}</span></div><button title="Remove" onclick="delFriend('${f.uuid}')">&#10005;</button></div>`).join('')
-      :'<div class="fempty"><i>&#9786;</i>No friends yet.<br>Add your friends by their Minecraft name.</div>';
-    $('fnote').textContent='Friend requests and online status turn on once the Mini Client friends server is set up.';return;}
-  const d=FR||{friends:[],incoming:[],outgoing:[]};$('fcount').textContent=d.friends.length;$('fnote').textContent='';
+  const local=frMode==='local', d=local?{friends:[],incoming:[],outgoing:friends()}:(FR||{friends:[],incoming:[],outgoing:[]});
+  $('fcount').textContent=d.friends.length;
+  $('ftabs').innerHTML=[['friends','Friends',d.friends.length],['pending','Pending',d.outgoing.length],['requests','Requests',d.incoming.length]]
+    .map(t=>`<div class="ft${ftab===t[0]?' on':''}${t[0]==='requests'&&t[2]?' hot':''}" onclick="setTab('${t[0]}')">${t[1]}${t[2]?` <em>${t[2]}</em>`:''}</div>`).join('');
   let o='';
-  if(d.incoming.length)o+=`<div class="fsec">Requests <em>${d.incoming.length}</em></div>`+d.incoming.map(f=>`<div class="fr req">${head(f.uuid,f.name)}<div class="t"><b>${f.name}</b><span>Wants to be friends</span></div><button class="yes" title="Accept" onclick="frAct('accept','${f.uuid}')">&#10003;</button><button class="no" title="Decline" onclick="frAct('decline','${f.uuid}')">&#10005;</button></div>`).join('');
-  if(d.friends.length)o+=(d.incoming.length?'<div class="fsec">Friends</div>':'')+d.friends.map(f=>`<div class="fr${f.online?' on':''}">${head(f.uuid,f.name)}<div class="t"><b>${f.name}</b><span>${f.online?(f.status==='playing'?'Playing Minecraft':'Online'):ago(f.seen)}</span></div><button title="Remove friend" onclick="frAct('remove','${f.uuid}')">&#10005;</button></div>`).join('');
-  if(d.outgoing.length)o+='<div class="fsec">Pending</div>'+d.outgoing.map(f=>`<div class="fr pend">${head(f.uuid,f.name)}<div class="t"><b>${f.name}</b><span>Request sent</span></div><button title="Cancel request" onclick="frAct('cancel','${f.uuid}')">&#10005;</button></div>`).join('');
-  $('flist').innerHTML=o||'<div class="fempty"><i>&#9786;</i>No friends yet.<br>Send a request with their Minecraft name.</div>';
-  $('fdot').style.display=d.incoming.length?'block':'none';}
+  if(ftab==='friends')o=d.friends.map(f=>`<div class="fr${f.online?' on':''}">${head(f.uuid,f.name)}<div class="t"><b>${f.name}</b><span>${f.online?(f.status==='playing'?'Playing Minecraft':'Online'):ago(f.seen)}</span></div><button title="Remove friend" onclick="frAct('remove','${f.uuid}')">&#10005;</button></div>`).join('')
+    ||'<div class="fempty"><i>&#9786;</i>No friends yet.<br>People show up here once they accept your request.</div>';
+  if(ftab==='pending')o=d.outgoing.map(f=>`<div class="fr pend">${head(f.uuid,f.name)}<div class="t"><b>${f.name}</b><span>${local?'Waiting to send':'Request sent'}</span></div><button title="Cancel request" onclick="${local?`delFriend('${f.uuid}')`:`frAct('cancel','${f.uuid}')`}">&#10005;</button></div>`).join('')
+    ||'<div class="fempty"><i>&#8987;</i>No pending requests.<br>Type a name above to send one.</div>';
+  if(ftab==='requests')o=d.incoming.map(f=>`<div class="fr req">${head(f.uuid,f.name)}<div class="t"><b>${f.name}</b><span>Wants to be friends</span></div><button class="yes" title="Accept" onclick="frAct('accept','${f.uuid}')">&#10003;</button><button class="no" title="Decline" onclick="frAct('decline','${f.uuid}')">&#10005;</button></div>`).join('')
+    ||'<div class="fempty"><i>&#9993;</i>No requests right now.<br>When someone adds you, accept them here.</div>';
+  $('flist').innerHTML=o;
+  $('fdot').style.display=d.incoming.length?'block':'none';
+  $('fnote').textContent=local?'Requests are sent as soon as the Mini Client friends server is switched on.':'';}
 async function loadFriends(){
   if(!acct){frMode='local';drawFriends();return;}
   const r=await mc.friends('list');
-  if(r&&r.ok){frMode='server';FR=r;
+  if(r&&r.ok){const had=FR?FR.incoming.length:0;frMode='server';FR=r;if(r.incoming.length>had&&ftab!=='requests'&&!had)ftab='requests';
     const old=friends();if(old.length){saveFriends([]);for(const f of old)await mc.friends('request',{name:f.name});return loadFriends();}}
   else if(r&&r.offline)frMode='local';
   drawFriends();}
 async function addFriend(){const n=$('fname').value.trim();fmsg('');if(!n)return;
   if(frMode==='server'){fmsg('Sending request to '+n+'...',true);const r=await mc.friends('request',{name:n});
     if(!r.ok){fmsg(r.error||'Could not send the request.');return;}
-    $('fname').value='';fmsg(r.accepted?'You and '+r.name+' are now friends!':'Request sent to '+r.name+'.',true);loadFriends();return;}
-  if(friends().some(f=>f.name.toLowerCase()===n.toLowerCase())){fmsg(n+' is already your friend.');return;}
+    $('fname').value='';ftab=r.accepted?'friends':'pending';fmsg(r.accepted?'You and '+r.name+' are now friends!':'Friend request sent to '+r.name+'.',true);loadFriends();return;}
+  if(friends().some(f=>f.name.toLowerCase()===n.toLowerCase())){fmsg('You already have a pending request to '+n+'.');return;}
   if(acct&&acct.name&&acct.name.toLowerCase()===n.toLowerCase()){fmsg("That's you!");return;}
   fmsg('Looking up '+n+'...',true);const r=await mc.friendLookup(n);
   if(!r.ok){fmsg(r.error);return;}
-  const l=friends();l.unshift({name:r.name,uuid:r.uuid,added:Date.now()});saveFriends(l);$('fname').value='';fmsg('');drawFriends();}
+  const l=friends();l.unshift({name:r.name,uuid:r.uuid,added:Date.now()});saveFriends(l);$('fname').value='';ftab='pending';fmsg('Friend request to '+r.name+' is pending.',true);drawFriends();}
 async function frAct(a,u){const r=await mc.friends(a,{uuid:u});if(r&&!r.ok&&r.error)fmsg(r.error);else if(a==='accept')fmsg('Friend added!',true);loadFriends();}
 function delFriend(u){saveFriends(friends().filter(f=>f.uuid!==u));drawFriends();}
 $('fname').addEventListener('keydown',e=>{if(e.key==='Enter')addFriend();});
