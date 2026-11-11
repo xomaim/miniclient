@@ -51,6 +51,7 @@ public class MiniClient implements ClientModInitializer {
 
 		ClientTickEvents.END_CLIENT_TICK.register(mc -> {
 			tick++;
+			HostWorldScreen.tick(mc);
 			if (Config.INSTANCE.titleStyle && mc.screen instanceof TitleScreen) {
 				capeBtn = null;
 				for (net.minecraft.client.gui.components.AbstractWidget wd : Screens.getButtons(mc.screen)) {

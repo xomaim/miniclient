@@ -56,6 +56,7 @@ public class MiniTitleScreen extends Screen {
 	@Override
 	protected void init() {
 		Minecraft mc = this.minecraft;
+		HostWorldScreen.pendingMode = null;   // backed out of Host World without picking a world
 		k = Math.min(this.width / 907f, this.height / 563f);
 		ox = 0;
 		oy = (this.height - S(563)) / 2;
@@ -63,7 +64,7 @@ public class MiniTitleScreen extends Screen {
 		btn(113, 318, 281, "\u263B  Multiplayer", () -> mc.setScreen(new JoinMultiplayerScreen(this)));
 		btn(113, 356, 281, "\u25CE  Realms", () -> mc.setScreen(new RealmsMainScreen(this)));
 		btn(113, 394, 135, "\u2699  Settings", () -> mc.setScreen(new OptionsScreen(this, mc.options)));
-		btn(258, 394, 136, "\u2630  Mods", () -> mc.setScreen(new MiniSettingsScreen(this)));
+		btn(258, 394, 136, "\u2630  Mods", () -> mc.setScreen(new ModBrowserScreen(this)));
 
 		int rx = rightX(), rw = S(281);
 		try {
@@ -76,12 +77,9 @@ public class MiniTitleScreen extends Screen {
 		}
 		GlassButton[] right = {
 			new GlassButton(rx, Y(280), rw, S(28), mc.getUser().getName(), () -> mc.setScreen(new MiniSettingsScreen(this))),
-			new GlassButton(rx, Y(318), rw, S(28), "\u21E5  Host World", () -> mc.setScreen(new SelectWorldScreen(this))),
-			new GlassButton(rx, Y(356), rw, S(28), "\u2709  Social", () -> {
-				ServerData hd = new ServerData("Hypixel", "mc.hypixel.net", ServerData.Type.OTHER);
-				ConnectScreen.startConnecting(this, mc, ServerAddress.parseString(hd.ip), hd, false, null);
-			}),
-			new GlassButton(rx, Y(394), rw, S(28), "\u2666  Wardrobe", () -> mc.setScreen(new MiniSettingsScreen(this)))
+			new GlassButton(rx, Y(318), rw, S(28), "\u21E5  Host World", () -> mc.setScreen(new HostWorldScreen(this))),
+			new GlassButton(rx, Y(356), rw, S(28), "\u2709  Social", () -> mc.setScreen(new SocialScreen(this))),
+			new GlassButton(rx, Y(394), rw, S(28), "\u2666  Wardrobe", () -> mc.setScreen(new WardrobeScreen(this)))
 		};
 		for (GlassButton b : right) { b.textScale = Math.max(0.6f, k * 1.32f); addRenderableWidget(b); }
 
@@ -95,11 +93,10 @@ public class MiniTitleScreen extends Screen {
 			float yy = (py[i] + (t % 10000000L) / 1000f * ps[i] * 0.25f) % 1f;
 			float xx = (px[i] + (t % 10000000L) / 1000f * ps[i] * 0.18f + (float) Math.sin(t / 1600.0 + i) * 0.006f) % 1f;
 			int x = (int) (xx * this.width), yv = (int) (yy * this.height);
-			int a = (i % 3 == 0) ? 0xD0 : 0x50;
-			int s = Math.max(1, S(i % 4 == 0 ? 4 : 2));
-			g.fill(x - s - 1, yv - s - 1, x + s + 1, yv + s + 1, (a / 6) << 24 | 0xFFFFFF);
-			g.fill(x - s, yv - s, x + s, yv + s, (a / 3) << 24 | 0xFFFFFF);
-			g.fill(x - s / 2, yv - s / 2, x + s / 2 + 1, yv + s / 2 + 1, a << 24 | 0xFFFFFF);
+			float tw = 0.75f + 0.25f * (float) Math.sin(t / 900.0 + i * 1.7);      // gentle twinkle
+			int a = (int) (((i % 3 == 0) ? 230 : 120) * tw);
+			float size = S(i % 4 == 0 ? 14 : 8);
+			Glow.draw(g, xx * this.width, yy * this.height, size, a);
 		}
 	}
 

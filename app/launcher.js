@@ -292,6 +292,15 @@ class Launcher {
   async syncMods(list) {
     const md = path.join(this.mcDir, 'mods');
     await fsp.mkdir(md, { recursive: true });
+    // Mods removed from the in-game Mods screen (Windows locks them while the game runs).
+    const rl = path.join(this.mcDir, 'config', 'miniclient-remove.txt');
+    try {
+      for (const n of (await fsp.readFile(rl, 'utf8')).split(/\r?\n/)) {
+        const f = n.trim();
+        if (f && !/[\\/]/.test(f) && /\.jar$/i.test(f)) await fsp.rm(path.join(md, f), { force: true }).catch(() => {});
+      }
+      await fsp.rm(rl, { force: true });
+    } catch (e) {}
     const want = new Map(list.map((p) => [('minicraft-' + path.basename(p)).toLowerCase(), p]));
     for (const n of await fsp.readdir(md)) if (/^minicraft-.*\.jar$/i.test(n) && !want.has(n.toLowerCase())) await fsp.rm(path.join(md, n), { force: true }).catch(() => {});
     for (const p of list) {

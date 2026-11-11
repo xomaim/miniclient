@@ -375,7 +375,7 @@ async function drawMods(){
   $('mbuilt').innerHTML=BUILT.map(m=>{const on=m[2]();return `<div class="mrow"><i>${m[3]}</i><div><b>${m[0]}</b><span>${m[1]}</span></div><span class="st${on?'':' offs'}">${on?'ON':'OFF'}</span></div>`;}).join('')+
     `<div class="mrow"><div><span>Turn these on or off in Settings &rarr; Performance and Cosmetics.</span></div><button class="sbtn ghost sm" onclick="go('settings')">Open settings</button></div>`;
   const u=await mc.userMods();
-  $('muser').innerHTML=u.length?u.map(n=>`<div class="mrow"><i>${n.charAt(0).toUpperCase()}</i><div><b>${n.replace(/\.jar$/i,'')}</b><span>${n}</span></div><span class="st">ON</span></div>`).join(''):'<div class="empty">No extra mods yet. Drop Fabric 1.21.7 .jar files into the mods folder.</div>';}
+  $('muser').innerHTML=u.length?u.map(n=>`<div class="mrow"><i>${n.charAt(0).toUpperCase()}</i><div><b>${n.replace(/\.jar$/i,'')}</b><span>${n}</span></div><span class="st">ON</span></div>`).join(''):'<div class="empty">No extra mods yet. Press Mods on the Minecraft title screen to find and install mods, or drop Fabric .jar files into the mods folder.</div>';}
 let VERS=[];
 function vlabel(id){return id==='1.21.7'?['Mini Client','mini']:['Fabric + FPS mods',''];}
 function drawVersions(){const f=($('vfind').value||'').trim();const sel=gopts.version||'1.21.7';
