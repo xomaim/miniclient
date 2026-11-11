@@ -183,7 +183,7 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:18px; h
 #flist { flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:4px; margin:0 -6px; padding:0 6px; }
 .fr { display:flex; align-items:center; gap:10px; padding:7px; border-radius:10px; transition:.12s; cursor:default; }
 .fr:hover { background:rgba(255,255,255,.06); }
-.fr .av { position:relative; flex:none; } .fr img { width:34px; height:34px; border-radius:8px; background:#1c1c20; image-rendering:auto; display:block; }
+.fr .av { position:relative; flex:none; width:34px; height:34px; border-radius:8px; background:#1c1c20; } .fr .av:before { content:attr(data-l); position:absolute; inset:0; display:grid; place-items:center; font-weight:800; font-size:14px; } .fr .av img { position:relative; } .fr img { width:34px; height:34px; border-radius:8px; background:#1c1c20; image-rendering:auto; display:block; }
 .fr div.t { flex:1; min-width:0; } .fr b { display:block; font-size:13px; } .fr span { font-size:11px; color:var(--mute); }
 .fr button { opacity:0; border:0; background:transparent; color:#999; cursor:pointer; font-size:13px; width:26px; height:26px; border-radius:7px; }
 .fr:hover button { opacity:1; } .fr button:hover { background:rgba(255,255,255,.1); color:#fff; }
@@ -209,7 +209,7 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:18px; h
     <div class="nav" title="Sign out" onclick="signOut()"><svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></div>
   </div>
   <div id="main">
-    <div id="top"><div id="crumb">Home</div><div id="acc" onclick="go('settings')"><img id="face" alt=""><span id="who">player</span><i>&#9662;</i></div></div>
+    <div id="top"><div id="crumb">Home</div><div id="acc" onclick="go('settings')"><img id="face" alt="" onerror="this.style.visibility='hidden'" onload="this.style.visibility='visible'"><span id="who">player</span><i>&#9662;</i></div></div>
     <div id="left">
       <div id="hero"><canvas id="fx"></canvas><div class="hills"></div><div class="hills h2"></div>
         <div id="hbox"><button id="launch" onclick="launch()">LAUNCH GAME<small id="lsub">READY TO LAUNCH</small></button>
@@ -390,7 +390,7 @@ mc.onGame((s)=>{
 function friends(){try{return JSON.parse(localStorage.getItem('miniFriends')||'[]');}catch(e){return [];}}
 function saveFriends(l){try{localStorage.setItem('miniFriends',JSON.stringify(l));}catch(e){}}
 function drawFriends(){const l=friends();$('fcount').textContent=l.length;
-  $('flist').innerHTML=l.length?l.map(f=>`<div class="fr" title="Click to copy name" onclick="navigator.clipboard.writeText('${f.name}');this.querySelector('span').textContent='Name copied'"><div class="av"><img src="https://mc-heads.net/avatar/${f.uuid}/68" alt=""></div><div class="t"><b>${f.name}</b><span>Added ${new Date(f.added).toLocaleDateString(undefined,{day:'numeric',month:'short'})}</span></div><button title="Remove" onclick="event.stopPropagation();delFriend('${f.uuid}')">&#10005;</button></div>`).join('')
+  $('flist').innerHTML=l.length?l.map(f=>`<div class="fr" title="Click to copy name" onclick="navigator.clipboard.writeText('${f.name}');this.querySelector('span').textContent='Name copied'"><div class="av" data-l="${f.name[0].toUpperCase()}"><img src="https://mc-heads.net/avatar/${f.uuid}/68" alt="" onerror="this.style.visibility='hidden'"></div><div class="t"><b>${f.name}</b><span>Added ${new Date(f.added).toLocaleDateString(undefined,{day:'numeric',month:'short'})}</span></div><button title="Remove" onclick="event.stopPropagation();delFriend('${f.uuid}')">&#10005;</button></div>`).join('')
     :'<div class="fempty"><i>&#9786;</i>No friends yet.<br>Add your friends by their Minecraft name.</div>';}
 async function addFriend(){const n=$('fname').value.trim();$('fmsg').textContent='';if(!n)return;
   if(friends().some(f=>f.name.toLowerCase()===n.toLowerCase())){$('fmsg').textContent=n+' is already your friend.';return;}
