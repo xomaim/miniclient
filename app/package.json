@@ -1,7 +1,7 @@
 {
   "name": "mini-client",
   "version": "1.0.0",
-  "description": "Mini Client launcher",
+  "description": "Mini Client launcher and Phone Play",
   "main": "main.js",
   "author": "Mini Client",
   "license": "UNLICENSED",
