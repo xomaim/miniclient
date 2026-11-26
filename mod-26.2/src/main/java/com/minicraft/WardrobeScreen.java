@@ -44,7 +44,7 @@ public class WardrobeScreen extends MiniPage {
 		Minecraft mc = this.minecraft;
 		try {
 			int sw = Math.min(150, pw - 230), sh = Math.round(sw * 1.25f);
-			PlayerSkinWidget skin = new PlayerSkinWidget(sw, sh, mc.getEntityModels(), () -> mc.getSkinManager().createLookup(mc.getGameProfile(), false).get());
+			PlayerSkinWidget skin = new PlayerSkinWidget(sw, sh, mc.getEntityModels(), () -> Logo.mySkin());
 			skin.setPosition(left + (pw - 220) / 2 - sw / 2, top + 10);
 			addRenderableWidget(skin);
 		} catch (Throwable ignored) {

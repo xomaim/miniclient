@@ -70,7 +70,7 @@ public class MiniTitleScreen extends Screen {
 		try {
 			int sw = S(100), sh = S(124);
 			net.minecraft.client.gui.components.PlayerSkinWidget skin = new net.minecraft.client.gui.components.PlayerSkinWidget(
-				sw, sh, mc.getEntityModels(), () -> mc.getSkinManager().createLookup(mc.getGameProfile(), false).get());
+				sw, sh, mc.getEntityModels(), () -> Logo.mySkin());
 			skin.setPosition(rx + rw / 2 - sw / 2, Y(134));
 			addRenderableWidget(skin);
 		} catch (Throwable ignored) {
@@ -116,7 +116,7 @@ public class MiniTitleScreen extends Screen {
 		int rx = rightX(), rw = S(281);
 		try {
 			int f = S(16);
-			net.minecraft.client.gui.components.PlayerFaceExtractor.extractRenderState(g, this.minecraft.getSkinManager().createLookup(this.minecraft.getGameProfile(), false).get(), rx + S(7), Y(280) + (S(28) - f) / 2, f);
+			net.minecraft.client.gui.components.PlayerFaceExtractor.extractRenderState(g, Logo.mySkin(), rx + S(7), Y(280) + (S(28) - f) / 2, f);
 		} catch (Throwable ignored) {
 		}
 		g.pose().pushMatrix();
