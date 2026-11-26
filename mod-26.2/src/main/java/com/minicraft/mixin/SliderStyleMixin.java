@@ -13,11 +13,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 /** Vanilla sliders (FOV, volume, ...): dark track, white fill, round white handle. */
 @Mixin(AbstractSliderButton.class)
-public abstract class SliderStyleMixin extends AbstractWidget {
+public abstract class SliderStyleMixin extends AbstractWidget.WithInactiveMessage {
 	@Shadow protected double value;
 	public SliderStyleMixin(int x, int y, int w, int h, Component c) { super(x, y, w, h, c); }
 
-	@Inject(method = "renderWidget", at = @At("HEAD"), cancellable = true, require = 0)
+	@Inject(method = "extractWidgetRenderState", at = @At("HEAD"), cancellable = true, require = 0)
 	private void mini$draw(GuiGraphicsExtractor g, int mouseX, int mouseY, float delta, CallbackInfo ci) {
 		if (!com.minicraft.Config.INSTANCE.titleStyle) return;
 		ci.cancel();
@@ -28,6 +28,6 @@ public abstract class SliderStyleMixin extends AbstractWidget {
 		com.minicraft.UiStyle.fillRound(g, x + 1, y + 1, Math.max(0, fx - x - 1), h - 2, 0x22FFFFFF);
 		int hx = Math.max(x + 2, Math.min(x + w - 6, fx - 2));
 		com.minicraft.UiStyle.fillRound(g, hx, y + 3, 4, h - 6, 0xFFFFFFFF);
-		this.renderScrollingString(g, mc.font, 4, (this.active ? 0xFFF4F4F4 : 0xFF707070) | (Math.round(this.alpha * 255) << 24));
+		g.centeredText(mc.font, this.getMessage(), getX() + getWidth() / 2, getY() + (getHeight() - 8) / 2, (this.active ? 0xFFF4F4F4 : 0xFF707070) | (Math.round(this.alpha * 255) << 24));
 	}
 }

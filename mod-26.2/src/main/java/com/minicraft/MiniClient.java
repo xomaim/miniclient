@@ -3,8 +3,8 @@ package com.minicraft;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
-import net.fabricmc.fabric.api.client.gui.screen().v1.ScreenEvents;
-import net.fabricmc.fabric.api.client.gui.screen().v1.Screens;
+import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents;
+import net.fabricmc.fabric.api.client.screen.v1.Screens;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.PauseScreen;
@@ -71,7 +71,7 @@ public class MiniClient implements ClientModInitializer {
 		HudElementRegistry.addLast(net.minecraft.resources.Identifier.fromNamespaceAndPath("miniclient", "hud"), (g, delta) -> {
 			Minecraft mc = Minecraft.getInstance();
 			HudRenderer.poll(mc);
-			if (mc.options.hideGui) return;
+			if (mc.gui.hud.isHidden()) return;
 			if (mc.gui.screen() instanceof HudEditorScreen) return;
 			HudRenderer.draw(g, mc);
 		});

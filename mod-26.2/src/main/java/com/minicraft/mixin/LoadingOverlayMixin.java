@@ -1,7 +1,7 @@
 package com.minicraft.mixin;
 
 import com.minicraft.Logo;
-import net.minecraft.Util;
+import net.minecraft.util.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.LoadingOverlay;
@@ -22,12 +22,12 @@ public abstract class LoadingOverlayMixin {
 	@Shadow @Final private boolean fadeIn;
 	@Unique private long miniStart = -1L;
 
-	@Inject(method = "render", at = @At("HEAD"))
+	@Inject(method = "extractRenderState", at = @At("HEAD"))
 	private void mini$black(GuiGraphicsExtractor g, int mouseX, int mouseY, float delta, CallbackInfo ci) {
 		try { Minecraft.getInstance().options.darkMojangStudiosBackground().set(true); } catch (Throwable ignored) {}
 	}
 
-	@Inject(method = "render", at = @At("TAIL"))
+	@Inject(method = "extractRenderState", at = @At("TAIL"))
 	private void mini$logo(GuiGraphicsExtractor g, int mouseX, int mouseY, float delta, CallbackInfo ci) {
 		long now = Util.getMillis();
 		if (miniStart < 0) miniStart = now;
