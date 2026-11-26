@@ -32,4 +32,15 @@ for c in net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry net.
   net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements; do
   echo "=== $c" >> "$out"; javap -cp "$CP:$(echo "$FAPI" | tr '\n' ':')" -public "$c" >> "$out" 2>&1 || true
 done
+# round 2: protected/private members of classes we extend or mix into, plus moved classes
+for c in net.minecraft.client.gui.components.AbstractWidget net.minecraft.client.gui.components.AbstractButton net.minecraft.client.gui.components.AbstractSliderButton \
+  'net.minecraft.client.gui.components.AbstractWidget$WithInactiveMessage' net.minecraft.client.gui.screens.Screen net.minecraft.client.gui.Hud net.minecraft.client.gui.components.PlayerFaceExtractor \
+  net.minecraft.util.Util 'net.minecraft.server.MinecraftServer$MultiplayerScope' net.minecraft.client.DeltaTracker net.minecraft.client.input.InputWithModifiers \
+  com.mojang.realmsclient.RealmsMainScreen net.minecraft.client.gui.screens.ConnectScreen net.minecraft.client.multiplayer.ServerData net.minecraft.client.gui.screens.options.OptionsScreen; do
+  echo "=== P $c" >> "$out"; javap -cp "$CP" -protected "$c" 2>&1 | grep -v lambda >> "$out" || true
+done
+echo "=== P LoadingOverlay private" >> "$out"; javap -cp "$CP" -private net.minecraft.client.gui.screens.LoadingOverlay >> "$out" 2>&1
+echo "=== Options fields" >> "$out"; javap -cp "$CP" -public net.minecraft.client.Options | grep -iE "hideGui|darkMojang|Mojang|gui|OptionInstance<java.lang.Boolean>" >> "$out" 2>&1
+echo "=== Util candidates" >> "$out"; grep -E '/Util\.class$' /tmp/cls.txt >> "$out"; for jar in $JARS; do unzip -Z1 "$jar"; done | grep -E '(^|/)Util\.class$|KeyMapping|Realms.*MainScreen' | sort -u >> "$out"
+for jar in $(find ~/.gradle -name "fabric-*.jar" | grep -v sources); do unzip -Z1 "$jar" | grep -iE 'key(binding|mapping).*Helper' ; done >> "$out" 2>/dev/null
 echo "probe done: $(wc -l < $out) lines"

@@ -1,7 +1,7 @@
 package com.minicraft;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.worldselection.SelectWorldScreen;
 import net.minecraft.client.server.IntegratedServer;
@@ -37,17 +37,17 @@ public class HostWorldScreen extends MiniPage {
 		button(left, y + 74, pw, 30, "Choose a world to host  →", () -> {
 			pendingMode = MODES[mode];
 			pendingCheats = cheats;
-			this.minecraft.setScreen(new SelectWorldScreen(parent));
+			this.minecraft.gui.setScreen(new SelectWorldScreen(parent));
 		});
 	}
 
 	@Override
-	public void render(GuiGraphics g, int mouseX, int mouseY, float delta) {
-		super.render(g, mouseX, mouseY, delta);
-		g.drawString(this.font, "Open one of your worlds so friends can join you.", left, top, 0xFF9A9A9A, false);
-		g.drawString(this.font, "Friends on the same Wi-Fi see it in Multiplayer automatically.", left, top + 12, 0xFF9A9A9A, false);
+	public void extractRenderState(GuiGraphicsExtractor g, int mouseX, int mouseY, float delta) {
+		super.extractRenderState(g, mouseX, mouseY, delta);
+		g.text(this.font, "Open one of your worlds so friends can join you.", left, top, 0xFF9A9A9A, false);
+		g.text(this.font, "Friends on the same Wi-Fi see it in Multiplayer automatically.", left, top + 12, 0xFF9A9A9A, false);
 		int y = top + 150;
-		g.drawString(this.font, "Playing over the internet (not on your Wi-Fi) is coming in a later update.", left, y, 0xFF6A6A6A, false);
+		g.text(this.font, "Playing over the internet (not on your Wi-Fi) is coming in a later update.", left, y, 0xFF6A6A6A, false);
 	}
 
 	/** Called every client tick: once the chosen world has loaded, open it to the network. */

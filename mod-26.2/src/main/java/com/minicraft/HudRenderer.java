@@ -1,7 +1,7 @@
 package com.minicraft;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.multiplayer.PlayerInfo;
 import org.lwjgl.glfw.GLFW;
 
@@ -27,7 +27,7 @@ public class HudRenderer {
 			frames = 0;
 			lastFpsTime = now;
 		}
-		long window = mc.getWindow().getWindow();
+		long window = mc.getWindow().handle();
 		boolean l = GLFW.glfwGetMouseButton(window, GLFW.GLFW_MOUSE_BUTTON_LEFT) == GLFW.GLFW_PRESS;
 		boolean r = GLFW.glfwGetMouseButton(window, GLFW.GLFW_MOUSE_BUTTON_RIGHT) == GLFW.GLFW_PRESS;
 		if (l && !wasLeft) leftClicks.add(now);
@@ -76,7 +76,7 @@ public class HudRenderer {
 		return Math.round((mc.font.lineHeight + PAD * 2) * Config.INSTANCE.scale / 100f);
 	}
 
-	public static void draw(GuiGraphics g, Minecraft mc) {
+	public static void draw(GuiGraphicsExtractor g, Minecraft mc) {
 		Config c = Config.INSTANCE;
 		String t = text(mc);
 		float s = c.scale / 100f;
@@ -86,7 +86,7 @@ public class HudRenderer {
 		g.pose().translate((float) c.x, (float) c.y);
 		g.pose().scale(s, s);
 		if (c.bg == 1) g.fill(0, 0, w, h, 0x90000000);
-		g.drawString(mc.font, t, PAD, PAD, 0xFFFFFFFF, true);
+		g.text(mc.font, t, PAD, PAD, 0xFFFFFFFF, true);
 		g.pose().popMatrix();
 	}
 }

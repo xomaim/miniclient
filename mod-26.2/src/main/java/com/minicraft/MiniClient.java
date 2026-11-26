@@ -2,9 +2,9 @@ package com.minicraft;
 
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
-import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents;
-import net.fabricmc.fabric.api.client.screen.v1.Screens;
+import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
+import net.fabricmc.fabric.api.client.gui.screen().v1.ScreenEvents;
+import net.fabricmc.fabric.api.client.gui.screen().v1.Screens;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.PauseScreen;
@@ -28,7 +28,7 @@ public class MiniClient implements ClientModInitializer {
 		darkDone = true;
 		if (!System.getProperty("os.name", "").toLowerCase(java.util.Locale.ROOT).contains("win")) return;
 		try {
-			long hwnd = org.lwjgl.glfw.GLFWNativeWin32.glfwGetWin32Window(mc.getWindow().getWindow());
+			long hwnd = org.lwjgl.glfw.GLFWNativeWin32.glfwGetWin32Window(mc.getWindow().handle());
 			if (hwnd == 0) return;
 			com.sun.jna.Pointer h = new com.sun.jna.Pointer(hwnd);
 			Dwm d = com.sun.jna.Native.load("dwmapi", Dwm.class);
@@ -58,7 +58,7 @@ public class MiniClient implements ClientModInitializer {
 			if (px == null) return;
 			org.lwjgl.glfw.GLFWImage.Buffer imgs = org.lwjgl.glfw.GLFWImage.malloc(1, st);
 			imgs.position(0).width(w.get(0)).height(h.get(0)).pixels(px);
-			GLFW.glfwSetWindowIcon(mc.getWindow().getWindow(), imgs);
+			GLFW.glfwSetWindowIcon(mc.getWindow().handle(), imgs);
 			org.lwjgl.stb.STBImage.stbi_image_free(px);
 		} catch (Throwable ignored) {
 		}
@@ -68,26 +68,26 @@ public class MiniClient implements ClientModInitializer {
 	public void onInitializeClient() {
 		Config.load();
 
-		HudRenderCallback.EVENT.register((g, delta) -> {
+		HudElementRegistry.addLast(net.minecraft.resources.Identifier.fromNamespaceAndPath("miniclient", "hud"), (g, delta) -> {
 			Minecraft mc = Minecraft.getInstance();
 			HudRenderer.poll(mc);
 			if (mc.options.hideGui) return;
-			if (mc.screen instanceof HudEditorScreen) return;
+			if (mc.gui.screen() instanceof HudEditorScreen) return;
 			HudRenderer.draw(g, mc);
 		});
 
 		ClientTickEvents.END_CLIENT_TICK.register(mc -> {
 			tick++;
 			HostWorldScreen.tick(mc);
-			if (Config.INSTANCE.titleStyle && mc.screen instanceof TitleScreen) {
+			if (Config.INSTANCE.titleStyle && mc.gui.screen() instanceof TitleScreen) {
 				capeBtn = null;
-				for (net.minecraft.client.gui.components.AbstractWidget wd : Screens.getButtons(mc.screen)) {
+				for (net.minecraft.client.gui.components.AbstractWidget wd : Screens.getWidgets(mc.gui.screen())) {
 					if (wd instanceof Button && wd.getMessage().getString().toLowerCase().contains("cape")) { capeBtn = (Button) wd; break; }
 				}
-				mc.setScreen(new MiniTitleScreen());
+				mc.gui.setScreen(new MiniTitleScreen());
 			}
 			if (tick % 20 == 0) {
-				GLFW.glfwSetWindowTitle(mc.getWindow().getWindow(), "Mini Client 1.21.7");
+				GLFW.glfwSetWindowTitle(mc.getWindow().handle(), "Mini Client 26.2");
 				setIcon(mc);
 				darkTitle(mc);
 			}
@@ -95,13 +95,13 @@ public class MiniClient implements ClientModInitializer {
 
 		ScreenEvents.AFTER_INIT.register((client, screen, w, h) -> {
 			if (screen instanceof PauseScreen) {
-				ScreenEvents.beforeRender(screen).register((sc, g, mx, my, dt) -> {
+				ScreenEvents.beforeExtract(screen).register((sc, g, mx, my, dt) -> {
 					g.fillGradient(0, 0, sc.width, sc.height, 0xE0070707, 0xE01C1C1C);
 					g.fill(0, sc.height / 2 - 70, 3, sc.height / 2 + 70, 0xFFEBEBEB);
-					g.drawCenteredString(client.font, "MINICRAFT", sc.width / 2, 14, 0xFFEBEBEB);
+					g.centeredText(client.font, "MINICRAFT", sc.width / 2, 14, 0xFFEBEBEB);
 				});
-				Screens.getButtons(screen).add(
-					Button.builder(Component.literal("Mini Client"), b -> client.setScreen(new MiniSettingsScreen(screen)))
+				Screens.getWidgets(screen).add(
+					Button.builder(Component.literal("Mini Client"), b -> client.gui.setScreen(new MiniSettingsScreen(screen)))
 						.bounds(6, 6, 90, 20).build());
 			}
 		});

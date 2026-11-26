@@ -2,10 +2,10 @@ package com.minicraft;
 
 import com.mojang.blaze3d.platform.NativeImage;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.texture.DynamicTexture;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
@@ -13,10 +13,10 @@ import java.io.ByteArrayOutputStream;
 
 /** A soft round glow drawn from a smooth texture, so background lights are not pixel squares. */
 public final class Glow {
-	private static ResourceLocation tex;
+	private static Identifier tex;
 	private static boolean tried;
 
-	private static ResourceLocation tex() {
+	private static Identifier tex() {
 		if (tried) return tex;
 		tried = true;
 		try {
@@ -36,7 +36,7 @@ public final class Glow {
 			NativeImage img = NativeImage.read(new ByteArrayInputStream(out.toByteArray()));
 			DynamicTexture dt = new DynamicTexture(() -> "miniclient_glow", img);
 			try { dt.getClass().getMethod("setFilter", boolean.class, boolean.class).invoke(dt, true, false); } catch (Throwable ignored) {}
-			ResourceLocation id = ResourceLocation.fromNamespaceAndPath("miniclient", "glow_dyn");
+			Identifier id = Identifier.fromNamespaceAndPath("miniclient", "glow_dyn");
 			Minecraft.getInstance().getTextureManager().register(id, dt);
 			tex = id;
 		} catch (Throwable e) {
@@ -46,8 +46,8 @@ public final class Glow {
 	}
 
 	/** Draws a glow centred on (cx, cy). size = full diameter in GUI units, alpha 0..255. */
-	public static void draw(GuiGraphics g, float cx, float cy, float size, int alpha) {
-		ResourceLocation t = tex();
+	public static void draw(GuiGraphicsExtractor g, float cx, float cy, float size, int alpha) {
+		Identifier t = tex();
 		int s = Math.max(2, Math.round(size));
 		int x = Math.round(cx - s / 2f), y = Math.round(cy - s / 2f);
 		if (t != null) {

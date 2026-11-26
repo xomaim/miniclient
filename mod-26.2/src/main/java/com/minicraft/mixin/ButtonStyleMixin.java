@@ -1,7 +1,7 @@
 package com.minicraft.mixin;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.network.chat.Component;
@@ -16,7 +16,7 @@ public abstract class ButtonStyleMixin extends AbstractWidget {
 	public ButtonStyleMixin(int x, int y, int w, int h, Component c) { super(x, y, w, h, c); }
 
 	@Inject(method = "renderWidget", at = @At("HEAD"), cancellable = true, require = 0)
-	private void mini$draw(GuiGraphics g, int mouseX, int mouseY, float delta, CallbackInfo ci) {
+	private void mini$draw(GuiGraphicsExtractor g, int mouseX, int mouseY, float delta, CallbackInfo ci) {
 		if (!com.minicraft.Config.INSTANCE.titleStyle) return;
 		ci.cancel();
 		Minecraft mc = Minecraft.getInstance();

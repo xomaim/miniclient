@@ -1,7 +1,7 @@
 package com.minicraft;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.network.chat.Component;
@@ -23,7 +23,7 @@ public class GlassButton extends AbstractWidget {
 	}
 
 	@Override
-	protected void renderWidget(GuiGraphics g, int mouseX, int mouseY, float delta) {
+	public void extractWidgetRenderState(GuiGraphicsExtractor g, int mouseX, int mouseY, float delta) {
 		Minecraft mc = Minecraft.getInstance();
 		boolean hot = this.isHoveredOrFocused();
 		int x = this.getX();
@@ -42,11 +42,11 @@ public class GlassButton extends AbstractWidget {
 		g.pose().translate(x + w / 2f, y + h / 2f);
 		g.pose().scale(s, s);
 		int tw = mc.font.width(text);
-		g.drawString(mc.font, text, -tw / 2, -mc.font.lineHeight / 2 + 1, 0xFFF4F4F4, false);
+		g.text(mc.font, text, -tw / 2, -mc.font.lineHeight / 2 + 1, 0xFFF4F4F4, false);
 		g.pose().popMatrix();
 	}
 
-	static void roundRect(GuiGraphics g, int x, int y, int w, int h, int r, int c) {
+	static void roundRect(GuiGraphicsExtractor g, int x, int y, int w, int h, int r, int c) {
 		g.fill(x + r, y, x + w - r, y + h, c);
 		for (int i = 0; i < r; i++) {
 			double dy = r - i - 0.5;
@@ -61,7 +61,7 @@ public class GlassButton extends AbstractWidget {
 	}
 
 	@Override
-	public void onClick(double mouseX, double mouseY) {
+	public void onClick(net.minecraft.client.input.MouseButtonEvent event, boolean doubleClick) {
 		action.run();
 	}
 

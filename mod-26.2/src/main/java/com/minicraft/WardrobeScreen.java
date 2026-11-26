@@ -5,7 +5,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.PlayerSkinWidget;
 import net.minecraft.client.gui.screens.Screen;
@@ -44,7 +44,7 @@ public class WardrobeScreen extends MiniPage {
 		Minecraft mc = this.minecraft;
 		try {
 			int sw = Math.min(150, pw - 230), sh = Math.round(sw * 1.25f);
-			PlayerSkinWidget skin = new PlayerSkinWidget(sw, sh, mc.getEntityModels(), () -> mc.getSkinManager().getInsecureSkin(mc.getGameProfile()));
+			PlayerSkinWidget skin = new PlayerSkinWidget(sw, sh, mc.getEntityModels(), () -> mc.getSkinManager().createLookup(mc.getGameProfile(), false).get());
 			skin.setPosition(left + (pw - 220) / 2 - sw / 2, top + 10);
 			addRenderableWidget(skin);
 		} catch (Throwable ignored) {
@@ -64,18 +64,18 @@ public class WardrobeScreen extends MiniPage {
 	}
 
 	@Override
-	public void render(GuiGraphics g, int mouseX, int mouseY, float delta) {
-		super.render(g, mouseX, mouseY, delta);
+	public void extractRenderState(GuiGraphicsExtractor g, int mouseX, int mouseY, float delta) {
+		super.extractRenderState(g, mouseX, mouseY, delta);
 		int x = colX(), y = top + 4;
-		g.drawString(this.font, "SKIN", x, y, 0xFF8A8A8A, false);
-		g.drawString(this.font, "COPY A PLAYER'S SKIN", x, y + 70, 0xFF8A8A8A, false);
-		g.drawString(this.font, "MINECRAFT CAPE", x, y + 112, 0xFF8A8A8A, false);
+		g.text(this.font, "SKIN", x, y, 0xFF8A8A8A, false);
+		g.text(this.font, "COPY A PLAYER'S SKIN", x, y + 70, 0xFF8A8A8A, false);
+		g.text(this.font, "MINECRAFT CAPE", x, y + 112, 0xFF8A8A8A, false);
 		int sy = y + 184;
 		for (net.minecraft.util.FormattedCharSequence line : this.font.split(Component.literal(status), 210)) {
-			g.drawString(this.font, line, x, sy, statusColor, false);
+			g.text(this.font, line, x, sy, statusColor, false);
 			sy += 10;
 		}
-		g.drawCenteredString(this.font, "Drag to turn", left + (pw - 220) / 2, top + 10 + Math.round(Math.min(150, pw - 230) * 1.25f) + 6, 0xFF6A6A6A);
+		g.centeredText(this.font, "Drag to turn", left + (pw - 220) / 2, top + 10 + Math.round(Math.min(150, pw - 230) * 1.25f) + 6, 0xFF6A6A6A);
 	}
 
 	private void say(String s, boolean bad) {

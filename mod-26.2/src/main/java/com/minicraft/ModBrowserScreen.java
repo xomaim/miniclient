@@ -6,13 +6,13 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.mojang.blaze3d.platform.NativeImage;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
@@ -25,9 +25,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-/** In-game mod store: search Modrinth for Fabric 1.21.7 mods and install them in one click. */
+/** In-game mod store: search Modrinth for Fabric 26.2 mods and install them in one click. */
 public class ModBrowserScreen extends MiniPage {
-	private static final String MC = "1.21.7";
+	private static final String MC = "26.2";
 	private static final String FABRIC_API = "P7dR8mSH";
 	private static final int ROW = 44;
 
@@ -38,7 +38,7 @@ public class ModBrowserScreen extends MiniPage {
 		String state = "";
 	}
 
-	private static final Map<String, ResourceLocation> ICONS = new HashMap<>();
+	private static final Map<String, Identifier> ICONS = new HashMap<>();
 	private static final Set<String> ICON_LOADING = new HashSet<>();
 	private static boolean changed = false;
 
@@ -238,7 +238,7 @@ public class ModBrowserScreen extends MiniPage {
 	}
 
 	// ---------- icons ----------
-	private ResourceLocation icon(Mod m) {
+	private Identifier icon(Mod m) {
 		if (m.icon == null || m.icon.isEmpty() || m.slug == null) return null;
 		if (ICONS.containsKey(m.slug)) return ICONS.get(m.slug);
 		if (ICON_LOADING.add(m.slug)) {
@@ -251,7 +251,7 @@ public class ModBrowserScreen extends MiniPage {
 							NativeImage img = NativeImage.read(new ByteArrayInputStream(b));
 							DynamicTexture dt = new DynamicTexture(() -> "miniclient_modicon", img);
 							try { dt.getClass().getMethod("setFilter", boolean.class, boolean.class).invoke(dt, true, false); } catch (Throwable ignored) {}
-							ResourceLocation id = ResourceLocation.fromNamespaceAndPath("miniclient", "modicon/" + slug.toLowerCase().replaceAll("[^a-z0-9_.-]", "_"));
+							Identifier id = Identifier.fromNamespaceAndPath("miniclient", "modicon/" + slug.toLowerCase().replaceAll("[^a-z0-9_.-]", "_"));
 							this.minecraft.getTextureManager().register(id, dt);
 							ICONS.put(slug, id);
 						} catch (Throwable t) {
@@ -274,13 +274,13 @@ public class ModBrowserScreen extends MiniPage {
 	}
 
 	@Override
-	public void render(GuiGraphics g, int mouseX, int mouseY, float delta) {
-		super.render(g, mouseX, mouseY, delta);
-		g.drawString(this.font, tabInstalled ? "Mods in your mods folder." : "Fabric mods for Minecraft " + MC + " from Modrinth.", left + 70, 20, 0xFF8A8A8A, false);
+	public void extractRenderState(GuiGraphicsExtractor g, int mouseX, int mouseY, float delta) {
+		super.extractRenderState(g, mouseX, mouseY, delta);
+		g.text(this.font, tabInstalled ? "Mods in your mods folder." : "Fabric mods for Minecraft " + MC + " from Modrinth.", left + 70, 20, 0xFF8A8A8A, false);
 		int lt = listTop(), lb = listBottom();
 		List<Mod> l = list();
 		String empty = tabInstalled ? (installed.isEmpty() ? "No extra mods yet. Install some from Browse." : "") : note;
-		if (!empty.isEmpty()) g.drawCenteredString(this.font, empty, this.width / 2, lt + 30, 0xFF9A9A9A);
+		if (!empty.isEmpty()) g.centeredText(this.font, empty, this.width / 2, lt + 30, 0xFF9A9A9A);
 		g.enableScissor(left - 2, lt, left + pw + 2, lb);
 		for (int i = 0; i < l.size(); i++) {
 			int y = lt + i * ROW - (int) scroll;
@@ -289,23 +289,23 @@ public class ModBrowserScreen extends MiniPage {
 			boolean hot = mouseX >= left && mouseX < left + pw && mouseY >= y && mouseY < y + ROW - 4 && mouseY >= lt && mouseY < lb;
 			card(g, left, y, pw, ROW - 4, hot);
 			// icon
-			ResourceLocation ic = tabInstalled ? null : icon(m);
+			Identifier ic = tabInstalled ? null : icon(m);
 			if (ic != null) g.blit(RenderPipelines.GUI_TEXTURED, ic, left + 6, y + 6, 0f, 0f, 28, 28, 28, 28, 0xFFFFFFFF);
 			else {
 				GlassButton.roundRect(g, left + 6, y + 6, 28, 28, 5, 0xFF222226);
 				String letter = m.title.isEmpty() ? "?" : m.title.substring(0, 1).toUpperCase();
-				g.drawCenteredString(this.font, letter, left + 20, y + 16, 0xFFFFFFFF);
+				g.centeredText(this.font, letter, left + 20, y + 16, 0xFFFFFFFF);
 			}
 			int tx = left + 42, tw = pw - 42 - 90;
 			if (tabInstalled) {
-				g.drawString(this.font, fit(m.title, tw), tx, y + 9, 0xFFFFFFFF, false);
-				g.drawString(this.font, fit(m.file, tw), tx, y + 22, 0xFF8A8A8A, false);
+				g.text(this.font, fit(m.title, tw), tx, y + 9, 0xFFFFFFFF, false);
+				g.text(this.font, fit(m.file, tw), tx, y + 22, 0xFF8A8A8A, false);
 			} else {
 				String head = m.title;
-				g.drawString(this.font, fit(head, tw), tx, y + 6, 0xFFFFFFFF, false);
+				g.text(this.font, fit(head, tw), tx, y + 6, 0xFFFFFFFF, false);
 				String by = "by " + m.author + "  ·  " + fmt(m.downloads) + " downloads";
-				g.drawString(this.font, fit(by, tw), tx, y + 17, 0xFF8A8A8A, false);
-				g.drawString(this.font, fit(m.desc, tw), tx, y + 28, 0xFFBDBDBD, false);
+				g.text(this.font, fit(by, tw), tx, y + 17, 0xFF8A8A8A, false);
+				g.text(this.font, fit(m.desc, tw), tx, y + 28, 0xFFBDBDBD, false);
 			}
 			// action pill
 			String label = actionLabel(m);
@@ -316,7 +316,7 @@ public class ModBrowserScreen extends MiniPage {
 			if (label.equals("Remove")) fill = bh ? 0xFF3A3A40 : 0xFF26262B;
 			GlassButton.roundRect(g, bx, by, 74, 18, 4, fill);
 			int tc = !clickable || label.equals("Remove") ? 0xFFDADADA : 0xFF000000;
-			g.drawCenteredString(this.font, label, bx + 37, by + 5, tc);
+			g.centeredText(this.font, label, bx + 37, by + 5, tc);
 		}
 		g.disableScissor();
 		if (maxScroll() > 0) {
@@ -324,7 +324,7 @@ public class ModBrowserScreen extends MiniPage {
 			int by = lt + (int) ((track - bar) * (scroll / maxScroll()));
 			GlassButton.roundRect(g, left + pw + 5, by, 3, bar, 1, 0x55FFFFFF);
 		}
-		if (changed) g.drawCenteredString(this.font, "Restart Minecraft to load your mod changes.", this.width / 2, this.height - 14, 0xFFFFFFFF);
+		if (changed) g.centeredText(this.font, "Restart Minecraft to load your mod changes.", this.width / 2, this.height - 14, 0xFFFFFFFF);
 	}
 
 	private String actionLabel(Mod m) {
@@ -345,8 +345,10 @@ public class ModBrowserScreen extends MiniPage {
 	}
 
 	@Override
-	public boolean mouseClicked(double mx, double my, int button) {
-		if (super.mouseClicked(mx, my, button)) return true;
+	public boolean mouseClicked(net.minecraft.client.input.MouseButtonEvent event, boolean doubleClick) {
+		if (super.mouseClicked(event, doubleClick)) return true;
+		double mx = event.x(), my = event.y();
+		int button = event.button();
 		int lt = listTop(), lb = listBottom();
 		if (button != 0 || my < lt || my >= lb || mx < left || mx >= left + pw) return false;
 		int i = (int) ((my - lt + scroll) / ROW);
