@@ -16,23 +16,70 @@
 html, body { height: 100%; background: #000; color: #fff; font: 14px -apple-system, "Segoe UI", system-ui, sans-serif; overflow: hidden; overscroll-behavior: none; touch-action: none; }
 button { font: inherit; color: inherit; }
 
-/* ---------- connect screen ---------- */
-#home { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: 24px;
-  background: radial-gradient(700px 360px at 50% -10%, rgba(255,255,255,.12), transparent 60%), #000; }
-#home img { width: 84px; height: 84px; animation: float 4s ease-in-out infinite; }
-@keyframes float { 50% { transform: translateY(-6px); } }
-#home h1 { font-size: 24px; font-weight: 800; letter-spacing: .3px; }
-#hsub { color: var(--mute); font-size: 13px; text-align: center; max-width: 340px; line-height: 1.5; min-height: 20px; }
-.big { min-width: 240px; height: 54px; border-radius: 12px; border: 0; background: linear-gradient(180deg, #fff, #dcdcdc); color: #000; font-weight: 800; font-size: 17px; letter-spacing: 1px; }
+/* ---------- app shell (mobile Mini Client) ---------- */
+html, body { touch-action: manipulation; }
+#home { position: fixed; inset: 0; display: flex; flex-direction: column; background: radial-gradient(600px 300px at 50% -8%, rgba(255,255,255,.10), transparent 60%), #050506; }
+#home, #home * { -webkit-user-select: none; user-select: none; }
+#top { display: flex; align-items: center; justify-content: space-between; padding: calc(10px + env(safe-area-inset-top)) 16px 10px; }
+.brand { display: flex; align-items: center; gap: 10px; } .brand img { width: 30px; height: 30px; } .brand b { font-size: 22px; font-weight: 800; }
+#acc { display: flex; align-items: center; gap: 8px; padding: 4px 12px 4px 4px; border-radius: 20px; background: #121215; border: 1px solid var(--line); font-weight: 700; font-size: 13px; }
+#acc img { width: 28px; height: 28px; border-radius: 50%; background: #222; }
+#pages { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 4px 16px 20px; touch-action: pan-y; }
+.pg { display: none; } .pg.on { display: block; animation: fade .18s ease; }
+@keyframes fade { from { opacity: 0; transform: translateY(4px); } }
+#hero { position: relative; height: 290px; border-radius: 20px; overflow: hidden; background: linear-gradient(180deg, #2b2b31, #121215 60%, #08080a); border: 1px solid var(--line); }
+#fx { position: absolute; inset: 0; width: 100%; height: 100%; }
+.hin { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 16px; z-index: 2; }
+.vchip { display: flex; align-items: center; gap: 7px; padding: 6px 12px; border-radius: 16px; background: rgba(0,0,0,.5); border: 1px solid var(--line); font-size: 12px; font-weight: 700; }
+.vchip i { width: 7px; height: 7px; border-radius: 50%; background: #777; } .vchip i.on { background: #4ade80; box-shadow: 0 0 8px #4ade80; }
+.big { width: 100%; max-width: 330px; height: 58px; border-radius: 12px; border: 0; background: linear-gradient(180deg, #fff, #dcdcdc); color: #000; font-weight: 800; font-size: 18px; letter-spacing: 1.2px; box-shadow: 0 10px 30px rgba(0,0,0,.5); }
 .big:disabled { opacity: .35; }
-.ghost { min-width: 240px; height: 44px; border-radius: 12px; border: 1px solid var(--line); background: transparent; font-weight: 700; font-size: 14px; }
-#qual { display: flex; gap: 4px; background: #111; border: 1px solid var(--line); border-radius: 10px; padding: 3px; }
-#qual div { padding: 7px 14px; border-radius: 7px; font-size: 12px; font-weight: 700; color: var(--mute); }
-#qual div.on { background: #fff; color: #000; }
-#tip { position: absolute; bottom: 18px; left: 0; right: 0; text-align: center; font-size: 11px; color: #5a5a5a; padding: 0 20px; }
-
+.ghost { width: 100%; max-width: 330px; height: 42px; border-radius: 12px; border: 1px solid rgba(255,255,255,.3); background: rgba(0,0,0,.35); font-weight: 700; font-size: 14px; }
+.ghost:disabled { opacity: .4; }
+#hsub { color: #bdbdbd; font-size: 12px; text-align: center; line-height: 1.5; min-height: 18px; }
+.lbl { font-size: 11px; font-weight: 800; letter-spacing: 1.2px; text-transform: uppercase; color: var(--mute); margin: 20px 2px 8px; }
+#qual { display: flex; gap: 4px; background: #111; border: 1px solid var(--line); border-radius: 11px; padding: 3px; }
+#qual div { flex: 1; text-align: center; padding: 9px 0; border-radius: 8px; font-size: 13px; font-weight: 700; color: var(--mute); } #qual div.on { background: #fff; color: #000; }
+.news { display: flex; flex-direction: column; gap: 10px; }
+.n { display: flex; gap: 12px; align-items: center; background: #121215; border: 1px solid var(--line); border-radius: 14px; padding: 10px; }
+.n .art { width: 64px; height: 64px; flex: none; border-radius: 10px; background: linear-gradient(135deg, #3a3a40, #0d0d10); } .n .a2 { background: linear-gradient(135deg, #2a2a30, #050506); } .n .a3 { background: linear-gradient(135deg, #46464c, #141416); }
+.n b { display: block; font-size: 15px; margin: 3px 0 2px; } .n span { font-size: 12px; color: var(--mute); }
+.n .tag { display: inline-block; font-size: 10px; font-weight: 800; padding: 2px 7px; border-radius: 6px; background: #26262b; color: #ddd; }
+.fadd { display: flex; gap: 8px; margin: 6px 0 10px; }
+.fadd input { flex: 1; min-width: 0; height: 44px; border-radius: 12px; border: 1px solid var(--line); background: #0e0e11; color: #fff; padding: 0 14px; font-size: 16px; outline: none; -webkit-user-select: text; user-select: text; }
+.fadd input:focus { border-color: rgba(255,255,255,.45); }
+.fadd button { width: 44px; height: 44px; border-radius: 12px; border: 0; background: #fff; color: #000; font-weight: 800; font-size: 22px; }
+#ftabs { display: flex; gap: 4px; background: #0e0e11; border: 1px solid var(--line); border-radius: 11px; padding: 3px; margin-bottom: 6px; }
+.ft { flex: 1; text-align: center; font-size: 13px; font-weight: 700; color: var(--mute); padding: 8px 2px; border-radius: 8px; } .ft.on { background: #fff; color: #000; }
+.ft em { font-style: normal; font-size: 10px; padding: 0 5px; border-radius: 6px; background: rgba(255,255,255,.16); margin-left: 3px; } .ft.on em { background: #000; color: #fff; }
+#fmsg { font-size: 12px; color: #ff8d8d; min-height: 18px; margin: 2px 2px 4px; }
+.list { display: flex; flex-direction: column; gap: 8px; }
+.it { display: flex; align-items: center; gap: 12px; background: #121215; border: 1px solid var(--line); border-radius: 14px; padding: 10px 12px; }
+.it.sel { border-color: #fff; box-shadow: 0 0 0 1px #fff; }
+.it .av { position: relative; width: 40px; height: 40px; flex: none; border-radius: 10px; background: #1f1f24; display: grid; place-items: center; font-weight: 800; }
+.it .av img { position: absolute; inset: 0; width: 100%; height: 100%; border-radius: 10px; }
+.it .av.on:after { content: ""; position: absolute; right: -3px; bottom: -3px; width: 11px; height: 11px; border-radius: 50%; background: #4ade80; border: 2px solid #121215; }
+.it .t { flex: 1; min-width: 0; } .it b { display: block; font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .it .t span { font-size: 12px; color: var(--mute); }
+.sb { height: 34px; padding: 0 14px; border-radius: 9px; border: 0; background: #fff; color: #000; font-weight: 800; font-size: 13px; }
+.sb.g { background: transparent; color: #fff; border: 1px solid rgba(255,255,255,.25); } .sb.x { width: 34px; padding: 0; background: #222; color: #ccc; }
+.empty { text-align: center; color: var(--mute); font-size: 13px; padding: 34px 10px; line-height: 1.6; }
+.grp { background: #121215; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+.grp .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 13px 14px; border-bottom: 1px solid var(--line); font-size: 15px; font-weight: 600; }
+.grp .row:last-child { border-bottom: 0; } .grp .row span { display: block; font-size: 12px; color: var(--mute); font-weight: 500; margin-top: 2px; }
+.tog { width: 50px; height: 30px; flex: none; border-radius: 15px; background: #2a2a30; position: relative; transition: .15s; }
+.tog:after { content: ""; position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; border-radius: 50%; background: #888; transition: .15s; }
+.tog.on { background: #f2f2f2; } .tog.on:after { left: 23px; background: #0a0a0a; }
+input[type=range] { -webkit-appearance: none; width: 100%; height: 6px; border-radius: 3px; background: #2a2a30; outline: none; }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 26px; height: 26px; border-radius: 50%; background: #fff; border: 3px solid #0a0a0a; box-shadow: 0 0 0 1px #fff; }
+.foot { text-align: center; color: #4a4a50; font-size: 11px; margin-top: 22px; }
+#tabs { display: flex; justify-content: space-around; padding: 6px 4px calc(6px + env(safe-area-inset-bottom)); background: rgba(8,8,10,.92); border-top: 1px solid var(--line); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
+.tb { position: relative; flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 10.5px; font-weight: 700; color: #7a7a80; padding: 4px 0; }
+.tb svg { width: 24px; height: 24px; stroke: currentColor; stroke-width: 1.7; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.tb.on { color: #fff; }
+#fdot { display: none; position: absolute; top: 2px; right: calc(50% - 16px); width: 8px; height: 8px; border-radius: 50%; background: #fff; }
+#home.wide #pages { display: grid; } 
 /* ---------- play screen ---------- */
-#play { position: fixed; inset: 0; display: none; }
+#play { position: fixed; inset: 0; display: none; touch-action: none; }
 #play.on { display: block; }
 video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; background: #000; pointer-events: none; }
 #pad { position: absolute; inset: 0; }
@@ -65,13 +112,78 @@ body:not(.menu) .menuonly { display: none !important; }
 </head>
 <body>
 <div id="home">
-  <img src="logo.png" alt="">
-  <h1>Mini Client Play</h1>
-  <div id="hsub">Connecting to your PC...</div>
-  <button class="big" id="go" disabled>PLAY</button>
-  <button class="ghost" id="startmc" style="display:none">Start Minecraft on PC</button>
-  <div id="qual"><div data-q="low">Smooth</div><div data-q="auto" class="on">Balanced</div><div data-q="high">Sharp</div></div>
-  <div id="tip">Same Wi-Fi as your PC. Tip: Share &rarr; Add to Home Screen to keep Mini Client Play as an app.</div>
+  <header id="top">
+    <div class="brand"><img src="logo.png" alt=""><b id="ptitle">Home</b></div>
+    <div id="acc"><img id="face" alt="" onerror="this.style.visibility='hidden'"><span id="who">Not signed in</span></div>
+  </header>
+  <main id="pages">
+    <!-- HOME -->
+    <section class="pg on" id="pg-home">
+      <div id="hero">
+        <canvas id="fx"></canvas>
+        <div class="hin">
+          <div class="vchip"><i id="gdot"></i><span id="vtxt">Minecraft</span></div>
+          <button class="big" id="go" disabled>PLAY ON PHONE</button>
+          <button class="ghost" id="startmc">Launch on PC</button>
+          <div id="hsub">Connecting to your PC...</div>
+        </div>
+      </div>
+      <div class="lbl">Stream quality</div>
+      <div id="qual"><div data-q="low">Smooth</div><div data-q="auto" class="on">Balanced</div><div data-q="high">Sharp</div></div>
+      <div class="lbl">Latest news</div>
+      <div class="news">
+        <div class="n"><div class="art"></div><div><span class="tag">New</span><b>Mini Client on your phone</b><span>Play your PC's Minecraft from Safari, free.</span></div></div>
+        <div class="n"><div class="art a2"></div><div><span class="tag">Update</span><b>Minecraft 26.2</b><span>Full Mini Client menus on the newest versions.</span></div></div>
+        <div class="n"><div class="art a3"></div><div><span class="tag">Friends</span><b>Friend requests</b><span>Add people and see who's online.</span></div></div>
+      </div>
+    </section>
+    <!-- FRIENDS -->
+    <section class="pg" id="pg-friends">
+      <div class="fadd"><input id="fname" placeholder="Add friend by username" maxlength="16" spellcheck="false" autocapitalize="off" autocorrect="off"><button id="faddb">+</button></div>
+      <div id="ftabs"></div>
+      <div id="fmsg"></div>
+      <div id="flist" class="list"></div>
+    </section>
+    <!-- SERVERS -->
+    <section class="pg" id="pg-servers">
+      <div class="fadd"><input id="svip" placeholder="Server address" spellcheck="false" autocapitalize="off" autocorrect="off"><button id="svadd">+</button></div>
+      <div id="svlist" class="list"></div>
+    </section>
+    <!-- VERSIONS -->
+    <section class="pg" id="pg-versions">
+      <div class="fadd"><input id="vfind" placeholder="Search versions, e.g. 1.20" spellcheck="false" autocapitalize="off"></div>
+      <div id="vlist" class="list"></div>
+    </section>
+    <!-- MORE -->
+    <section class="pg" id="pg-more">
+      <div class="lbl">Game</div>
+      <div class="grp">
+        <div class="row"><div>Memory<span>RAM for Minecraft on your PC.</span></div><b id="ramv">4 GB</b></div>
+        <div class="row"><input type="range" id="ram" min="1" max="16" step="1"></div>
+        <div class="row"><div>FPS boost<span>Performance mods and lighter settings.</span></div><div class="tog" data-k="fpsBoost"></div></div>
+        <div class="row"><div>Mini Client mods<span>Menus, HUD and Sodium.</span></div><div class="tog" data-k="builtinOn"></div></div>
+        <div class="row"><div>Built-in cape</div><div class="tog" data-k="capeOn"></div></div>
+        <div class="row"><div>Fullscreen on PC</div><div class="tog" data-k="fullscreen"></div></div>
+      </div>
+      <div class="lbl">Mods</div>
+      <div class="grp" id="mlist"></div>
+      <div class="lbl">Phone</div>
+      <div class="grp">
+        <div class="row"><div>Look speed<span>How fast dragging turns your view.</span></div><b id="sensv">1.6</b></div>
+        <div class="row"><input type="range" id="sens" min="0.6" max="4" step="0.2"></div>
+        <div class="row"><div>Keep as an app<span>In Safari: Share &rarr; Add to Home Screen.</span></div></div>
+        <div class="row"><div>Connected to<span id="pcname">-</span></div></div>
+      </div>
+      <div class="foot">Mini Client &middot; not affiliated with Mojang or Microsoft</div>
+    </section>
+  </main>
+  <nav id="tabs">
+    <div class="tb on" data-p="home"><svg viewBox="0 0 24 24"><path d="M12 2c3 2 5 6 5 10l-2 3H9l-2-3c0-4 2-8 5-10z"/><circle cx="12" cy="9" r="1.6"/><path d="M9 15l-2 5 3-2M15 15l2 5-3-2"/></svg>Home</div>
+    <div class="tb" data-p="friends"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-4 3.4-6 6.5-6s5.7 2 6.5 6"/><circle cx="17.5" cy="9" r="2.6"/><path d="M16 14.2c2.8.2 4.7 2 5.4 5.3"/></svg>Friends<i id="fdot"></i></div>
+    <div class="tb" data-p="servers"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/><path d="M3 12h18"/></svg>Servers</div>
+    <div class="tb" data-p="versions"><svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="11" rx="5"/><path d="M7 10.5v4M5 12.5h4"/><circle cx="16" cy="11" r="1"/><circle cx="18" cy="14" r="1"/></svg>Versions</div>
+    <div class="tb" data-p="more"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2"/></svg>More</div>
+  </nav>
 </div>
 
 <div id="play">
@@ -104,22 +216,137 @@ const QN = { low: 'Smooth', auto: 'Balanced', high: 'Sharp' };
 // home-screen app: its own manifest carries the key
 (() => { const l = document.createElement('link'); l.rel = 'manifest'; l.href = '/manifest.json?k=' + encodeURIComponent(KEY); document.head.appendChild(l); })();
 
-// ---------- home ----------
+// ---------- app shell ----------
+const call = (fn, ...args) => api('call', { fn, args }).then((r) => { if (!r.ok) throw new Error(r.error || 'Failed'); return r.result; });
+const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const TITLES = { home: 'Home', friends: 'Friends', servers: 'Servers', versions: 'Versions', more: 'More' };
+let page = 'home', gopts = {}, acct = null, lastHello = null;
+function go(p) {
+  page = p;
+  document.querySelectorAll('.pg').forEach((s) => s.classList.toggle('on', s.id === 'pg-' + p));
+  document.querySelectorAll('.tb').forEach((t) => t.classList.toggle('on', t.dataset.p === p));
+  $('ptitle').textContent = TITLES[p]; $('pages').scrollTop = 0;
+  if (p === 'friends') loadFriends(); if (p === 'versions') loadVersions(); if (p === 'servers') drawServers(); if (p === 'more') { drawOpts(); loadMods(); }
+}
+document.querySelectorAll('.tb').forEach((t) => t.onclick = () => go(t.dataset.p));
+$('acc').onclick = () => go('more');
+
 function drawQual() { document.querySelectorAll('#qual div').forEach((d) => d.classList.toggle('on', d.dataset.q === quality)); $('bQual').textContent = QN[quality]; }
 document.querySelectorAll('#qual div').forEach((d) => d.onclick = () => { quality = d.dataset.q; try { localStorage.setItem('mcq', quality); } catch (e) {} drawQual(); });
 drawQual();
+
 async function hello() {
-  if (!KEY) { $('hsub').textContent = 'Open this from the QR code on the Phone Play page in Mini Client.'; return; }
+  if (!KEY) { $('hsub').textContent = 'Open this from the QR code on the Phone Play page in Mini Client on your PC.'; return; }
   try {
-    const r = await api('hello');
+    const r = await api('hello'); lastHello = r;
     if (!r.ok) { $('hsub').textContent = r.error; return; }
     $('go').disabled = !r.game;
-    $('startmc').style.display = r.game ? 'none' : 'block';
-    $('hsub').textContent = r.game ? 'Connected to ' + r.pc + (r.name ? ' · ' + r.name : '') + '. Minecraft ' + r.version + ' is running.' : 'Connected to ' + r.pc + '. Minecraft isn’t open yet.';
-  } catch (e) { $('hsub').textContent = 'Can’t reach your PC. Check you’re on the same Wi-Fi and Mini Client is open.'; $('go').disabled = true; }
+    $('startmc').disabled = !!r.game || launching;
+    $('startmc').textContent = r.game ? 'Minecraft is running on your PC' : launching ? 'Starting Minecraft...' : 'Launch on PC';
+    $('gdot').className = r.game ? 'on' : '';
+    $('vtxt').textContent = 'Minecraft ' + r.version + (r.game ? ' · running' : '');
+    $('pcname').textContent = r.pc;
+    $('hsub').textContent = r.game ? 'Press Play to play it on this phone.' : 'Launch Minecraft on your PC, then press Play.';
+    if (r.game && launching) { launching = false; if (autoPlay) { autoPlay = false; $('go').click(); } }
+  } catch (e) { $('hsub').textContent = 'Can’t reach your PC. Use the same Wi-Fi and keep Mini Client open.'; $('go').disabled = true; }
 }
-hello(); const helloTimer = setInterval(() => { if (!pc) hello(); }, 3000);
-$('startmc').onclick = async () => { $('startmc').disabled = true; $('hsub').textContent = 'Starting Minecraft on your PC...'; await api('launch', {}); setTimeout(() => { $('startmc').disabled = false; }, 8000); };
+async function loadAccount() {
+  try { const s = await call('state'); acct = s.account || (await call('saved')); } catch (e) {}
+  $('who').textContent = acct ? acct.name : 'Not signed in';
+  if (acct && acct.uuid) $('face').src = 'https://mc-heads.net/avatar/' + acct.uuid + '/56';
+  try { gopts = await call('game-opts'); } catch (e) {}
+  drawOpts(); if (page === 'more') loadMods();
+}
+let launching = false, autoPlay = false;
+async function launchPc(server) {
+  launching = true; autoPlay = true; $('startmc').disabled = true; $('startmc').textContent = 'Starting Minecraft...';
+  $('hsub').textContent = 'Starting Minecraft on your PC. It opens here when it’s ready.'; go('home');
+  try { const r = await call('launch', server || ''); if (r && r.ok === false) { launching = false; autoPlay = false; $('hsub').textContent = r.error || 'Could not start Minecraft.'; } }
+  catch (e) { launching = false; autoPlay = false; $('hsub').textContent = e.message; }
+  hello();
+}
+$('startmc').onclick = () => launchPc('');
+hello(); loadAccount();
+setInterval(() => { if (!pc) hello(); }, 3000);
+
+// lights in the hero, like the PC launcher
+(function () { const c = $('fx'), x = c.getContext('2d'); let W, H; const P = [];
+  function rs() { W = c.width = c.offsetWidth * devicePixelRatio; H = c.height = c.offsetHeight * devicePixelRatio; } rs(); addEventListener('resize', rs);
+  for (let i = 0; i < 34; i++) P.push({ x: Math.random(), y: Math.random(), s: .00005 + Math.random() * .00012, r: (Math.random() < .25 ? 2.4 : 1.2) * devicePixelRatio, a: Math.random() < .3 ? .8 : .3 });
+  (function f() { if (!pc) { x.clearRect(0, 0, W, H); for (const p of P) { p.y += p.s * 16; p.x += p.s * 10; if (p.y > 1) p.y = 0; if (p.x > 1) p.x = 0;
+    const g = x.createRadialGradient(p.x * W, p.y * H, 0, p.x * W, p.y * H, p.r * 4); g.addColorStop(0, 'rgba(255,255,255,' + p.a + ')'); g.addColorStop(1, 'rgba(255,255,255,0)');
+    x.fillStyle = g; x.beginPath(); x.arc(p.x * W, p.y * H, p.r * 4, 0, 7); x.fill(); } } requestAnimationFrame(f); })(); })();
+
+// ---------- friends ----------
+let FR = null, ftab = 'friends';
+const head = (u, n, on) => `<div class="av${on ? ' on' : ''}">${esc((n || '?')[0].toUpperCase())}<img src="https://mc-heads.net/avatar/${esc(u)}/80" alt="" onerror="this.remove()"></div>`;
+function ago(t) { if (!t) return 'Offline'; const m = Math.round((Date.now() - t) / 60000); if (m < 60) return 'Last seen ' + Math.max(1, m) + 'm ago'; const h = Math.round(m / 60); return h < 48 ? 'Last seen ' + h + 'h ago' : 'Last seen ' + Math.round(h / 24) + 'd ago'; }
+function fmsg(t, good) { $('fmsg').style.color = good ? '#cfcfcf' : ''; $('fmsg').textContent = t || ''; }
+async function loadFriends() { try { const r = await call('friends', 'list'); FR = r && r.ok ? r : (r && r.offline ? { offline: true, friends: [], incoming: [], outgoing: [] } : FR); } catch (e) {} drawFriends(); }
+function drawFriends() {
+  const d = FR || { friends: [], incoming: [], outgoing: [] };
+  $('fdot').style.display = d.incoming.length ? 'block' : 'none';
+  $('ftabs').innerHTML = [['friends', 'Friends', d.friends.length], ['pending', 'Pending', d.outgoing.length], ['requests', 'Requests', d.incoming.length]]
+    .map((t) => `<div class="ft${ftab === t[0] ? ' on' : ''}" data-t="${t[0]}">${t[1]}${t[2] ? ` <em>${t[2]}</em>` : ''}</div>`).join('');
+  $('ftabs').querySelectorAll('.ft').forEach((t) => t.onclick = () => { ftab = t.dataset.t; drawFriends(); });
+  let o = '';
+  if (d.offline) o = '<div class="empty">Friend requests switch on once the Mini Client friends server is set up.</div>';
+  else if (ftab === 'friends') o = d.friends.map((f) => `<div class="it">${head(f.uuid, f.name, f.online)}<div class="t"><b>${esc(f.name)}</b><span>${f.online ? (f.status === 'playing' ? 'Playing Minecraft' : 'Online') : ago(f.seen)}</span></div><button class="sb x" data-a="remove" data-u="${esc(f.uuid)}">&#10005;</button></div>`).join('') || '<div class="empty">No friends yet.<br>They show up here once they accept.</div>';
+  else if (ftab === 'pending') o = d.outgoing.map((f) => `<div class="it">${head(f.uuid, f.name)}<div class="t"><b>${esc(f.name)}</b><span>Request sent</span></div><button class="sb x" data-a="cancel" data-u="${esc(f.uuid)}">&#10005;</button></div>`).join('') || '<div class="empty">No pending requests.</div>';
+  else o = d.incoming.map((f) => `<div class="it">${head(f.uuid, f.name)}<div class="t"><b>${esc(f.name)}</b><span>Wants to be friends</span></div><button class="sb" data-a="accept" data-u="${esc(f.uuid)}">Accept</button><button class="sb x" data-a="decline" data-u="${esc(f.uuid)}">&#10005;</button></div>`).join('') || '<div class="empty">No requests right now.</div>';
+  $('flist').innerHTML = o;
+  $('flist').querySelectorAll('button[data-a]').forEach((b) => b.onclick = async () => { const r = await call('friends', b.dataset.a, { uuid: b.dataset.u }).catch((e) => ({ ok: false, error: e.message })); if (r && r.ok === false && r.error) fmsg(r.error); else if (b.dataset.a === 'accept') fmsg('Friend added!', true); loadFriends(); });
+}
+$('faddb').onclick = async () => {
+  const n = $('fname').value.trim(); if (!n) return; fmsg('Sending request to ' + n + '...', true);
+  const r = await call('friends', 'request', { name: n }).catch((e) => ({ ok: false, error: e.message }));
+  if (!r || !r.ok) { fmsg((r && r.error) || 'Could not send the request.'); return; }
+  $('fname').value = ''; ftab = r.accepted ? 'friends' : 'pending'; fmsg(r.accepted ? 'You and ' + r.name + ' are now friends!' : 'Friend request sent to ' + r.name + '.', true); loadFriends();
+};
+$('fname').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('faddb').click(); });
+setInterval(() => { if (!pc && !document.hidden) loadFriends(); }, 20000); loadFriends();
+
+// ---------- servers ----------
+const SERVERS = [['Hypixel', 'mc.hypixel.net'], ['Wynncraft', 'play.wynncraft.com'], ['CubeCraft', 'play.cubecraft.net'], ['2b2t', '2b2t.org'], ['Minemen Club', 'minemen.club']];
+const myServers = () => { try { return JSON.parse(localStorage.getItem('mcServers') || '[]'); } catch (e) { return []; } };
+function drawServers() {
+  const all = SERVERS.map((s) => [s[0], s[1], 0]).concat(myServers().map((ip) => [ip, ip, 1]));
+  $('svlist').innerHTML = all.map((s) => `<div class="it"><div class="av"><img src="https://api.mcsrvstat.us/icon/${encodeURIComponent(s[1])}" alt="" onerror="this.remove()"></div><div class="t"><b>${esc(s[0])}</b><span>${esc(s[1])}</span></div>${s[2] ? `<button class="sb x" data-del="${esc(s[1])}">&#10005;</button>` : ''}<button class="sb" data-join="${esc(s[1])}">JOIN</button></div>`).join('');
+  $('svlist').querySelectorAll('[data-join]').forEach((b) => b.onclick = () => launchPc(b.dataset.join));
+  $('svlist').querySelectorAll('[data-del]').forEach((b) => b.onclick = () => { try { localStorage.setItem('mcServers', JSON.stringify(myServers().filter((x) => x !== b.dataset.del))); } catch (e) {} drawServers(); });
+}
+$('svadd').onclick = () => { const v = $('svip').value.trim().replace(/[^a-zA-Z0-9.:\-_]/g, ''); if (!v) return; const l = myServers(); if (!l.includes(v)) l.push(v); try { localStorage.setItem('mcServers', JSON.stringify(l)); } catch (e) {} $('svip').value = ''; drawServers(); };
+
+// ---------- versions ----------
+let VERS = [];
+const MINI_VERS = ['1.21.7', '26.2'];
+async function loadVersions() { if (!VERS.length) { $('vlist').innerHTML = '<div class="empty">Loading versions...</div>'; try { VERS = await call('versions'); } catch (e) {} } drawVersions(); }
+function drawVersions() {
+  const f = $('vfind').value.trim(), sel = gopts.version || '1.21.7';
+  const l = VERS.filter((v) => !f || v.id.includes(f)).slice(0, 120);
+  $('vlist').innerHTML = l.map((v) => `<div class="it${v.id === sel ? ' sel' : ''}" data-v="${esc(v.id)}"><div class="av">${MINI_VERS.includes(v.id) ? 'M' : 'F'}</div><div class="t"><b>${esc(v.id)}</b><span>${MINI_VERS.includes(v.id) ? 'Mini Client' : v.date < '2019-04-23' ? 'Vanilla' : 'Fabric + FPS mods'} · ${esc(v.date.slice(0, 4))}</span></div>${v.id === sel ? '<button class="sb">Selected</button>' : ''}</div>`).join('') || '<div class="empty">No versions match.</div>';
+  $('vlist').querySelectorAll('[data-v]').forEach((d) => d.onclick = async () => { gopts = await call('game-opts-set', { version: d.dataset.v }); drawVersions(); hello(); });
+}
+$('vfind').oninput = drawVersions;
+
+// ---------- settings + mods ----------
+function drawOpts() {
+  document.querySelectorAll('.tog[data-k]').forEach((t) => t.classList.toggle('on', !!gopts[t.dataset.k]));
+  $('ram').value = gopts.ram || 4; $('ramv').textContent = (gopts.ram || 4) + ' GB';
+  $('sens').value = sens; $('sensv').textContent = sens.toFixed(1);
+}
+document.querySelectorAll('.tog[data-k]').forEach((t) => t.onclick = async () => { gopts = await call('game-opts-set', { [t.dataset.k]: !gopts[t.dataset.k] }); drawOpts(); loadMods(); });
+$('ram').oninput = function () { $('ramv').textContent = this.value + ' GB'; };
+$('ram').onchange = async function () { gopts = await call('game-opts-set', { ram: +this.value }); drawOpts(); };
+try { sens = parseFloat(localStorage.getItem('mcSens')) || sens; } catch (e) {}
+$('sens').oninput = function () { sens = parseFloat(this.value); $('sensv').textContent = sens.toFixed(1); try { localStorage.setItem('mcSens', sens); } catch (e) {} };
+const BUILT = [['Fabric API', 'Mod loader library', () => true], ['Mini Client', 'Menus, HUD, loading screen', () => gopts.builtinOn], ['Sodium', 'Faster rendering', () => gopts.builtinOn],
+  ['Lithium', 'Faster game logic', () => gopts.builtinOn && gopts.fpsBoost], ['FerriteCore', 'Less memory use', () => gopts.builtinOn && gopts.fpsBoost], ['Capes', 'Your Mini Client cape', () => gopts.capeOn]];
+async function loadMods() {
+  let mine = []; try { mine = await call('user-mods'); } catch (e) {}
+  $('mlist').innerHTML = BUILT.map((m) => `<div class="row"><div>${m[0]}<span>${m[1]}</span></div><b style="font-size:12px;color:${m[2]() ? '#fff' : '#666'}">${m[2]() ? 'ON' : 'OFF'}</b></div>`).join('')
+    + mine.map((n) => `<div class="row"><div>${esc(n.replace(/\.jar$/i, ''))}<span>Your mod</span></div><b style="font-size:12px">ON</b></div>`).join('');
+}
 
 // ---------- connect ----------
 $('go').onclick = async () => {

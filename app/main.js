@@ -7,6 +7,15 @@ const { Launcher, releases } = require('./launcher');
 const remote = require('./remote');
 const crypto = require('crypto');
 
+// Remember every launcher action so the phone app (Phone Play) can use the same ones over Wi-Fi.
+const HANDLERS = {};
+{ const orig = ipcMain.handle.bind(ipcMain); ipcMain.handle = (ch, fn) => { HANDLERS[ch] = fn; return orig(ch, fn); }; }
+const PHONE_CALLS = ['state', 'saved', 'versions', 'game-opts', 'game-opts-set', 'friends', 'friend-lookup', 'user-mods', 'launch', 'channel-get', 'upd-check'];
+async function phoneCall(name, args) {
+  if (!PHONE_CALLS.includes(name) || !HANDLERS[name]) throw new Error('Not allowed: ' + name);
+  return HANDLERS[name]({ sender: null, fromPhone: true }, ...(Array.isArray(args) ? args : []));
+}
+
 let win = null;
 let account = null;   // { name, uuid, token } kept in memory only
 let tokenTime = 0;
@@ -92,6 +101,7 @@ const rpOpts = {
   account: () => (account ? account.name : ''),
   version: () => gameOpts().version,
   launch: () => { if (win && !win.isDestroyed()) win.webContents.send('remote-launch'); },
+  call: phoneCall,
   log: (t) => { try { fs.appendFileSync(path.join(app.getPath('userData'), 'launcher.log'), new Date().toISOString() + ' ' + t + '\n'); } catch (e) {} },
   status: () => { rpInfo().then((i) => { if (win && !win.isDestroyed()) win.webContents.send('rp-status', i); }); }
 };

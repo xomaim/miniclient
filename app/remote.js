@@ -187,6 +187,11 @@ async function route(req, res) {
     return send(res, 200, { ok: true, game: !!gameSource, name: opts.account(), version: opts.version(), pc: os.hostname(), busy: !!viewer });
   }
   if (u.pathname === '/api/launch' && req.method === 'POST') { opts.launch(); return send(res, 200, { ok: true }); }
+  if (u.pathname === '/api/call' && req.method === 'POST') {          // the phone app uses the same actions as the launcher
+    const body = await readBody(req);
+    try { return send(res, 200, { ok: true, result: await opts.call(String(body.fn || ''), body.args || []) }); }
+    catch (e) { return send(res, 200, { ok: false, error: e.message }); }
+  }
   if (u.pathname === '/api/offer' && req.method === 'POST') {
     const body = await readBody(req);
     const s = await findGame().catch(() => null);
