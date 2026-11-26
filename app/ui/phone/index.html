@@ -1,0 +1,363 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Mini Client">
+<meta name="theme-color" content="#000000">
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="icon" href="icon.png">
+<title>Mini Client Play</title>
+<style>
+:root { --line: rgba(255,255,255,.16); --mute: #9a9a9a; }
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+html, body { height: 100%; background: #000; color: #fff; font: 14px -apple-system, "Segoe UI", system-ui, sans-serif; overflow: hidden; overscroll-behavior: none; touch-action: none; }
+button { font: inherit; color: inherit; }
+
+/* ---------- connect screen ---------- */
+#home { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: 24px;
+  background: radial-gradient(700px 360px at 50% -10%, rgba(255,255,255,.12), transparent 60%), #000; }
+#home img { width: 84px; height: 84px; animation: float 4s ease-in-out infinite; }
+@keyframes float { 50% { transform: translateY(-6px); } }
+#home h1 { font-size: 24px; font-weight: 800; letter-spacing: .3px; }
+#hsub { color: var(--mute); font-size: 13px; text-align: center; max-width: 340px; line-height: 1.5; min-height: 20px; }
+.big { min-width: 240px; height: 54px; border-radius: 12px; border: 0; background: linear-gradient(180deg, #fff, #dcdcdc); color: #000; font-weight: 800; font-size: 17px; letter-spacing: 1px; }
+.big:disabled { opacity: .35; }
+.ghost { min-width: 240px; height: 44px; border-radius: 12px; border: 1px solid var(--line); background: transparent; font-weight: 700; font-size: 14px; }
+#qual { display: flex; gap: 4px; background: #111; border: 1px solid var(--line); border-radius: 10px; padding: 3px; }
+#qual div { padding: 7px 14px; border-radius: 7px; font-size: 12px; font-weight: 700; color: var(--mute); }
+#qual div.on { background: #fff; color: #000; }
+#tip { position: absolute; bottom: 18px; left: 0; right: 0; text-align: center; font-size: 11px; color: #5a5a5a; padding: 0 20px; }
+
+/* ---------- play screen ---------- */
+#play { position: fixed; inset: 0; display: none; }
+#play.on { display: block; }
+video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; background: #000; pointer-events: none; }
+#pad { position: absolute; inset: 0; }
+.ctl { position: absolute; display: grid; place-items: center; border-radius: 50%; background: rgba(0,0,0,.38); border: 1.5px solid rgba(255,255,255,.55);
+  color: #fff; font-weight: 800; font-size: 12px; letter-spacing: .4px; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); transition: background .08s; }
+.ctl.down { background: rgba(255,255,255,.85); color: #000; }
+.ctl.lit { background: #fff; color: #000; }
+.ctl svg { width: 22px; height: 22px; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+#bar { position: absolute; top: max(8px, env(safe-area-inset-top)); left: 50%; transform: translateX(-50%); display: flex; gap: 6px; align-items: center; }
+.pill { height: 30px; padding: 0 12px; border-radius: 15px; background: rgba(0,0,0,.5); border: 1px solid var(--line); display: flex; align-items: center; gap: 7px; font-size: 11px; font-weight: 700; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+.pill img { width: 16px; height: 16px; } .pill i { width: 7px; height: 7px; border-radius: 50%; background: #4ade80; }
+.pill.btn { padding: 0 11px; }
+#hot { position: absolute; bottom: max(8px, env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); display: flex; gap: 3px; padding: 3px; border-radius: 10px; background: rgba(0,0,0,.35); }
+#hot div { width: 34px; height: 34px; border-radius: 7px; border: 1.5px solid rgba(255,255,255,.35); font-size: 11px; font-weight: 800; display: grid; place-items: center; color: rgba(255,255,255,.75); }
+#hot div.on { border-color: #fff; background: rgba(255,255,255,.2); color: #fff; }
+#stick { position: absolute; width: 120px; height: 120px; border-radius: 50%; border: 1.5px solid rgba(255,255,255,.45); background: rgba(0,0,0,.25); display: none; pointer-events: none; }
+#knob { position: absolute; left: 50%; top: 50%; width: 52px; height: 52px; margin: -26px 0 0 -26px; border-radius: 50%; background: rgba(255,255,255,.9); }
+#stickhint { position: absolute; left: max(40px, env(safe-area-inset-left)); bottom: 70px; width: 110px; height: 110px; border-radius: 50%; border: 1.5px dashed rgba(255,255,255,.25); display: grid; place-items: center; font-size: 10px; color: rgba(255,255,255,.4); font-weight: 700; pointer-events: none; }
+body.menu .game { display: none !important; }
+body:not(.menu) .menuonly { display: none !important; }
+#menuhint { position: absolute; top: 50px; left: 50%; transform: translateX(-50%); font-size: 11px; color: rgba(255,255,255,.6); background: rgba(0,0,0,.45); padding: 5px 10px; border-radius: 8px; pointer-events: none; }
+#chat { position: absolute; left: 50%; top: 14%; transform: translateX(-50%); width: min(520px, 86vw); display: none; gap: 6px; }
+#chat.on { display: flex; }
+#chat input { flex: 1; height: 42px; border-radius: 10px; border: 1px solid rgba(255,255,255,.4); background: rgba(0,0,0,.8); color: #fff; padding: 0 12px; font-size: 16px; -webkit-user-select: text; user-select: text; outline: none; }
+#chat button { width: 64px; border-radius: 10px; border: 0; background: #fff; color: #000; font-weight: 800; }
+#toast { position: absolute; left: 50%; top: 46%; transform: translateX(-50%); background: rgba(0,0,0,.78); border: 1px solid var(--line); padding: 12px 16px; border-radius: 12px; font-size: 13px; display: none; text-align: center; }
+#rot { position: fixed; inset: 0; background: #000; display: none; align-items: center; justify-content: center; flex-direction: column; gap: 10px; z-index: 5; color: var(--mute); font-size: 13px; }
+@media (orientation: portrait) { body.playing #rot { display: flex; } }
+</style>
+</head>
+<body>
+<div id="home">
+  <img src="logo.png" alt="">
+  <h1>Mini Client Play</h1>
+  <div id="hsub">Connecting to your PC...</div>
+  <button class="big" id="go" disabled>PLAY</button>
+  <button class="ghost" id="startmc" style="display:none">Start Minecraft on PC</button>
+  <div id="qual"><div data-q="low">Smooth</div><div data-q="auto" class="on">Balanced</div><div data-q="high">Sharp</div></div>
+  <div id="tip">Same Wi-Fi as your PC. Tip: Share &rarr; Add to Home Screen to keep Mini Client Play as an app.</div>
+</div>
+
+<div id="play">
+  <video id="v" autoplay playsinline muted></video>
+  <div id="pad"></div>
+  <div id="stickhint" class="game">MOVE</div>
+  <div id="stick" class="game"><div id="knob"></div></div>
+  <div id="bar">
+    <div class="pill"><img src="logo.png" alt=""><span id="stat">Connecting</span><i id="dot"></i></div>
+    <div class="pill btn" id="bSound">Sound off</div>
+    <div class="pill btn" id="bQual">Balanced</div>
+    <div class="pill btn" id="bExit">Exit</div>
+  </div>
+  <div id="menuhint" class="menuonly">Tap to click &middot; Hold for right-click &middot; Two fingers to scroll</div>
+  <div id="hot" class="game"></div>
+  <div id="chat"><input id="chatin" maxlength="256" placeholder="Type a message or /command" autocomplete="off" autocorrect="off"><button id="chatgo">Send</button></div>
+  <div id="toast"></div>
+</div>
+<div id="rot"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6"><rect x="6" y="2" width="12" height="20" rx="2"/><path d="M3 12a9 9 0 0 1 9-9"/></svg>Turn your phone sideways to play.</div>
+
+<script>
+const $ = (i) => document.getElementById(i);
+const params = new URLSearchParams(location.search);
+const KEY = params.get('k') || '';
+const api = (p, body) => fetch('/api/' + p + '?k=' + encodeURIComponent(KEY), body ? { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) } : {}).then((r) => r.json());
+let quality = (() => { try { return localStorage.getItem('mcq') || 'auto'; } catch (e) { return 'auto'; } })();
+let pc = null, ctl = null, look = null, menu = false, slot = 1, sens = 1.6;
+const QN = { low: 'Smooth', auto: 'Balanced', high: 'Sharp' };
+
+// home-screen app: its own manifest carries the key
+(() => { const l = document.createElement('link'); l.rel = 'manifest'; l.href = '/manifest.json?k=' + encodeURIComponent(KEY); document.head.appendChild(l); })();
+
+// ---------- home ----------
+function drawQual() { document.querySelectorAll('#qual div').forEach((d) => d.classList.toggle('on', d.dataset.q === quality)); $('bQual').textContent = QN[quality]; }
+document.querySelectorAll('#qual div').forEach((d) => d.onclick = () => { quality = d.dataset.q; try { localStorage.setItem('mcq', quality); } catch (e) {} drawQual(); });
+drawQual();
+async function hello() {
+  if (!KEY) { $('hsub').textContent = 'Open this from the QR code on the Phone Play page in Mini Client.'; return; }
+  try {
+    const r = await api('hello');
+    if (!r.ok) { $('hsub').textContent = r.error; return; }
+    $('go').disabled = !r.game;
+    $('startmc').style.display = r.game ? 'none' : 'block';
+    $('hsub').textContent = r.game ? 'Connected to ' + r.pc + (r.name ? ' · ' + r.name : '') + '. Minecraft ' + r.version + ' is running.' : 'Connected to ' + r.pc + '. Minecraft isn’t open yet.';
+  } catch (e) { $('hsub').textContent = 'Can’t reach your PC. Check you’re on the same Wi-Fi and Mini Client is open.'; $('go').disabled = true; }
+}
+hello(); const helloTimer = setInterval(() => { if (!pc) hello(); }, 3000);
+$('startmc').onclick = async () => { $('startmc').disabled = true; $('hsub').textContent = 'Starting Minecraft on your PC...'; await api('launch', {}); setTimeout(() => { $('startmc').disabled = false; }, 8000); };
+
+// ---------- connect ----------
+$('go').onclick = async () => {
+  $('go').disabled = true; $('hsub').textContent = 'Starting the stream...';
+  try { document.documentElement.requestFullscreen && await document.documentElement.requestFullscreen({ navigationUI: 'hide' }); } catch (e) {}
+  try { screen.orientation && screen.orientation.lock && await screen.orientation.lock('landscape'); } catch (e) {}
+  try { await connect(); } catch (e) { $('hsub').textContent = e.message; $('go').disabled = false; }
+};
+async function connect() {
+  const o = await api('offer', { quality, audio: true, device: navigator.platform || 'Phone' });
+  if (!o.ok) throw new Error(o.error || 'The PC refused the stream.');
+  pc = new RTCPeerConnection({ iceServers: [] });
+  pc.ontrack = (e) => { const v = $('v'); if (v.srcObject !== e.streams[0]) v.srcObject = e.streams[0]; v.play().catch(() => {}); };
+  pc.ondatachannel = (e) => {
+    if (e.channel.label === 'look') look = e.channel;
+    else { ctl = e.channel; ctl.onmessage = (m) => onMsg(JSON.parse(m.data)); ctl.onopen = () => send({ t: 'focus' }); }
+  };
+  pc.onconnectionstatechange = () => {
+    const s = pc && pc.connectionState;
+    $('stat').textContent = s === 'connected' ? 'Live' : s === 'connecting' ? 'Connecting' : s;
+    $('dot').style.background = s === 'connected' ? '#4ade80' : s === 'failed' ? '#ff5a5a' : '#999';
+    if (s === 'failed') { toast('Connection lost. Exit and press Play again.'); }
+  };
+  await pc.setRemoteDescription({ type: 'offer', sdp: o.sdp });
+  const ans = await pc.createAnswer();
+  await pc.setLocalDescription(ans);
+  await new Promise((r) => { if (pc.iceGatheringState === 'complete') r(); pc.onicegatheringstatechange = () => pc.iceGatheringState === 'complete' && r(); setTimeout(r, 2000); });
+  const a = await api('answer', { session: o.session, sdp: pc.localDescription.sdp });
+  if (!a.ok) throw new Error(a.error || 'Could not finish connecting.');
+  $('home').style.display = 'none'; $('play').classList.add('on'); document.body.classList.add('playing');
+  statsLoop();
+}
+function exitPlay() {
+  releaseAll();
+  try { pc && pc.close(); } catch (e) {}
+  pc = ctl = look = null; $('v').srcObject = null;
+  $('play').classList.remove('on'); $('home').style.display = 'flex'; document.body.classList.remove('playing');
+  try { document.exitFullscreen && document.exitFullscreen(); } catch (e) {}
+  $('go').disabled = false; hello();
+}
+$('bExit').onclick = exitPlay;
+$('bSound').onclick = () => { const v = $('v'); v.muted = !v.muted; v.play().catch(() => {}); $('bSound').textContent = v.muted ? 'Sound off' : 'Sound on'; };
+$('bQual').onclick = () => { quality = { low: 'auto', auto: 'high', high: 'low' }[quality]; try { localStorage.setItem('mcq', quality); } catch (e) {} drawQual(); send({ t: 'quality', q: quality }); };
+function onMsg(m) {
+  if (m.t === 'state') {
+    if ('menu' in m) { menu = !!m.menu; document.body.classList.toggle('menu', menu); if (menu) releaseMove(); }
+    if (m.game === false) toast('Minecraft closed on your PC.');
+  }
+  if (m.t === 'kicked') { toast('Your PC ended Phone Play.'); setTimeout(exitPlay, 1500); }
+}
+function send(m) { if (ctl && ctl.readyState === 'open') ctl.send(JSON.stringify(m)); }
+function sendLook(dx, dy) { const ch = look && look.readyState === 'open' ? look : ctl; if (ch && ch.readyState === 'open') ch.send(JSON.stringify({ t: 'look', dx, dy })); }
+let toastT = 0;
+function toast(t) { const el = $('toast'); el.textContent = t; el.style.display = 'block'; clearTimeout(toastT); toastT = setTimeout(() => el.style.display = 'none', 2600); }
+async function statsLoop() {
+  let lastFrames = 0, lastT = 0;
+  while (pc) {
+    await new Promise((r) => setTimeout(r, 1000));
+    if (!pc) break;
+    try {
+      const st = await pc.getStats(); let fps = 0, rtt = 0;
+      st.forEach((r) => {
+        if (r.type === 'inbound-rtp' && r.kind === 'video') { if (r.framesPerSecond) fps = r.framesPerSecond; else if (lastT) fps = (r.framesDecoded - lastFrames) / ((r.timestamp - lastT) / 1000); lastFrames = r.framesDecoded; lastT = r.timestamp; }
+        if (r.type === 'candidate-pair' && r.state === 'succeeded' && r.currentRoundTripTime) rtt = r.currentRoundTripTime * 1000;
+      });
+      if (pc.connectionState === 'connected') $('stat').textContent = Math.round(fps) + ' FPS · ' + Math.round(rtt) + ' ms';
+    } catch (e) {}
+  }
+}
+
+// ---------- on-screen controls ----------
+const pad = $('pad');
+const CTLS = [
+  // id, label/icon, right%, bottom%, size, kind, value
+  ['jump', 'JUMP', 4, 16, 74, 'hold-key', 'SPACE'],
+  ['use', 'USE', 15.5, 7, 58, 'hold-btn', 'right'],
+  ['atk', 'HIT', 4, 40, 58, 'hold-btn', 'left'],
+  ['sneak', 'SNEAK', 15.5, 30, 50, 'toggle-key', 'SHIFT'],
+  ['sprint', 'RUN', 26, 9, 46, 'toggle-key', 'CTRL'],
+];
+const LEFT = [
+  ['inv', 'INV', 18, 'press', 'E', 'game'],
+  ['drop', 'DROP', 56, 'press', 'Q', 'game'],
+  ['swap', 'SWAP', 94, 'press', 'F', 'game'],
+  ['view', 'VIEW', 132, 'press', 'F5', 'game'],
+];
+function el(html) { const d = document.createElement('div'); d.innerHTML = html; return d.firstChild; }
+for (const c of CTLS) {
+  const b = el(`<div class="ctl game" id="c_${c[0]}" style="right:calc(${c[2]}% + env(safe-area-inset-right));bottom:${c[3]}%;width:${c[4]}px;height:${c[4]}px">${c[1]}</div>`);
+  $('play').appendChild(b); wire(b, c[5], c[6]);
+}
+LEFT.forEach((c) => {
+  const b = el(`<div class="ctl ${c[5]}" style="left:calc(${c[2]}px + env(safe-area-inset-left));top:max(10px, env(safe-area-inset-top));width:34px;height:34px;font-size:9px;border-radius:9px">${c[1]}</div>`);
+  $('play').appendChild(b); wire(b, c[3], c[4]);
+});
+// pause + chat work in menus too
+[['pause', 'ESC', 'press', 'ESC'], ['chatb', 'CHAT', 'chat', '']].forEach((c, i) => {
+  const b = el(`<div class="ctl" style="right:calc(${10 + i * 42}px + env(safe-area-inset-right));top:max(10px, env(safe-area-inset-top));width:36px;height:36px;font-size:9px;border-radius:9px">${c[1]}</div>`);
+  $('play').appendChild(b); wire(b, c[2], c[3]);
+});
+function wire(b, kind, val) {
+  const toggled = { on: false };
+  b.addEventListener('touchstart', (e) => {
+    e.preventDefault(); e.stopPropagation(); b.classList.add('down');
+    if (kind === 'hold-key') send({ t: 'key', k: val, d: true });
+    if (kind === 'hold-btn') send({ t: 'btn', b: val, d: true });
+    if (kind === 'press') send({ t: 'press', k: val });
+    if (kind === 'toggle-key') { toggled.on = !toggled.on; b.classList.toggle('lit', toggled.on); send({ t: 'key', k: val, d: toggled.on }); }
+    if (kind === 'chat') openChat();
+    if (navigator.vibrate) navigator.vibrate(8);
+  }, { passive: false });
+  const up = (e) => {
+    e.preventDefault(); e.stopPropagation(); b.classList.remove('down');
+    if (kind === 'hold-key') send({ t: 'key', k: val, d: false });
+    if (kind === 'hold-btn') send({ t: 'btn', b: val, d: false });
+  };
+  b.addEventListener('touchend', up, { passive: false }); b.addEventListener('touchcancel', up, { passive: false });
+}
+// hotbar
+for (let i = 1; i <= 9; i++) {
+  const s = el(`<div class="${i === 1 ? 'on' : ''}">${i}</div>`);
+  s.addEventListener('touchstart', (e) => { e.preventDefault(); e.stopPropagation(); slot = i; document.querySelectorAll('#hot div').forEach((d, j) => d.classList.toggle('on', j + 1 === i)); send({ t: 'press', k: String(i) }); }, { passive: false });
+  $('hot').appendChild(s);
+}
+// chat
+function openChat() { send({ t: 'press', k: 'T' }); $('chat').classList.add('on'); setTimeout(() => $('chatin').focus(), 60); }
+function sendChat() {
+  const t = $('chatin').value; $('chatin').value = ''; $('chat').classList.remove('on'); $('chatin').blur();
+  if (t) { send({ t: 'text', s: t }); setTimeout(() => send({ t: 'press', k: 'ENTER' }), 60); } else send({ t: 'press', k: 'ESC' });
+}
+$('chatgo').onclick = sendChat;
+$('chatin').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); sendChat(); } });
+
+// ---------- touch: left half = move stick, right half = look / tap to hit ----------
+const touches = new Map();
+const moveKeys = new Set();
+function setMove(keys) {
+  for (const k of ['W', 'A', 'S', 'D']) {
+    const want = keys.has(k);
+    if (want && !moveKeys.has(k)) { moveKeys.add(k); send({ t: 'key', k, d: true }); }
+    if (!want && moveKeys.has(k)) { moveKeys.delete(k); send({ t: 'key', k, d: false }); }
+  }
+}
+function releaseMove() { setMove(new Set()); $('stick').style.display = 'none'; $('stickhint').style.opacity = 1; }
+function releaseAll() { releaseMove(); send({ t: 'release' }); }
+function videoPoint(x, y) {   // touch -> 0..1 inside the letterboxed game picture
+  const v = $('v'), vw = v.videoWidth || 16, vh = v.videoHeight || 9, W = innerWidth, H = innerHeight;
+  const s = Math.min(W / vw, H / vh), w = vw * s, h = vh * s, ox = (W - w) / 2, oy = (H - h) / 2;
+  return { x: (x - ox) / w, y: (y - oy) / h };
+}
+pad.addEventListener('touchstart', (e) => {
+  e.preventDefault();
+  for (const t of e.changedTouches) {
+    if (menu) {
+      const p = videoPoint(t.clientX, t.clientY);
+      const info = { mode: 'menu', x: t.clientX, y: t.clientY, start: Date.now(), moved: false, right: false };
+      if (e.touches.length >= 2) { info.mode = 'scroll'; info.lastY = t.clientY; }
+      else { send({ t: 'point', x: p.x, y: p.y }); info.hold = setTimeout(() => { info.right = true; send({ t: 'point', x: p.x, y: p.y, b: 'right', d: true }); send({ t: 'point', x: p.x, y: p.y, b: 'right', d: false }); if (navigator.vibrate) navigator.vibrate(15); }, 450); }
+      touches.set(t.identifier, info); continue;
+    }
+    if (t.clientX < innerWidth * 0.42) {
+      touches.set(t.identifier, { mode: 'stick', ox: t.clientX, oy: t.clientY });
+      const s = $('stick'); s.style.display = 'block'; s.style.left = (t.clientX - 60) + 'px'; s.style.top = (t.clientY - 60) + 'px'; $('knob').style.transform = ''; $('stickhint').style.opacity = 0;
+    } else {
+      const info = { mode: 'look', x: t.clientX, y: t.clientY, start: Date.now(), moved: 0, mining: false };
+      info.hold = setTimeout(() => { if (info.moved < 12) { info.mining = true; send({ t: 'btn', b: 'left', d: true }); if (navigator.vibrate) navigator.vibrate(10); } }, 300);
+      touches.set(t.identifier, info);
+    }
+  }
+}, { passive: false });
+pad.addEventListener('touchmove', (e) => {
+  e.preventDefault();
+  for (const t of e.changedTouches) {
+    const i = touches.get(t.identifier); if (!i) continue;
+    if (i.mode === 'stick') {
+      let dx = t.clientX - i.ox, dy = t.clientY - i.oy; const d = Math.hypot(dx, dy), max = 48;
+      if (d > max) { dx = dx / d * max; dy = dy / d * max; }
+      $('knob').style.transform = `translate(${dx}px,${dy}px)`;
+      const k = new Set(); const dead = 12;
+      if (d > dead) { const a = Math.atan2(dy, dx) * 180 / Math.PI;
+        if (a > -157.5 && a < -22.5) k.add('W'); if (a > 22.5 && a < 157.5) k.add('S');
+        if (a > 112.5 || a < -112.5) k.add('A'); if (a > -67.5 && a < 67.5) k.add('D'); }
+      setMove(k);
+    } else if (i.mode === 'look') {
+      const dx = t.clientX - i.x, dy = t.clientY - i.y; i.x = t.clientX; i.y = t.clientY; i.moved += Math.abs(dx) + Math.abs(dy);
+      if (i.moved > 12 && !i.mining) clearTimeout(i.hold);
+      sendLook(dx * sens * devicePixelRatio, dy * sens * devicePixelRatio);
+    } else if (i.mode === 'menu') {
+      const p = videoPoint(t.clientX, t.clientY);
+      if (!i.moved && Math.hypot(t.clientX - i.x, t.clientY - i.y) > 10) { i.moved = true; clearTimeout(i.hold); send({ t: 'point', x: p.x, y: p.y, b: 'left', d: true }); }
+      else if (i.moved) send({ t: 'point', x: p.x, y: p.y });
+    } else if (i.mode === 'scroll') {
+      const dy = t.clientY - i.lastY; if (Math.abs(dy) > 18) { send({ t: 'wheel', n: dy > 0 ? -1 : 1 }); i.lastY = t.clientY; }
+    }
+  }
+}, { passive: false });
+const endTouch = (e) => {
+  e.preventDefault();
+  for (const t of e.changedTouches) {
+    const i = touches.get(t.identifier); if (!i) continue; touches.delete(t.identifier);
+    clearTimeout(i.hold);
+    if (i.mode === 'stick') releaseMove();
+    if (i.mode === 'look') {
+      if (i.mining) send({ t: 'btn', b: 'left', d: false });
+      else if (i.moved < 12 && Date.now() - i.start < 300) { send({ t: 'btn', b: 'left', d: true }); setTimeout(() => send({ t: 'btn', b: 'left', d: false }), 50); }
+    }
+    if (i.mode === 'menu' && !i.right) {
+      const p = videoPoint(t.clientX, t.clientY);
+      if (i.moved) send({ t: 'point', x: p.x, y: p.y, b: 'left', d: false });
+      else { send({ t: 'point', x: p.x, y: p.y, b: 'left', d: true }); setTimeout(() => send({ t: 'point', x: p.x, y: p.y, b: 'left', d: false }), 40); }
+    }
+  }
+};
+pad.addEventListener('touchend', endTouch, { passive: false });
+pad.addEventListener('touchcancel', endTouch, { passive: false });
+
+// ---------- game controllers paired to the phone ----------
+let padPrev = {};
+function padLoop() {
+  const gp = navigator.getGamepads ? [...navigator.getGamepads()].find(Boolean) : null;
+  if (gp && pc) {
+    const ax = gp.axes, b = (n) => gp.buttons[n] && gp.buttons[n].pressed;
+    if (!menu) {
+      const k = new Set(); if (ax[1] < -0.35) k.add('W'); if (ax[1] > 0.35) k.add('S'); if (ax[0] < -0.35) k.add('A'); if (ax[0] > 0.35) k.add('D'); setMove(k);
+      const rx = Math.abs(ax[2]) > 0.12 ? ax[2] : 0, ry = Math.abs(ax[3]) > 0.12 ? ax[3] : 0;
+      if (rx || ry) sendLook(rx * Math.abs(rx) * 28, ry * Math.abs(ry) * 22);
+    }
+    const map = [[0, 'key', 'SPACE'], [1, 'key', 'SHIFT'], [10, 'key', 'CTRL'], [7, 'btn', 'left'], [6, 'btn', 'right']];
+    for (const [n, kind, v] of map) if (b(n) !== !!padPrev[n]) send(kind === 'key' ? { t: 'key', k: v, d: b(n) } : { t: 'btn', b: v, d: b(n) });
+    const press = [[3, 'E'], [2, 'Q'], [9, 'ESC'], [8, 'T'], [11, 'F5']];
+    for (const [n, k] of press) if (b(n) && !padPrev[n]) send({ t: 'press', k });
+    if (b(5) && !padPrev[5]) send({ t: 'wheel', n: -1 });
+    if (b(4) && !padPrev[4]) send({ t: 'wheel', n: 1 });
+    padPrev = {}; gp.buttons.forEach((x, n) => padPrev[n] = x.pressed);
+  }
+  requestAnimationFrame(padLoop);
+}
+requestAnimationFrame(padLoop);
+document.addEventListener('visibilitychange', () => { if (document.hidden) releaseAll(); });
+</script>
+</body></html>

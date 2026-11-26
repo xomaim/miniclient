@@ -24,5 +24,18 @@ contextBridge.exposeInMainWorld('mc', {
   logInit: () => ipcRenderer.invoke('log-init'),
   onLog: (cb) => ipcRenderer.on('log', (e, l) => cb(l)),
   onLogState: (cb) => ipcRenderer.on('log-state', (e, s) => cb(s)),
-  onLogReset: (cb) => ipcRenderer.on('log-reset', () => cb())
+  onLogReset: (cb) => ipcRenderer.on('log-reset', () => cb()),
+  // Phone Play (launcher page)
+  rpInfo: () => ipcRenderer.invoke('rp-info'),
+  rpSet: (on) => ipcRenderer.invoke('rp-set', on),
+  rpNewKey: () => ipcRenderer.invoke('rp-newkey'),
+  rpKick: () => ipcRenderer.invoke('rp-kick'),
+  onRpStatus: (cb) => ipcRenderer.on('rp-status', (e, i) => cb(i)),
+  onRemoteLaunch: (cb) => ipcRenderer.on('remote-launch', () => cb()),
+  // Phone Play (hidden streamer window)
+  rpOn: (ch, cb) => { if (/^rp-(offer|answer|state|kick|quality)$/.test(ch)) ipcRenderer.on(ch, (e, d) => cb(d)); },
+  rpReply: (id, data) => ipcRenderer.send('rp-reply-' + String(id).replace(/[^a-f0-9]/g, ''), data),
+  rpInput: (m) => ipcRenderer.send('rp-input', m),
+  rpOpened: () => ipcRenderer.send('rp-opened'),
+  rpClosed: () => ipcRenderer.send('rp-closed')
 });

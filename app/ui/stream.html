@@ -1,0 +1,97 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Mini Client streamer</title></head>
+<body>
+<script>
+// Hidden window: captures the Minecraft window and sends it to the phone over WebRTC.
+let pc = null, ctl = null, look = null, session = null, stream = null, audio = null, closeTimer = null;
+const BITRATE = { low: 3000000, auto: 8000000, high: 16000000 };
+
+function cleanup(notify) {
+  clearTimeout(closeTimer);
+  try { if (pc) pc.close(); } catch (e) {}
+  for (const s of [stream, audio]) if (s) s.getTracks().forEach((t) => t.stop());
+  pc = ctl = look = stream = audio = null;
+  if (notify && session) mc.rpClosed();
+  session = null;
+}
+
+function waitIce(p) {
+  return new Promise((r) => {
+    if (p.iceGatheringState === 'complete') return r();
+    p.addEventListener('icegatheringstatechange', () => { if (p.iceGatheringState === 'complete') r(); });
+    setTimeout(r, 2500);
+  });
+}
+
+async function makeOffer(d) {
+  cleanup(true);
+  session = Math.random().toString(36).slice(2, 12);
+  stream = await navigator.mediaDevices.getUserMedia({
+    audio: false,
+    video: { mandatory: { chromeMediaSource: 'desktop', chromeMediaSourceId: d.source, maxFrameRate: 60, maxWidth: 1920, maxHeight: 1080 } }
+  });
+  if (d.audio) {
+    try {   // Windows can loop back the PC's sound; the video part of this capture is thrown away.
+      audio = await navigator.mediaDevices.getUserMedia({ audio: { mandatory: { chromeMediaSource: 'desktop' } }, video: { mandatory: { chromeMediaSource: 'desktop', maxWidth: 2, maxHeight: 2, maxFrameRate: 1 } } });
+      audio.getVideoTracks().forEach((t) => t.stop());
+    } catch (e) { audio = null; }
+  }
+  pc = new RTCPeerConnection({ iceServers: [], bundlePolicy: 'max-bundle' });
+  const vt = stream.getVideoTracks()[0];
+  try { vt.contentHint = 'motion'; } catch (e) {}
+  const tr = pc.addTransceiver(vt, { direction: 'sendonly', streams: [stream] });
+  try {
+    const caps = RTCRtpSender.getCapabilities('video').codecs;
+    const h264 = caps.filter((c) => /h264/i.test(c.mimeType));
+    tr.setCodecPreferences(h264.concat(caps.filter((c) => !/h264/i.test(c.mimeType))));   // iPhones decode H.264 in hardware
+  } catch (e) {}
+  if (audio && audio.getAudioTracks()[0]) pc.addTransceiver(audio.getAudioTracks()[0], { direction: 'sendonly', streams: [stream] });
+
+  ctl = pc.createDataChannel('input', { ordered: true });
+  look = pc.createDataChannel('look', { ordered: false, maxRetransmits: 0 });
+  for (const ch of [ctl, look]) ch.onmessage = (e) => { try { mc.rpInput(JSON.parse(e.data)); } catch (x) {} };
+
+  pc.onconnectionstatechange = () => {
+    const s = pc && pc.connectionState;
+    if (s === 'connected') { clearTimeout(closeTimer); mc.rpOpened(); applyQuality(d.quality); }
+    if (s === 'failed' || s === 'closed') cleanup(true);
+    if (s === 'disconnected') { clearTimeout(closeTimer); closeTimer = setTimeout(() => cleanup(true), 8000); }
+  };
+
+  await pc.setLocalDescription(await pc.createOffer());
+  await waitIce(pc);
+  let sdp = pc.localDescription.sdp;
+  // Chromium hides the PC's address behind a random .local name; phones can't always resolve it, so put the real LAN address back.
+  if (d.ip) sdp = sdp.replace(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.local/gi, d.ip);
+  return { session, sdp };
+}
+
+async function applyQuality(q) {
+  if (!pc) return;
+  for (const s of pc.getSenders()) {
+    if (!s.track || s.track.kind !== 'video') continue;
+    const p = s.getParameters();
+    if (!p.encodings || !p.encodings.length) p.encodings = [{}];
+    p.encodings[0].maxBitrate = BITRATE[q] || BITRATE.auto;
+    p.encodings[0].maxFramerate = 60;
+    p.degradationPreference = 'maintain-framerate';
+    try { await s.setParameters(p); } catch (e) {}
+  }
+}
+
+mc.rpOn('rp-offer', async (d) => {
+  try { mc.rpReply(d.id, await makeOffer(d)); }
+  catch (e) { cleanup(false); mc.rpReply(d.id, { error: 'Could not capture Minecraft: ' + e.message }); }
+});
+mc.rpOn('rp-answer', async (d) => {
+  try {
+    if (!pc || d.session !== session) throw new Error('That connection expired. Try again.');
+    await pc.setRemoteDescription({ type: 'answer', sdp: d.sdp });
+    mc.rpReply(d.id, { ok: true });
+  } catch (e) { mc.rpReply(d.id, { error: e.message }); }
+});
+mc.rpOn('rp-state', (s) => { if (ctl && ctl.readyState === 'open') ctl.send(JSON.stringify(Object.assign({ t: 'state' }, s))); });
+mc.rpOn('rp-kick', () => { if (ctl && ctl.readyState === 'open') ctl.send(JSON.stringify({ t: 'kicked' })); setTimeout(() => cleanup(true), 200); });
+mc.rpOn('rp-quality', (q) => applyQuality(q));
+</script>
+</body></html>

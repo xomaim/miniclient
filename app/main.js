@@ -4,6 +4,8 @@ const fs = require('fs');
 const auth = require('./auth');
 const { autoUpdater } = require('electron-updater');
 const { Launcher, releases } = require('./launcher');
+const remote = require('./remote');
+const crypto = require('crypto');
 
 let win = null;
 let account = null;   // { name, uuid, token } kept in memory only
@@ -78,6 +80,30 @@ ipcMain.handle('friend-lookup', async (e, name) => {
 });
 ipcMain.handle('open', (e, url) => { if (/^https:\/\//.test(url)) shell.openExternal(url); });
 
+
+// ---------- Phone Play ----------
+function rpKey(reset) {
+  const c = readCfg();
+  if (!c.rpKey || reset) { c.rpKey = crypto.randomBytes(18).toString('base64url'); writeCfg(c); }
+  return c.rpKey;
+}
+const rpOpts = {
+  key: () => rpKey(false),
+  account: () => (account ? account.name : ''),
+  version: () => gameOpts().version,
+  launch: () => { if (win && !win.isDestroyed()) win.webContents.send('remote-launch'); },
+  log: (t) => { try { fs.appendFileSync(path.join(app.getPath('userData'), 'launcher.log'), new Date().toISOString() + ' ' + t + '\n'); } catch (e) {} },
+  status: () => { rpInfo().then((i) => { if (win && !win.isDestroyed()) win.webContents.send('rp-status', i); }); }
+};
+async function rpInfo() {
+  const i = Object.assign({}, remote.info(), { enabled: !!readCfg().phonePlay });
+  if (i.on) { try { i.qr = await require('qrcode').toDataURL(i.url, { margin: 1, width: 360, color: { dark: '#000000', light: '#ffffff' } }); } catch (e) { i.qr = ''; } }
+  return i;
+}
+ipcMain.handle('rp-info', () => rpInfo());
+ipcMain.handle('rp-set', (e, on) => { const c = readCfg(); c.phonePlay = !!on; writeCfg(c); if (on) remote.start(rpOpts); else remote.stop(); return rpInfo(); });
+ipcMain.handle('rp-newkey', () => { rpKey(true); remote.kick(); return rpInfo(); });
+ipcMain.handle('rp-kick', () => { remote.kick(); return rpInfo(); });
 
 // ---------- friends server ----------
 let serverUrl = null;
@@ -274,5 +300,5 @@ ipcMain.handle('channel-set', (e, ch) => {
 if (!app.requestSingleInstanceLock()) app.quit();
 app.on('second-instance', () => showLauncher());
 app.commandLine.appendSwitch('disable-features', 'CalculateNativeWinOcclusion');
-app.whenReady().then(() => { createWindow(); setupUpdater(); });
+app.whenReady().then(() => { createWindow(); setupUpdater(); if (readCfg().phonePlay) remote.start(rpOpts); });
 app.on('window-all-closed', () => app.quit());

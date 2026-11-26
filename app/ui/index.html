@@ -206,6 +206,22 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:18px; h
 .ft:hover { color:#fff; } .ft.on { background:#fff; color:#000; }
 .ft em { font-style:normal; font-size:10px; padding:0 5px; border-radius:6px; background:rgba(255,255,255,.14); margin-left:2px; } .ft.on em { background:#000; color:#fff; }
 .ft.hot:not(.on) em { background:#fff; color:#000; }
+
+/* ---- Phone Play ---- */
+.pp { display:grid; grid-template-columns:minmax(0,1fr) 260px; gap:24px; max-width:960px; align-items:start; }
+.ppl .grp { max-width:none; }
+.steps { display:flex; flex-direction:column; gap:10px; }
+.steps div { display:flex; gap:12px; align-items:center; font-size:13px; color:#d6d6d6; }
+.steps b { width:26px; height:26px; flex:none; border-radius:8px; background:#fff; color:#000; display:grid; place-items:center; font-size:12px; }
+.steps em { font-style:normal; color:#fff; font-weight:700; }
+.ppnote { margin-top:16px; font-size:12px; color:var(--mute); line-height:1.6; padding:12px 14px; border:1px solid var(--line); border-radius:12px; background:var(--panel); }
+.qrcard { width:260px; height:260px; border-radius:20px; background:#fff; display:grid; place-items:center; position:relative; overflow:hidden; box-shadow:0 20px 60px rgba(0,0,0,.6); }
+.qrcard img { width:236px; height:236px; image-rendering:pixelated; display:none; }
+.qrcard.on img { display:block; } .qrcard.on .qroff { display:none; }
+.qroff { color:#555; font-size:13px; font-weight:700; text-align:center; line-height:1.6; }
+.qrcard:not(.on) { background:var(--panel); border:1px dashed rgba(255,255,255,.2); } .qrcard:not(.on) .qroff { color:var(--mute); }
+.qrurl { margin-top:12px; font:12px Consolas,monospace; color:var(--mute); word-break:break-all; text-align:center; }
+@media (max-width:820px){ .pp { grid-template-columns:1fr; } }
 </style></head>
 <body>
 <div id="bgglow"></div>
@@ -220,6 +236,7 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:18px; h
     <div class="nav" title="Versions" data-p="versions" onclick="go('versions')"><svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="11" rx="5"/><line x1="7" y1="10.5" x2="7" y2="14.5"/><line x1="5" y1="12.5" x2="9" y2="12.5"/></svg></div>
     <div class="nav" title="Servers" data-p="servers" onclick="go('servers')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/><line x1="3" y1="12" x2="21" y2="12"/></svg></div>
     <div class="nav" title="Mods" data-p="mods" onclick="go('mods')"><svg viewBox="0 0 24 24"><path d="M9 3h4v3a2 2 0 1 0 4 0V3h3v6h-3a2 2 0 1 0 0 4h3v8H4v-6h3a2 2 0 1 0 0-4H4V3z"/></svg></div>
+    <div class="nav" title="Phone Play" data-p="phone" onclick="go('phone')"><svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="2.5"/><line x1="10.5" y1="18.5" x2="13.5" y2="18.5"/></svg></div>
     <div class="sp"></div>
     <div class="nav" title="Settings" data-p="settings" onclick="go('settings')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2"/></svg></div>
     <div class="nav" title="Sign out" onclick="signOut()"><svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></div>
@@ -260,6 +277,28 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:18px; h
 <div class="page" id="p-mods"><div class="phead"><h1>Mods</h1><span>Mini Client's built-in mods, plus any mods you add yourself.</span></div>
   <h3 class="mh">Built in</h3><div class="grp" id="mbuilt"></div>
   <h3 class="mh">Your mods <button class="sbtn ghost sm" onclick="mc.openFolder('mods')">Open mods folder</button></h3><div class="grp" id="muser"></div></div>
+<div class="page" id="p-phone"><div class="phead"><h1>Phone Play</h1><span>Play Minecraft on your phone. Your PC runs the game and streams it to your phone.</span></div>
+  <div class="pp">
+    <div class="ppl">
+      <div class="grp">
+        <div class="row"><div>Phone Play<span>Let your phone connect to Mini Client on this Wi-Fi.</span></div><div class="tog" id="rpTog"></div></div>
+        <div class="row"><div>Connected phone<span id="rpWho">Nobody yet</span></div><button class="sbtn ghost sm" id="rpKick" onclick="rpKick()" style="display:none">Disconnect</button></div>
+        <div class="row"><div>New link<span>Phones that scanned the old QR code can no longer connect.</span></div><button class="sbtn ghost sm" onclick="rpNew()">Make new link</button></div>
+      </div>
+      <h3 class="mh">How to play</h3>
+      <div class="steps">
+        <div><b>1</b><span>Connect your phone to the <em>same Wi-Fi</em> as this PC.</span></div>
+        <div><b>2</b><span>Scan the QR code with your phone's camera. Mini Client Play opens.</span></div>
+        <div><b>3</b><span>Press <em>Play</em>. If Minecraft isn't open, start it from your phone.</span></div>
+        <div><b>4</b><span>On iPhone: Share &rarr; <em>Add to Home Screen</em> to keep it as an app.</span></div>
+      </div>
+      <div class="ppnote">The first time, Windows may ask whether Mini Client can use your network. Choose <b>Allow</b> (private networks). Controllers paired to your phone work too.</div>
+    </div>
+    <div class="ppr">
+      <div class="qrcard" id="qrcard"><div class="qroff" id="qroff">Turn on Phone Play<br>to show the QR code</div><img id="qr" alt="QR code"></div>
+      <div class="qrurl" id="rpUrl"></div>
+    </div>
+  </div></div>
 <div id="settings">
   <div id="snav">
     <div class="sh">Settings</div>
@@ -354,12 +393,12 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:18px; h
 const SERVERS=[['Hypixel','mc.hypixel.net'],['Wynncraft','play.wynncraft.com'],['CubeCraft','play.cubecraft.net'],['2b2t','2b2t.org'],['Minemen Club','minemen.club']];
 const icon=(ip)=>'https://api.mcsrvstat.us/icon/'+encodeURIComponent(ip);
 let acct=null;
-const PAGES={versions:'p-versions',servers:'p-servers',mods:'p-mods',settings:'settings'};
+const PAGES={versions:'p-versions',servers:'p-servers',mods:'p-mods',phone:'p-phone',settings:'settings'};
 let page='home';
 function go(p){page=p;
   for(const k in PAGES)document.getElementById(PAGES[k]).classList.toggle('open',k===p);
   document.querySelectorAll('#rail .nav[data-p]').forEach(n=>n.classList.toggle('on',n.dataset.p===p));
-  if(p==='mods')drawMods(); if(p==='versions')drawVersions(); if(p==='servers')drawServers();}
+  if(p==='mods')drawMods(); if(p==='phone')mc.rpInfo().then(drawRp); if(p==='versions')drawVersions(); if(p==='servers')drawServers();}
 function toggleSettings(){go(page==='settings'?'home':'settings');}
 document.querySelectorAll('.si[data-s]').forEach(i=>i.onclick=()=>{document.getElementById(i.dataset.s).scrollIntoView();});
 document.getElementById('sbody').addEventListener('scroll',function(){let cur=null;this.querySelectorAll('section').forEach(sc=>{if(sc.offsetTop-this.offsetTop-80<=this.scrollTop)cur=sc.id;});
@@ -448,6 +487,20 @@ function delFriend(u){saveFriends(friends().filter(f=>f.uuid!==u));drawFriends()
 $('fname').addEventListener('keydown',e=>{if(e.key==='Enter')addFriend();});
 drawFriends();
 setInterval(()=>{if(!document.hidden)loadFriends();},20000);
+
+// ---- Phone Play ----
+function drawRp(i){ if(!i)return;
+  $('rpTog').className='tog'+(i.enabled?' on':'');
+  $('qrcard').classList.toggle('on',!!(i.on&&i.qr)); if(i.qr)$('qr').src=i.qr;
+  $('rpUrl').textContent=i.on?i.url.replace(/k=.*/,'k=\u2022\u2022\u2022\u2022'):'';
+  $('rpWho').textContent=i.viewer?(i.viewer.name+' \u00b7 playing now'):(i.on?'Nobody yet. Scan the QR code.':'Phone Play is off.');
+  $('rpKick').style.display=i.viewer?'inline-block':'none';
+  if(i.on&&!i.input)$('rpWho').textContent+=' (controls unavailable on this PC)';}
+$('rpTog').onclick=async()=>drawRp(await mc.rpSet(!$('rpTog').classList.contains('on')));
+async function rpNew(){drawRp(await mc.rpNewKey());}
+async function rpKick(){drawRp(await mc.rpKick());}
+mc.onRpStatus(drawRp);
+mc.onRemoteLaunch(()=>{ if(!gameBusy) launch(); });
 let gopts={};
 function myServers(){try{return JSON.parse(localStorage.getItem('miniServers')||'[]');}catch(e){return [];}}
 function drawServers(){const all=SERVERS.map(s=>[s[0],s[1],0]).concat(myServers().map(ip=>[ip,ip,1]));
@@ -476,13 +529,13 @@ function acceptTos(){try{localStorage.setItem('miniTos','1');}catch(e){}$('tos')
 $('tagree').onchange=function(){$('tgo').disabled=!this.checked;};
 try{if(localStorage.getItem('miniTos')!=='1')$('tos').classList.add('open');}catch(e){$('tos').classList.add('open');}
 function drawOpts(){ if($('schip'))$('schip').textContent=gopts.version||'1.21.7';
-  document.querySelectorAll('.tog').forEach(t=>t.className='tog'+(gopts[t.dataset.k]?' on':''));
+  document.querySelectorAll('.tog[data-k]').forEach(t=>t.className='tog'+(gopts[t.dataset.k]?' on':''));
   const r=$('ram');r.value=gopts.ram;$('ramv').textContent=gopts.ram+' GB';r.style.setProperty('--p',((gopts.ram-1)/15*100)+'%');
 }
 $('ram').oninput=function(){$('ramv').textContent=this.value+' GB';this.style.setProperty('--p',((this.value-1)/15*100)+'%');};
 $('ram').onchange=function(){setOpt('ram',+this.value);};
 async function setOpt(k,v){gopts=await mc.setGameOpts({[k]:v});drawOpts();}
-document.querySelectorAll('.tog').forEach(t=>t.onclick=()=>setOpt(t.dataset.k,!gopts[t.dataset.k]));
+document.querySelectorAll('.tog[data-k]').forEach(t=>t.onclick=()=>setOpt(t.dataset.k,!gopts[t.dataset.k]));
 mc.gameOpts().then(o=>{gopts=o;drawOpts();heroState('LAUNCH GAME','READY TO LAUNCH',null,'');});
 // Show the saved account straight away (no welcome screen flash), then refresh it in the background.
 $('welcome').style.display='none';
