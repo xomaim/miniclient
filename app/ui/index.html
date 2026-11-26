@@ -388,7 +388,7 @@ const $=(i)=>document.getElementById(i);
 let gameBusy=false;
 function heroState(main,sub,pct,err){ $('launch').firstChild.nodeValue=main; $('lsub').textContent=sub;
   $('pbar').style.display=pct==null?'none':'block'; if(pct!=null)$('pfill').style.width=pct+'%';
-  if(err!==undefined){$('herosub').textContent=err||('Minecraft '+(gopts.version||'1.21.7')+' \u00b7 '+((gopts.version||'1.21.7')==='1.21.7'?'Mini Client':'Fabric'));$('herosub').className=err?'err':'';} }
+  if(err!==undefined){$('herosub').textContent=err||('Minecraft '+(gopts.version||'1.21.7')+' \u00b7 '+(MINI_VERS.includes(gopts.version||'1.21.7')?'Mini Client':'Fabric'));$('herosub').className=err?'err':'';} }
 async function launch(server){
   if(!acct){$('welcome').style.display='flex';return;}
   if(gameBusy)return; gameBusy=true; $('launch').disabled=true;
@@ -464,7 +464,8 @@ async function drawMods(){
   const u=await mc.userMods();
   $('muser').innerHTML=u.length?u.map(n=>`<div class="mrow"><i>${n.charAt(0).toUpperCase()}</i><div><b>${n.replace(/\.jar$/i,'')}</b><span>${n}</span></div><span class="st">ON</span></div>`).join(''):'<div class="empty">No extra mods yet. Press Mods on the Minecraft title screen to find and install mods, or drop Fabric .jar files into the mods folder.</div>';}
 let VERS=[];
-function vlabel(id){return id==='1.21.7'?['Mini Client','mini']:['Fabric + FPS mods',''];}
+const MINI_VERS=['1.21.7','26.2'];
+function vlabel(id){return MINI_VERS.includes(id)?['Mini Client','mini']:['Fabric + FPS mods',''];}
 function drawVersions(){const f=($('vfind').value||'').trim();const sel=gopts.version||'1.21.7';
   const list=VERS.filter(v=>!f||v.id.includes(f));
   $('vgrid').innerHTML=list.length?list.map(v=>{const l=vlabel(v.id),old=v.date<'2019-04-23';return `<div class="ver${v.id===sel?' on':''}" onclick="pickVersion('${v.id}')"><div class="vart" style="background:linear-gradient(160deg,hsl(0 0% ${Math.max(6,30-VERS.indexOf(v)*0.4)}%),#060607)"></div><div class="vb"><b>${v.id}</b><span>${old?'Vanilla':l[0]} &middot; ${v.date.slice(0,4)}</span>${v.id===sel?'<em class="mini">Selected</em>':''}</div></div>`;}).join(''):'<div class="empty">No versions match.</div>';}

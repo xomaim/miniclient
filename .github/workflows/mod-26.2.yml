@@ -47,6 +47,7 @@ jobs:
           mkdir -p /tmp/lg
           cp build.log /tmp/lg/build.log || echo "no log" > /tmp/lg/build.log
           cp mod-26.2/gradle.properties /tmp/lg/gradle.properties
+          bash mod-26.2/probe.sh || true
           cd /tmp/lg
           git init -q -b buildlog
           git config user.name build

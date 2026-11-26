@@ -73,10 +73,13 @@ async function modrinthFile(slug, mc) {
     return { url: f.url, name: f.filename, size: f.size };
   } catch (e) { return null; }
 }
-async function miniModFile() {
-  let url = 'https://github.com/' + MINI_REPO + '/releases/download/latest/miniclient-mod.jar', stamp = 'latest', size = 0;
+// Minecraft versions with the full Mini Client mod, and the GitHub release that holds each build.
+const MINI_TAGS = { '1.21.7': 'latest', '26.2': 'mod-26.2' };
+async function miniModFile(id) {
+  const tag = MINI_TAGS[id] || 'latest';
+  let url = 'https://github.com/' + MINI_REPO + '/releases/download/' + tag + '/miniclient-mod.jar', stamp = tag, size = 0;
   try {
-    const rel = await getJson('https://api.github.com/repos/' + MINI_REPO + '/releases/tags/latest');
+    const rel = await getJson('https://api.github.com/repos/' + MINI_REPO + '/releases/tags/' + tag);
     const a = (rel.assets || []).find((x) => /miniclient-mod\.jar$/.test(x.name)) || (rel.assets || [])[0];
     if (a) { url = a.browser_download_url; size = a.size || 0; stamp = String(a.updated_at || '').replace(/[^0-9]/g, ''); }
   } catch (e) {}
@@ -97,7 +100,7 @@ class Launcher {
   wantedMods(id, o) {
     const out = [{ slug: 'fabric-api' }];
     if (o.builtinOn) {
-      out.push(id === '1.21.7' ? { slug: '@mini' } : { slug: 'hud-plus' });
+      out.push(MINI_TAGS[id] ? { slug: '@mini' } : { slug: 'hud-plus' });
       out.push({ slug: 'sodium' });
       if (o.fpsBoost) for (const s of ['lithium', 'ferrite-core', 'entityculling', 'immediatelyfast']) out.push({ slug: s });
     }
@@ -122,8 +125,8 @@ class Launcher {
     if (fast) {
       this.log('Fast start: ' + id + ' already set up.');
       // The Mini Client mod changes often: always pick up the newest build, even on fast start.
-      if (o.builtinOn && id === '1.21.7') {
-        const mf = await miniModFile();
+      if (o.builtinOn && MINI_TAGS[id]) {
+        const mf = await miniModFile(id);
         const mdir = path.join(this.cfgDir, 'builtin_mods', id), mp = path.join(mdir, mf.name);
         const old = (fast.addMods || []).findIndex((x) => /miniclient-mod-/.test(path.basename(x)));
         if (old < 0 || fast.addMods[old] !== mp) {
@@ -168,7 +171,7 @@ class Launcher {
         const lv = (fab.find((x) => x.loader && x.loader.stable) || {}).loader;
         if (!lv) throw new Error('Fabric does not support ' + id + ' yet');
         const prof = await getJson('https://meta.fabricmc.net/v2/versions/loader/' + id + '/' + lv.version + '/profile/json');
-        const files = (await Promise.all(this.wantedMods(id, o).map((m) => (m.slug === '@mini' ? miniModFile() : modrinthFile(m.slug, id))))).filter(Boolean);
+        const files = (await Promise.all(this.wantedMods(id, o).map((m) => (m.slug === '@mini' ? miniModFile(id) : modrinthFile(m.slug, id))))).filter(Boolean);
         ver.mainClass = prof.mainClass;
         if (prof.arguments) {
           if (prof.arguments.jvm) ver.arguments.jvm = (ver.arguments.jvm || []).concat(prof.arguments.jvm);
@@ -377,4 +380,4 @@ async function releases() {
   return m.versions.filter((v) => v.type === 'release' && v.releaseTime >= '2014-09-01').map((v) => ({ id: v.id, date: v.releaseTime.slice(0, 10) }));
 }
 
-module.exports = { Launcher, releases };
+module.exports = { Launcher, releases, MINI_TAGS };
