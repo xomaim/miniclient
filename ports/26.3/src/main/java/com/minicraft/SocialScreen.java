@@ -29,7 +29,7 @@ public class SocialScreen extends MiniPage {
 		for (int i = 0; i < SOCIALS.length; i++) {
 			final String link = SOCIALS[i][2];
 			if (link.isEmpty()) continue;
-			button(cx(i) + cw() - 58, cy(i) + 11, 48, 18, "Open", () -> Util.getPlatform().openUri(link));
+			button(cx(i) + cw() - 58, cy(i) + 11, 48, 18, "Open", () -> org.lwjgl.sdl.SDLMisc.SDL_OpenURL(link));
 		}
 	}
 

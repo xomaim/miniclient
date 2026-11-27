@@ -63,7 +63,7 @@ public class MiniTitleScreen extends Screen {
 		btn(113, 280, 281, "\u263A  Singleplayer", () -> mc.gui.setScreen(new SelectWorldScreen(this)));
 		btn(113, 318, 281, "\u263B  Multiplayer", () -> mc.gui.setScreen(new JoinMultiplayerScreen(this)));
 		btn(113, 356, 281, "\u25CE  Realms", () -> mc.gui.setScreen(new RealmsMainScreen(this)));
-		btn(113, 394, 135, "\u2699  Settings", () -> mc.gui.setScreen(new OptionsScreen(this, mc.options, false)));
+		btn(113, 394, 135, "\u2699  Settings", () -> mc.gui.setScreen(new OptionsScreen(this, mc.options)));
 		btn(258, 394, 136, "\u2630  Mods", () -> mc.gui.setScreen(new ModBrowserScreen(this)));
 
 		int rx = rightX(), rw = S(281);

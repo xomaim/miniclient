@@ -51,7 +51,7 @@ public class WardrobeScreen extends MiniPage {
 		}
 		int x = colX(), y = top + 4, w = 210;
 		button(x, y + 12, w, 22, "Model: " + (slim ? "Slim arms" : "Classic arms"), () -> { slim = !slim; rebuildWidgets(); });
-		button(x, y + 40, w, 22, "Upload skin file (.png)", this::upload);
+		button(x, y + 40, w, 22, "Upload newest skin from skins folder", this::upload);
 		name = new EditBox(this.font, x, y + 82, w - 66, 20, Component.literal("Player name"));
 		name.setMaxLength(16);
 		name.setHint(Component.literal("Player name"));
@@ -137,15 +137,24 @@ public class WardrobeScreen extends MiniPage {
 
 	private void upload() {
 		if (busy) return;
-		new Thread(() -> {
-			String file;
-			try (org.lwjgl.system.MemoryStack st = org.lwjgl.system.MemoryStack.stackPush()) {
-				org.lwjgl.PointerBuffer f = st.mallocPointer(1);
-				f.put(st.UTF8("*.png")).flip();
-				file = org.lwjgl.util.tinyfd.TinyFileDialogs.tinyfd_openFileDialog("Choose a Minecraft skin", null, f, "Skin image (*.png)", false);
+		// 26.3 has no file picker library: skins go in .minecraft/skins, and the newest .png is uploaded.
+		java.nio.file.Path dir = net.fabricmc.loader.api.FabricLoader.getInstance().getGameDir().resolve("skins");
+		java.nio.file.Path newest = null;
+		try {
+			Files.createDirectories(dir);
+			try (var st = Files.list(dir)) {
+				newest = st.filter(p -> p.getFileName().toString().toLowerCase().endsWith(".png"))
+					.max(java.util.Comparator.comparingLong(p -> p.toFile().lastModified())).orElse(null);
 			}
-			if (file == null) return;
-			final String path = file;
+		} catch (Exception ignored) {
+		}
+		if (newest == null) {
+			org.lwjgl.sdl.SDLMisc.SDL_OpenURL(dir.toUri().toString());
+			say("Put your skin .png in the folder that just opened, then press Upload again.", false);
+			return;
+		}
+		final String path = newest.toString();
+		{
 			this.minecraft.execute(() -> run("Uploading skin...", () -> {
 				byte[] png = Files.readAllBytes(Path.of(path));
 				String b = "----MiniClient" + System.nanoTime();
@@ -158,7 +167,7 @@ public class WardrobeScreen extends MiniPage {
 					.POST(HttpRequest.BodyPublishers.ofByteArray(body.toByteArray())).build()));
 				return DONE;
 			}));
-		}, "MiniClient-FilePicker").start();
+		}
 	}
 
 	private void copyFrom() {

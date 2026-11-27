@@ -28,6 +28,6 @@ public abstract class SliderStyleMixin extends AbstractWidget {
 		com.minicraft.UiStyle.fillRound(g, x + 1, y + 1, Math.max(0, fx - x - 1), h - 2, 0x22FFFFFF);
 		int hx = Math.max(x + 2, Math.min(x + w - 6, fx - 2));
 		com.minicraft.UiStyle.fillRound(g, hx, y + 3, 4, h - 6, 0xFFFFFFFF);
-		this.renderScrollingString(g, mc.font, 4, (this.active ? 0xFFF4F4F4 : 0xFF707070) | (Math.round(this.alpha * 255) << 24));
+		g.drawCenteredString(mc.font, this.getMessage(), getX() + getWidth() / 2, getY() + (getHeight() - 8) / 2, (this.active ? 0xFFF4F4F4 : 0xFF707070) | (Math.round(this.alpha * 255) << 24));
 	}
 }

@@ -108,7 +108,7 @@ public class MiniTitleScreen extends Screen {
 		int rx = rightX(), rw = S(281);
 		try {
 			int f = S(16);
-			net.minecraft.client.gui.components.PlayerFaceRenderer.draw(g, this.minecraft.getSkinManager().getInsecureSkinLocation(this.minecraft.getGameProfile()), rx + S(7), Y(280) + (S(28) - f) / 2, f);
+			net.minecraft.client.gui.components.PlayerFaceRenderer.draw(g, this.minecraft.getSkinManager().getInsecureSkinLocation(this.minecraft.getUser().getGameProfile()), rx + S(7), Y(280) + (S(28) - f) / 2, f);
 		} catch (Throwable ignored) {
 		}
 		Gfx.push(g);

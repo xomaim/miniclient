@@ -22,6 +22,6 @@ public abstract class ButtonStyleMixin extends AbstractWidget {
 		Minecraft mc = Minecraft.getInstance();
 		com.minicraft.UiStyle.box(g, getX(), getY(), getWidth(), getHeight(), this.active, this.isHoveredOrFocused());
 		int col = this.active ? 0xFFF4F4F4 : 0xFF707070;
-		this.renderScrollingString(g, mc.font, 4, col | (Math.round(this.alpha * 255) << 24));
+		g.drawCenteredString(mc.font, this.getMessage(), getX() + getWidth() / 2, getY() + (getHeight() - 8) / 2, col | (Math.round(this.alpha * 255) << 24));
 	}
 }
