@@ -23,7 +23,7 @@ public class GlassButton extends AbstractWidget {
 	}
 
 	@Override
-	protected void renderWidget(GuiGraphics g, int mouseX, int mouseY, float delta) {
+	public void renderWidget(GuiGraphics g, int mouseX, int mouseY, float delta) {
 		Minecraft mc = Minecraft.getInstance();
 		boolean hot = this.isHoveredOrFocused();
 		int x = this.getX();
