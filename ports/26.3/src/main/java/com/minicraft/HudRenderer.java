@@ -3,7 +3,6 @@ package com.minicraft;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.multiplayer.PlayerInfo;
-import org.lwjgl.glfw.GLFW;
 
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
@@ -28,8 +27,10 @@ public class HudRenderer {
 			lastFpsTime = now;
 		}
 		long window = mc.getWindow().handle();
-		boolean l = GLFW.glfwGetMouseButton(window, GLFW.GLFW_MOUSE_BUTTON_LEFT) == GLFW.GLFW_PRESS;
-		boolean r = GLFW.glfwGetMouseButton(window, GLFW.GLFW_MOUSE_BUTTON_RIGHT) == GLFW.GLFW_PRESS;
+		// 26.3 uses SDL3: left button = bit 1, right button = bit 4
+		int buttons = org.lwjgl.sdl.SDLMouse.SDL_GetMouseState((java.nio.FloatBuffer) null, (java.nio.FloatBuffer) null);
+		boolean l = (buttons & 1) != 0;
+		boolean r = (buttons & 4) != 0;
 		if (l && !wasLeft) leftClicks.add(now);
 		if (r && !wasRight) rightClicks.add(now);
 		wasLeft = l;

@@ -10,7 +10,6 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.PauseScreen;
 import net.minecraft.client.gui.screens.TitleScreen;
 import net.minecraft.network.chat.Component;
-import org.lwjgl.glfw.GLFW;
 
 public class MiniClient implements ClientModInitializer {
 	public static Button capeBtn = null;
@@ -28,7 +27,7 @@ public class MiniClient implements ClientModInitializer {
 		darkDone = true;
 		if (!System.getProperty("os.name", "").toLowerCase(java.util.Locale.ROOT).contains("win")) return;
 		try {
-			long hwnd = org.lwjgl.glfw.GLFWNativeWin32.glfwGetWin32Window(mc.getWindow().handle());
+			long hwnd = org.lwjgl.sdl.SDLProperties.SDL_GetPointerProperty(org.lwjgl.sdl.SDLVideo.SDL_GetWindowProperties(mc.getWindow().handle()), org.lwjgl.sdl.SDLVideo.SDL_PROP_WINDOW_WIN32_HWND_POINTER, 0L);
 			if (hwnd == 0) return;
 			com.sun.jna.Pointer h = new com.sun.jna.Pointer(hwnd);
 			Dwm d = com.sun.jna.Native.load("dwmapi", Dwm.class);
@@ -56,9 +55,8 @@ public class MiniClient implements ClientModInitializer {
 			java.nio.ByteBuffer px = org.lwjgl.stb.STBImage.stbi_load_from_memory(file, w, h, c, 4);
 			org.lwjgl.system.MemoryUtil.memFree(file);
 			if (px == null) return;
-			org.lwjgl.glfw.GLFWImage.Buffer imgs = org.lwjgl.glfw.GLFWImage.malloc(1, st);
-			imgs.position(0).width(w.get(0)).height(h.get(0)).pixels(px);
-			GLFW.glfwSetWindowIcon(mc.getWindow().handle(), imgs);
+			org.lwjgl.sdl.SDL_Surface surf = org.lwjgl.sdl.SDLSurface.SDL_CreateSurfaceFrom(w.get(0), h.get(0), org.lwjgl.sdl.SDLPixels.SDL_PIXELFORMAT_ABGR8888, px, w.get(0) * 4);
+			if (surf != null) { org.lwjgl.sdl.SDLVideo.SDL_SetWindowIcon(mc.getWindow().handle(), surf); org.lwjgl.sdl.SDLSurface.SDL_DestroySurface(surf); }
 			org.lwjgl.stb.STBImage.stbi_image_free(px);
 		} catch (Throwable ignored) {
 		}
@@ -87,7 +85,7 @@ public class MiniClient implements ClientModInitializer {
 				mc.gui.setScreen(new MiniTitleScreen());
 			}
 			if (tick % 20 == 0) {
-				GLFW.glfwSetWindowTitle(mc.getWindow().handle(), "Mini Client 26.3");
+				mc.getWindow().setTitle("Mini Client 26.3");
 				setIcon(mc);
 				darkTitle(mc);
 			}
