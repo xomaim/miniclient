@@ -58,9 +58,13 @@ jobs:
         working-directory: ports/${{ matrix.dir }}
         continue-on-error: true
         run: |
-          gradle build --no-daemon > ../../build.log 2>&1 && exit 0
-          # Maven Central sometimes rate-limits (429); wait and try once more before giving up.
-          if grep -qE "status code 429|Could not resolve|Connection reset|timed out" ../../build.log; then sleep 45; gradle build --no-daemon > ../../build.log 2>&1; else exit 1; fi
+          for i in 1 2 3 4; do
+            gradle build --no-daemon > ../../build.log 2>&1 && exit 0
+            # Maven Central sometimes rate-limits (429): wait longer each time and try again; real compile errors stop at once.
+            grep -qE "status code 429|Could not resolve|Connection reset|timed out|Could not GET" ../../build.log || exit 1
+            sleep $((i * 60))
+          done
+          exit 1
 
       - name: Publish build log
         if: always()
