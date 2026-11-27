@@ -1,0 +1,89 @@
+name: Build Mini Client mod ports
+
+on:
+  push:
+    paths:
+      - 'ports/**'
+      - '.github/workflows/mod-ports.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  list:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.l.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: l
+        run: |
+          m=$(for d in ports/*/; do v=$(basename "$d"); [ -f "$d/port.env" ] || continue; . "$d/port.env"; echo "{\"dir\":\"$v\",\"mc\":\"$MC\",\"java\":\"$JAVA\",\"gradle\":\"$GRADLE\"}"; done | jq -sc '{include: .}')
+          echo "$m"
+          echo "matrix=$m" >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: list
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.list.outputs.matrix) }}
+    name: Build ${{ matrix.dir }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ matrix.java }}
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: ${{ matrix.gradle }}
+
+      - name: Pick Fabric versions for ${{ matrix.mc }}
+        working-directory: ports/${{ matrix.dir }}
+        run: |
+          Q=$(jq -rn --arg v "${{ matrix.mc }}" '[$v]|@uri')
+          FV=$(curl -s -H "User-Agent: miniclient-build" "https://api.modrinth.com/v2/project/fabric-api/version?game_versions=$Q&loaders=%5B%22fabric%22%5D" | jq -r '.[0].version_number')
+          LV=$(curl -s https://meta.fabricmc.net/v2/versions/loader | jq -r '[.[]|select(.stable==true)][0].version')
+          echo "fabric api: $FV  loader: $LV"
+          if [ -n "$FV" ] && [ "$FV" != "null" ]; then sed -i "s/^fabric_version=.*/fabric_version=$FV/" gradle.properties; fi
+          if [ -n "$LV" ] && [ "$LV" != "null" ]; then sed -i "s/^loader_version=.*/loader_version=$LV/" gradle.properties; fi
+          cat gradle.properties
+
+      - name: Build
+        id: build
+        working-directory: ports/${{ matrix.dir }}
+        continue-on-error: true
+        run: gradle build --no-daemon > ../../build.log 2>&1
+
+      - name: Publish build log
+        if: always()
+        run: |
+          mkdir -p /tmp/lg
+          cp build.log /tmp/lg/build.log || echo "no log" > /tmp/lg/build.log
+          cp ports/${{ matrix.dir }}/gradle.properties /tmp/lg/gradle.properties
+          echo "${{ steps.build.outcome }}" > /tmp/lg/outcome.txt
+          if [ -f ports/${{ matrix.dir }}/.probe ]; then bash ports/probe.sh || true; fi
+          cd /tmp/lg
+          git init -q && git checkout -q -b log
+          git config user.name "build bot" && git config user.email "bot@users.noreply.github.com"
+          git add -A && git commit -qm "build log ${{ matrix.dir }} ${{ github.sha }}"
+          for i in 1 2 3; do git push -q -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" "log:buildlog-${{ matrix.dir }}" && break; sleep 5; done
+
+      - name: Publish mod build
+        if: steps.build.outcome == 'success' && github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          JAR=$(ls ports/${{ matrix.dir }}/build/libs/*.jar | grep -v sources | head -1)
+          cp "$JAR" miniclient-mod.jar
+          T="mod-${{ matrix.dir }}"
+          gh release view "$T" >/dev/null 2>&1 || gh release create "$T" --title "Mod build for ${{ matrix.dir }}" --notes "Mini Client mod for Minecraft ${{ matrix.dir }}." --prerelease
+          gh release upload "$T" miniclient-mod.jar --clobber
+
+      - name: Fail if the build failed
+        if: steps.build.outcome != 'success'
+        run: exit 1

@@ -319,12 +319,14 @@ $('svadd').onclick = () => { const v = $('svip').value.trim().replace(/[^a-zA-Z0
 
 // ---------- versions ----------
 let VERS = [];
-const MINI_VERS = ['1.21.7', '26.2'];
+let MINI_VERS = ['1.21.7'];
+call('mini-versions').then((v) => { MINI_VERS = v; if (page === 'versions') drawVersions(); }).catch(() => {});
+const isMini = (id) => MINI_VERS.includes(id) || MINI_VERS.includes(id.split('.').slice(0, 2).join('.')) && /^\d{2}\./.test(id);
 async function loadVersions() { if (!VERS.length) { $('vlist').innerHTML = '<div class="empty">Loading versions...</div>'; try { VERS = await call('versions'); } catch (e) {} } drawVersions(); }
 function drawVersions() {
   const f = $('vfind').value.trim(), sel = gopts.version || '1.21.7';
   const l = VERS.filter((v) => !f || v.id.includes(f)).slice(0, 120);
-  $('vlist').innerHTML = l.map((v) => `<div class="it${v.id === sel ? ' sel' : ''}" data-v="${esc(v.id)}"><div class="av">${MINI_VERS.includes(v.id) ? 'M' : 'F'}</div><div class="t"><b>${esc(v.id)}</b><span>${MINI_VERS.includes(v.id) ? 'Mini Client' : v.date < '2019-04-23' ? 'Vanilla' : 'Fabric + FPS mods'} · ${esc(v.date.slice(0, 4))}</span></div>${v.id === sel ? '<button class="sb">Selected</button>' : ''}</div>`).join('') || '<div class="empty">No versions match.</div>';
+  $('vlist').innerHTML = l.map((v) => `<div class="it${v.id === sel ? ' sel' : ''}" data-v="${esc(v.id)}"><div class="av">${isMini(v.id) ? 'M' : 'F'}</div><div class="t"><b>${esc(v.id)}</b><span>${isMini(v.id) ? 'Mini Client' : v.date < '2019-04-23' ? 'Vanilla' : 'Fabric + FPS mods'} · ${esc(v.date.slice(0, 4))}</span></div>${v.id === sel ? '<button class="sb">Selected</button>' : ''}</div>`).join('') || '<div class="empty">No versions match.</div>';
   $('vlist').querySelectorAll('[data-v]').forEach((d) => d.onclick = async () => { gopts = await call('game-opts-set', { version: d.dataset.v }); drawVersions(); hello(); });
 }
 $('vfind').oninput = drawVersions;
