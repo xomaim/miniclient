@@ -9,6 +9,10 @@ base {
 	archivesName = project.archives_base_name
 }
 
+repositories {
+	maven { url = 'https://maven-central.storage-download.googleapis.com/maven2/' }
+}
+
 dependencies {
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
 	implementation "net.fabricmc:fabric-loader:${project.loader_version}"

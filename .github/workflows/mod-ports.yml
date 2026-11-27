@@ -28,6 +28,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
+      max-parallel: 6
       matrix: ${{ fromJson(needs.list.outputs.matrix) }}
     name: Build ${{ matrix.dir }}
     steps:
