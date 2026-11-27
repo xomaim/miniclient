@@ -464,7 +464,8 @@ async function drawMods(){
   const u=await mc.userMods();
   $('muser').innerHTML=u.length?u.map(n=>`<div class="mrow"><i>${n.charAt(0).toUpperCase()}</i><div><b>${n.replace(/\.jar$/i,'')}</b><span>${n}</span></div><span class="st">ON</span></div>`).join(''):'<div class="empty">No extra mods yet. Press Mods on the Minecraft title screen to find and install mods, or drop Fabric .jar files into the mods folder.</div>';}
 let VERS=[];
-const MINI_VERS=['1.21.7','26.2'];
+let MINI_VERS=['1.21.7'];
+mc.miniVersions().then(v=>{MINI_VERS=v;const y=VERS.map(x=>x.id).filter(id=>/^\d{2}\.\d+\.\d+$/.test(id)&&v.includes(id.split('.').slice(0,2).join('.')));MINI_VERS=MINI_VERS.concat(y);if(typeof drawVersions==='function')drawVersions();heroState('LAUNCH GAME','READY TO LAUNCH',null,'');});
 function vlabel(id){return MINI_VERS.includes(id)?['Mini Client','mini']:['Fabric + FPS mods',''];}
 function drawVersions(){const f=($('vfind').value||'').trim();const sel=gopts.version||'1.21.7';
   const list=VERS.filter(v=>!f||v.id.includes(f));

@@ -74,9 +74,29 @@ async function modrinthFile(slug, mc) {
   } catch (e) { return null; }
 }
 // Minecraft versions with the full Mini Client mod, and the GitHub release that holds each build.
-const MINI_TAGS = { '1.21.7': 'latest', '26.2': 'mod-26.2' };
+// Which versions have a Mini Client mod build: every GitHub release named mod-<version> (1.21.7 lives in "latest").
+let miniCache = null, miniAt = 0;
+async function miniTags() {
+  if (miniCache && Date.now() - miniAt < 10 * 60 * 1000) return miniCache;
+  const map = { '1.21.7': 'latest' };
+  try {
+    const rels = await getJson('https://api.github.com/repos/' + MINI_REPO + '/releases?per_page=100');
+    for (const r of rels) {
+      const m = /^mod-(.+)$/.exec(r.tag_name || '');
+      if (m && (r.assets || []).some((a) => /miniclient-mod\.jar$/.test(a.name))) map[m[1]] = r.tag_name;
+    }
+    miniCache = map; miniAt = Date.now();
+  } catch (e) { if (miniCache) return miniCache; }
+  return map;
+}
+async function miniTag(id) {
+  const t = await miniTags();
+  if (t[id]) return t[id];
+  const y = /^(\d{2}\.\d+)\.\d+$/.exec(id);          // 26.1.2 uses the 26.1 build
+  return y && t[y[1]] ? t[y[1]] : null;
+}
 async function miniModFile(id) {
-  const tag = MINI_TAGS[id] || 'latest';
+  const tag = (await miniTag(id)) || 'latest';
   let url = 'https://github.com/' + MINI_REPO + '/releases/download/' + tag + '/miniclient-mod.jar', stamp = tag, size = 0;
   try {
     const rel = await getJson('https://api.github.com/repos/' + MINI_REPO + '/releases/tags/' + tag);
@@ -97,17 +117,17 @@ class Launcher {
     this.proc = null;
   }
 
-  wantedMods(id, o) {
+  wantedMods(id, o) {   // o._mini: this version has a Mini Client build
     const out = [{ slug: 'fabric-api' }];
     if (o.builtinOn) {
-      out.push(MINI_TAGS[id] ? { slug: '@mini' } : { slug: 'hud-plus' });
+      out.push(o._mini ? { slug: '@mini' } : { slug: 'hud-plus' });
       out.push({ slug: 'sodium' });
       if (o.fpsBoost) for (const s of ['lithium', 'ferrite-core', 'entityculling', 'immediatelyfast']) out.push({ slug: s });
     }
     if (o.capeOn) out.push({ slug: 'client-capes' });
     return out;
   }
-  sig(o) { return (o.builtinOn || o.capeOn) ? 'm6' + (o.builtinOn ? 'b' : '') + (o.fpsBoost ? 'f' : '') + (o.capeOn ? 'c' : '') : 'v'; }
+  sig(o) { return (o.builtinOn || o.capeOn) ? 'm6' + (o.builtinOn ? 'b' : '') + (o.fpsBoost ? 'f' : '') + (o.capeOn ? 'c' : '') + (o._mini ? 'M' : '') : 'v'; }
   fastFile(id, o) { return path.join(this.cfgDir, 'fast_' + id + '_' + this.sig(o) + '.json'); }
 
   async fastLoad(id, o) {
@@ -121,11 +141,12 @@ class Launcher {
   }
 
   async prepare(id, o) {
+    if (o.builtinOn) o._mini = !!(await miniTag(id));
     const fast = await this.fastLoad(id, o);
     if (fast) {
       this.log('Fast start: ' + id + ' already set up.');
       // The Mini Client mod changes often: always pick up the newest build, even on fast start.
-      if (o.builtinOn && MINI_TAGS[id]) {
+      if (o.builtinOn && o._mini) {
         const mf = await miniModFile(id);
         const mdir = path.join(this.cfgDir, 'builtin_mods', id), mp = path.join(mdir, mf.name);
         const old = (fast.addMods || []).findIndex((x) => /miniclient-mod-/.test(path.basename(x)));
@@ -380,4 +401,4 @@ async function releases() {
   return m.versions.filter((v) => v.type === 'release' && v.releaseTime >= '2014-09-01').map((v) => ({ id: v.id, date: v.releaseTime.slice(0, 10) }));
 }
 
-module.exports = { Launcher, releases, MINI_TAGS };
+module.exports = { Launcher, releases, miniTags };

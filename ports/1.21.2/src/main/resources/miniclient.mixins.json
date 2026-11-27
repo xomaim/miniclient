@@ -1,0 +1,14 @@
+{
+  "required": true,
+  "package": "com.minicraft.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+    "LoadingOverlayMixin",
+    "ButtonStyleMixin",
+    "SliderStyleMixin",
+    "ScreenBackgroundMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
