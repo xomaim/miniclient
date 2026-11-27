@@ -60,11 +60,11 @@ public class MiniTitleScreen extends Screen {
 		k = Math.min(this.width / 907f, this.height / 563f);
 		ox = 0;
 		oy = (this.height - S(563)) / 2;
-		btn(113, 280, 281, "\u263A  Singleplayer", () -> mc.gui.setScreen(new SelectWorldScreen(this)));
-		btn(113, 318, 281, "\u263B  Multiplayer", () -> mc.gui.setScreen(new JoinMultiplayerScreen(this)));
-		btn(113, 356, 281, "\u25CE  Realms", () -> mc.gui.setScreen(new RealmsMainScreen(this)));
-		btn(113, 394, 135, "\u2699  Settings", () -> mc.gui.setScreen(new OptionsScreen(this, mc.options, false)));
-		btn(258, 394, 136, "\u2630  Mods", () -> mc.gui.setScreen(new ModBrowserScreen(this)));
+		btn(113, 280, 281, "\u263A  Singleplayer", () -> mc.setScreen(new SelectWorldScreen(this)));
+		btn(113, 318, 281, "\u263B  Multiplayer", () -> mc.setScreen(new JoinMultiplayerScreen(this)));
+		btn(113, 356, 281, "\u25CE  Realms", () -> mc.setScreen(new RealmsMainScreen(this)));
+		btn(113, 394, 135, "\u2699  Settings", () -> mc.setScreen(new OptionsScreen(this, mc.options, false)));
+		btn(258, 394, 136, "\u2630  Mods", () -> mc.setScreen(new ModBrowserScreen(this)));
 
 		int rx = rightX(), rw = S(281);
 		try {
@@ -76,10 +76,10 @@ public class MiniTitleScreen extends Screen {
 		} catch (Throwable ignored) {
 		}
 		GlassButton[] right = {
-			new GlassButton(rx, Y(280), rw, S(28), mc.getUser().getName(), () -> mc.gui.setScreen(new MiniSettingsScreen(this))),
-			new GlassButton(rx, Y(318), rw, S(28), "\u21E5  Host World", () -> mc.gui.setScreen(new HostWorldScreen(this))),
-			new GlassButton(rx, Y(356), rw, S(28), "\u2709  Social", () -> mc.gui.setScreen(new SocialScreen(this))),
-			new GlassButton(rx, Y(394), rw, S(28), "\u2666  Wardrobe", () -> mc.gui.setScreen(new WardrobeScreen(this)))
+			new GlassButton(rx, Y(280), rw, S(28), mc.getUser().getName(), () -> mc.setScreen(new MiniSettingsScreen(this))),
+			new GlassButton(rx, Y(318), rw, S(28), "\u21E5  Host World", () -> mc.setScreen(new HostWorldScreen(this))),
+			new GlassButton(rx, Y(356), rw, S(28), "\u2709  Social", () -> mc.setScreen(new SocialScreen(this))),
+			new GlassButton(rx, Y(394), rw, S(28), "\u2666  Wardrobe", () -> mc.setScreen(new WardrobeScreen(this)))
 		};
 		for (GlassButton b : right) { b.textScale = Math.max(0.6f, k * 1.32f); addRenderableWidget(b); }
 

@@ -43,4 +43,8 @@ echo "=== P LoadingOverlay private" >> "$out"; javap -cp "$CP" -private net.mine
 echo "=== Options fields" >> "$out"; javap -cp "$CP" -public net.minecraft.client.Options | grep -iE "hideGui|darkMojang|Mojang|gui|OptionInstance<java.lang.Boolean>" >> "$out" 2>&1
 echo "=== Util candidates" >> "$out"; grep -E '/Util\.class$' /tmp/cls.txt >> "$out"; for jar in $JARS; do unzip -Z1 "$jar"; done | grep -E '(^|/)Util\.class$|KeyMapping|Realms.*MainScreen' | sort -u >> "$out"
 for jar in $(find ~/.gradle -name "fabric-*.jar" | grep -v sources); do unzip -Z1 "$jar" | grep -iE 'key(binding|mapping).*Helper' ; done >> "$out" 2>/dev/null
+echo "=== LWJGL packages" >> "$out"; for jar in $(find ~/.gradle -name "lwjgl*.jar" | grep -v -e sources -e natives); do echo "-- $(basename $jar)"; unzip -Z1 "$jar" | grep -E '\.class$' | sed 's#/[^/]*$##' | sort -u | head -8; done >> "$out" 2>&1
+echo "=== Window full" >> "$out"; javap -cp "$CP" -public com.mojang.blaze3d.platform.Window >> "$out" 2>&1
+for jar in $JARS; do unzip -Z1 "$jar"; done | grep -iE 'platform/(Window|Input|Mouse|SDL|Glfw)|/MouseHandler|/KeyboardHandler' | sort -u >> "$out"
+echo "=== IntegratedServer publish" >> "$out"; javap -cp "$CP" -public net.minecraft.client.server.IntegratedServer | grep -i publish >> "$out" 2>&1
 echo "probe done: $(wc -l < $out) lines"

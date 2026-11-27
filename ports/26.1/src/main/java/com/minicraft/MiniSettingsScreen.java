@@ -64,7 +64,7 @@ public class MiniSettingsScreen extends Screen {
 		}).bounds(left, y, 150, 20).build());
 		addRenderableWidget(toggle(right, y, "Menu style", () -> c.titleStyle, v -> c.titleStyle = v));
 		y += step + 6;
-		addRenderableWidget(Button.builder(Component.literal("Move the bar"), b -> this.minecraft.gui.setScreen(new HudEditorScreen(this)))
+		addRenderableWidget(Button.builder(Component.literal("Move the bar"), b -> this.minecraft.setScreen(new HudEditorScreen(this)))
 			.bounds(left, y, 310, 20).build());
 		y += step + 6;
 		addRenderableWidget(Button.builder(Component.literal("Done"), b -> onClose()).bounds(this.width / 2 - 100, y, 200, 20).build());
@@ -80,6 +80,6 @@ public class MiniSettingsScreen extends Screen {
 	@Override
 	public void onClose() {
 		Config.save();
-		this.minecraft.gui.setScreen(parent);
+		this.minecraft.setScreen(parent);
 	}
 }

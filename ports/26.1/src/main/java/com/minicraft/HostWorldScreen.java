@@ -37,7 +37,7 @@ public class HostWorldScreen extends MiniPage {
 		button(left, y + 74, pw, 30, "Choose a world to host  →", () -> {
 			pendingMode = MODES[mode];
 			pendingCheats = cheats;
-			this.minecraft.gui.setScreen(new SelectWorldScreen(parent));
+			this.minecraft.setScreen(new SelectWorldScreen(parent));
 		});
 	}
 
@@ -59,8 +59,8 @@ public class HostWorldScreen extends MiniPage {
 		pendingMode = null;
 		if (s.isPublished()) return;
 		int port = HttpUtil.getAvailablePort();
-		boolean ok = s.publishServer(net.minecraft.server.MinecraftServer.MultiplayerScope.LAN, mode, pendingCheats, port);
-		mc.gui.hud.getChat().addClientSystemMessage(Component.literal(ok
+		boolean ok = s.publishServer(mode, pendingCheats, port);
+		mc.gui.getChat().addMessage(Component.literal(ok
 			? "§f§lMini Client §r§7» §fYour world is hosted! Friends on your Wi-Fi can join from Multiplayer. §7(port " + port + ")"
 			: "§f§lMini Client §r§7» §cCould not host this world."));
 	}

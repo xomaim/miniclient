@@ -71,20 +71,20 @@ public class MiniClient implements ClientModInitializer {
 		HudElementRegistry.addLast(net.minecraft.resources.Identifier.fromNamespaceAndPath("miniclient", "hud"), (g, delta) -> {
 			Minecraft mc = Minecraft.getInstance();
 			HudRenderer.poll(mc);
-			if (mc.gui.hud.isHidden()) return;
-			if (mc.gui.screen() instanceof HudEditorScreen) return;
+			if (mc.options.hideGui) return;
+			if (mc.screen instanceof HudEditorScreen) return;
 			HudRenderer.draw(g, mc);
 		});
 
 		ClientTickEvents.END_CLIENT_TICK.register(mc -> {
 			tick++;
 			HostWorldScreen.tick(mc);
-			if (Config.INSTANCE.titleStyle && mc.gui.screen() instanceof TitleScreen) {
+			if (Config.INSTANCE.titleStyle && mc.screen instanceof TitleScreen) {
 				capeBtn = null;
-				for (net.minecraft.client.gui.components.AbstractWidget wd : Screens.getWidgets(mc.gui.screen())) {
+				for (net.minecraft.client.gui.components.AbstractWidget wd : Screens.getWidgets(mc.screen)) {
 					if (wd instanceof Button && wd.getMessage().getString().toLowerCase().contains("cape")) { capeBtn = (Button) wd; break; }
 				}
-				mc.gui.setScreen(new MiniTitleScreen());
+				mc.setScreen(new MiniTitleScreen());
 			}
 			if (tick % 20 == 0) {
 				GLFW.glfwSetWindowTitle(mc.getWindow().handle(), "Mini Client 26.1");
@@ -101,7 +101,7 @@ public class MiniClient implements ClientModInitializer {
 					g.centeredText(client.font, "MINICRAFT", sc.width / 2, 14, 0xFFEBEBEB);
 				});
 				Screens.getWidgets(screen).add(
-					Button.builder(Component.literal("Mini Client"), b -> client.gui.setScreen(new MiniSettingsScreen(screen)))
+					Button.builder(Component.literal("Mini Client"), b -> client.setScreen(new MiniSettingsScreen(screen)))
 						.bounds(6, 6, 90, 20).build());
 			}
 		});
