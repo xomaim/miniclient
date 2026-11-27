@@ -57,7 +57,10 @@ jobs:
         id: build
         working-directory: ports/${{ matrix.dir }}
         continue-on-error: true
-        run: gradle build --no-daemon > ../../build.log 2>&1
+        run: |
+          gradle build --no-daemon > ../../build.log 2>&1 && exit 0
+          # Maven Central sometimes rate-limits (429); wait and try once more before giving up.
+          if grep -qE "status code 429|Could not resolve|Connection reset|timed out" ../../build.log; then sleep 45; gradle build --no-daemon > ../../build.log 2>&1; else exit 1; fi
 
       - name: Publish build log
         if: always()
@@ -66,7 +69,7 @@ jobs:
           cp build.log /tmp/lg/build.log || echo "no log" > /tmp/lg/build.log
           cp ports/${{ matrix.dir }}/gradle.properties /tmp/lg/gradle.properties
           echo "${{ steps.build.outcome }}" > /tmp/lg/outcome.txt
-          if [ -f ports/${{ matrix.dir }}/.probe ]; then bash ports/probe.sh || true; fi
+          if [ -f ports/${{ matrix.dir }}/.probe ]; then PORT_DIR=ports/${{ matrix.dir }} bash ports/probe.sh || true; fi
           cd /tmp/lg
           git init -q && git checkout -q -b log
           git config user.name "build bot" && git config user.email "bot@users.noreply.github.com"

@@ -7,7 +7,6 @@ import com.google.gson.JsonParser;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.EditBox;
-import net.minecraft.client.gui.components.PlayerSkinWidget;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 
@@ -42,13 +41,6 @@ public class WardrobeScreen extends MiniPage {
 	@Override
 	protected void build() {
 		Minecraft mc = this.minecraft;
-		try {
-			int sw = Math.min(150, pw - 230), sh = Math.round(sw * 1.25f);
-			PlayerSkinWidget skin = new PlayerSkinWidget(sw, sh, mc.getEntityModels(), () -> mc.getSkinManager().getInsecureSkin(mc.getGameProfile()));
-			skin.setPosition(left + (pw - 220) / 2 - sw / 2, top + 10);
-			addRenderableWidget(skin);
-		} catch (Throwable ignored) {
-		}
 		int x = colX(), y = top + 4, w = 210;
 		button(x, y + 12, w, 22, "Model: " + (slim ? "Slim arms" : "Classic arms"), () -> { slim = !slim; rebuildWidgets(); });
 		button(x, y + 40, w, 22, "Upload skin file (.png)", this::upload);

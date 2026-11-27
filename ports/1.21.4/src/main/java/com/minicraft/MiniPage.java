@@ -42,11 +42,11 @@ public abstract class MiniPage extends Screen {
 	}
 
 	protected void big(GuiGraphics g, String s, int x, int y, float scale, int color) {
-		g.pose().pushMatrix();
-		g.pose().translate((float) x, (float) y);
-		g.pose().scale(scale, scale);
+		Gfx.push(g);
+		Gfx.translate(g, (float) x, (float) y);
+		Gfx.scale(g, scale, scale);
 		g.drawString(this.font, s, 0, 0, color, false);
-		g.pose().popMatrix();
+		Gfx.pop(g);
 	}
 
 	protected void card(GuiGraphics g, int x, int y, int w, int h, boolean hot) {

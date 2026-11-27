@@ -1,7 +1,8 @@
 #!/bin/bash
 # Prints the 26.2 API of the Minecraft classes Mini Client uses, so the port can be checked against the real names.
 out=/tmp/lg/probe.txt; : > "$out"
-JARS=$(find ~/.gradle /home/runner/work -name "*.jar" 2>/dev/null | grep -iE "minecraft-(client|merged|common)|minecraft-clientOnly|/minecraft/.*client" | grep -v sources)
+MCV=$(grep "^minecraft_version=" ports/*/gradle.properties 2>/dev/null | head -0; grep "^minecraft_version=" "$PORT_DIR/gradle.properties" | cut -d= -f2)
+JARS=$(find ~/.gradle /home/runner/work -name "*.jar" 2>/dev/null | grep -iE "minecraft-(client|merged|common)|minecraft-clientOnly|/minecraft/.*client" | grep -v sources | grep -F -- "$MCV")
 echo "JARS:" >> "$out"; echo "$JARS" >> "$out"
 CP=$(echo "$JARS" | tr '\n' ':')
 J=$(echo "$JARS" | head -1)

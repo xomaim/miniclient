@@ -3,7 +3,6 @@ package com.minicraft;
 import com.mojang.blaze3d.platform.NativeImage;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.resources.ResourceLocation;
 
@@ -34,9 +33,9 @@ public final class Glow {
 			ByteArrayOutputStream out = new ByteArrayOutputStream();
 			javax.imageio.ImageIO.write(bi, "png", out);
 			NativeImage img = NativeImage.read(new ByteArrayInputStream(out.toByteArray()));
-			DynamicTexture dt = new DynamicTexture(() -> "miniclient_glow", img);
+			DynamicTexture dt = Gfx.dyn(img);
 			try { dt.getClass().getMethod("setFilter", boolean.class, boolean.class).invoke(dt, true, false); } catch (Throwable ignored) {}
-			ResourceLocation id = ResourceLocation.fromNamespaceAndPath("miniclient", "glow_dyn");
+			ResourceLocation id = Gfx.id("miniclient", "glow_dyn");
 			Minecraft.getInstance().getTextureManager().register(id, dt);
 			tex = id;
 		} catch (Throwable e) {
@@ -51,7 +50,7 @@ public final class Glow {
 		int s = Math.max(2, Math.round(size));
 		int x = Math.round(cx - s / 2f), y = Math.round(cy - s / 2f);
 		if (t != null) {
-			g.blit(RenderPipelines.GUI_TEXTURED, t, x, y, 0f, 0f, s, s, s, s, (Math.min(255, alpha) << 24) | 0xFFFFFF);
+			Gfx.blit(g, t, x, y, s, s, (Math.min(255, alpha) << 24) | 0xFFFFFF);
 		} else {
 			int r = Math.max(1, s / 4);
 			g.fill(Math.round(cx) - r, Math.round(cy) - r, Math.round(cx) + r, Math.round(cy) + r, (alpha / 2) << 24 | 0xFFFFFF);

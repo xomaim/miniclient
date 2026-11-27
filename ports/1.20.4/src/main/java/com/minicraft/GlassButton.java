@@ -38,12 +38,12 @@ public class GlassButton extends AbstractWidget {
 		roundRect(g, x + 1, y + 1, w - 2, h - 2, Math.max(1, r - 1), fill);
 		String text = this.getMessage().getString();
 		float s = textScale;
-		g.pose().pushMatrix();
-		g.pose().translate(x + w / 2f, y + h / 2f);
-		g.pose().scale(s, s);
+		Gfx.push(g);
+		Gfx.translate(g, x + w / 2f, y + h / 2f);
+		Gfx.scale(g, s, s);
 		int tw = mc.font.width(text);
 		g.drawString(mc.font, text, -tw / 2, -mc.font.lineHeight / 2 + 1, 0xFFF4F4F4, false);
-		g.pose().popMatrix();
+		Gfx.pop(g);
 	}
 
 	static void roundRect(GuiGraphics g, int x, int y, int w, int h, int r, int c) {

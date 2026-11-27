@@ -60,7 +60,7 @@ public class HostWorldScreen extends MiniPage {
 		if (s.isPublished()) return;
 		int port = HttpUtil.getAvailablePort();
 		boolean ok = s.publishServer(mode, pendingCheats, port);
-		mc.gui.getChat().addMessage(Component.literal(ok
+		mc.gui.getChat().addClientSystemMessage(Component.literal(ok
 			? "§f§lMini Client §r§7» §fYour world is hosted! Friends on your Wi-Fi can join from Multiplayer. §7(port " + port + ")"
 			: "§f§lMini Client §r§7» §cCould not host this world."));
 	}

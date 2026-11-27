@@ -28,7 +28,7 @@ public class MiniClient implements ClientModInitializer {
 		darkDone = true;
 		if (!System.getProperty("os.name", "").toLowerCase(java.util.Locale.ROOT).contains("win")) return;
 		try {
-			long hwnd = org.lwjgl.glfw.GLFWNativeWin32.glfwGetWin32Window(mc.getWindow().getWindow());
+			long hwnd = org.lwjgl.glfw.GLFWNativeWin32.glfwGetWin32Window(mc.getWindow().handle());
 			if (hwnd == 0) return;
 			com.sun.jna.Pointer h = new com.sun.jna.Pointer(hwnd);
 			Dwm d = com.sun.jna.Native.load("dwmapi", Dwm.class);
@@ -58,7 +58,7 @@ public class MiniClient implements ClientModInitializer {
 			if (px == null) return;
 			org.lwjgl.glfw.GLFWImage.Buffer imgs = org.lwjgl.glfw.GLFWImage.malloc(1, st);
 			imgs.position(0).width(w.get(0)).height(h.get(0)).pixels(px);
-			GLFW.glfwSetWindowIcon(mc.getWindow().getWindow(), imgs);
+			GLFW.glfwSetWindowIcon(mc.getWindow().handle(), imgs);
 			org.lwjgl.stb.STBImage.stbi_image_free(px);
 		} catch (Throwable ignored) {
 		}
@@ -87,7 +87,7 @@ public class MiniClient implements ClientModInitializer {
 				mc.setScreen(new MiniTitleScreen());
 			}
 			if (tick % 20 == 0) {
-				GLFW.glfwSetWindowTitle(mc.getWindow().getWindow(), "Mini Client 1.21.9");
+				GLFW.glfwSetWindowTitle(mc.getWindow().handle(), "Mini Client 1.21.9");
 				setIcon(mc);
 				darkTitle(mc);
 			}

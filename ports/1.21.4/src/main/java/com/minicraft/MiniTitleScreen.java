@@ -119,11 +119,11 @@ public class MiniTitleScreen extends Screen {
 			net.minecraft.client.gui.components.PlayerFaceRenderer.draw(g, this.minecraft.getSkinManager().getInsecureSkin(this.minecraft.getGameProfile()), rx + S(7), Y(280) + (S(28) - f) / 2, f);
 		} catch (Throwable ignored) {
 		}
-		g.pose().pushMatrix();
-		g.pose().translate(rx + rw - S(16), Y(287));
-		g.pose().scale(k * 1.3f, k * 1.3f);
+		Gfx.push(g);
+		Gfx.translate(g, rx + rw - S(16), Y(287));
+		Gfx.scale(g, k * 1.3f, k * 1.3f);
 		g.drawString(this.font, "v", 0, 0, 0xFFE0E4E8, false);
-		g.pose().popMatrix();
+		Gfx.pop(g);
 
 		int cx = X(253);
 		Logo.draw(g, cx, Y(174), S(54), 0xFFFFFFFF);
@@ -133,26 +133,26 @@ public class MiniTitleScreen extends Screen {
 		String time = now.format(java.time.format.DateTimeFormatter.ofPattern("HH:mm"));
 		String date = now.format(java.time.format.DateTimeFormatter.ofPattern("EEEE, d MMMM", java.util.Locale.ENGLISH));
 		float ts = S(30) / 7f;
-		g.pose().pushMatrix();
-		g.pose().translate(X(34), Y(30));
-		g.pose().scale(ts, ts);
+		Gfx.push(g);
+		Gfx.translate(g, X(34), Y(30));
+		Gfx.scale(g, ts, ts);
 		g.drawString(this.font, time, 0, 0, 0xFFFFFFFF, false);
 		g.drawString(this.font, time, 1, 0, 0xFFFFFFFF, false);
-		g.pose().popMatrix();
+		Gfx.pop(g);
 		float ds = Math.max(0.6f, k * 1.25f);
-		g.pose().pushMatrix();
-		g.pose().translate(X(36), Y(30) + S(36));
-		g.pose().scale(ds, ds);
+		Gfx.push(g);
+		Gfx.translate(g, X(36), Y(30) + S(36));
+		Gfx.scale(g, ds, ds);
 		g.drawString(this.font, date, 0, 0, 0xFFA0A0A0, false);
-		g.pose().popMatrix();
+		Gfx.pop(g);
 
 		String word = "MINI CLIENT";
 		float sc = S(20) / 7f;
 		float total = 0;
 		for (int i = 0; i < word.length(); i++) total += this.font.width(String.valueOf(word.charAt(i))) + 2;
-		g.pose().pushMatrix();
-		g.pose().translate(cx - total * sc / 2f, Y(222));
-		g.pose().scale(sc, sc);
+		Gfx.push(g);
+		Gfx.translate(g, cx - total * sc / 2f, Y(222));
+		Gfx.scale(g, sc, sc);
 		int p0 = 0;
 		for (int i = 0; i < word.length(); i++) {
 			String ch = String.valueOf(word.charAt(i));
@@ -160,7 +160,7 @@ public class MiniTitleScreen extends Screen {
 			g.drawString(this.font, ch, p0 + 1, 0, 0xFFFFFFFF, false);
 			p0 += this.font.width(ch) + 2;
 		}
-		g.pose().popMatrix();
+		Gfx.pop(g);
 		g.drawString(this.font, "Mini Client 1.21.4", 6, this.height - 12, 0xFF6A6A6A, false);
 	}
 }

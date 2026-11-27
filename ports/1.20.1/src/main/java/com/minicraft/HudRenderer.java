@@ -82,11 +82,11 @@ public class HudRenderer {
 		float s = c.scale / 100f;
 		int w = mc.font.width(t) + PAD * 2;
 		int h = mc.font.lineHeight + PAD * 2;
-		g.pose().pushMatrix();
-		g.pose().translate((float) c.x, (float) c.y);
-		g.pose().scale(s, s);
+		Gfx.push(g);
+		Gfx.translate(g, (float) c.x, (float) c.y);
+		Gfx.scale(g, s, s);
 		if (c.bg == 1) g.fill(0, 0, w, h, 0x90000000);
 		g.drawString(mc.font, t, PAD, PAD, 0xFFFFFFFF, true);
-		g.pose().popMatrix();
+		Gfx.pop(g);
 	}
 }

@@ -4,6 +4,15 @@ import net.minecraft.client.gui.GuiGraphics;
 
 /** The Mini Client logo drawn from a 48x48 mask, so it works before any texture is loaded. */
 public final class Logo {
+	private static java.util.function.Supplier<net.minecraft.world.entity.player.PlayerSkin> skin;
+
+	/** One cached lookup for the player's own skin. */
+	public static net.minecraft.world.entity.player.PlayerSkin mySkin() {
+		net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
+		if (skin == null) skin = mc.getSkinManager().createLookup(mc.getGameProfile(), false);
+		return skin.get();
+	}
+
 	private static net.minecraft.resources.Identifier tex = null;
 	private static boolean tried = false;
 

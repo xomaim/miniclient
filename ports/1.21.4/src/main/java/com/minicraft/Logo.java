@@ -13,9 +13,9 @@ public final class Logo {
 		tried = true;
 		try (java.io.InputStream in = Logo.class.getResourceAsStream("/assets/miniclient/logo.png")) {
 			com.mojang.blaze3d.platform.NativeImage img = com.mojang.blaze3d.platform.NativeImage.read(in);
-			net.minecraft.client.renderer.texture.DynamicTexture dt = new net.minecraft.client.renderer.texture.DynamicTexture(() -> "miniclient_logo", img);
+			net.minecraft.client.renderer.texture.DynamicTexture dt = Gfx.dyn(img);
 			try { dt.getClass().getMethod("setFilter", boolean.class, boolean.class).invoke(dt, true, false); } catch (Throwable ignored) {}
-			net.minecraft.resources.ResourceLocation id = net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("miniclient", "logo_dyn");
+			net.minecraft.resources.ResourceLocation id = Gfx.id("miniclient", "logo_dyn");
 			net.minecraft.client.Minecraft.getInstance().getTextureManager().register(id, dt);
 			tex = id;
 		} catch (Throwable e) {
@@ -78,7 +78,7 @@ public final class Logo {
 		net.minecraft.resources.ResourceLocation t = tex();
 		if (t != null) {
 			int sz = Math.round(size);
-			g.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, t, Math.round(cx - size / 2f), Math.round(cy - size / 2f), 0f, 0f, sz, sz, sz, sz, argb);
+			Gfx.blit(g, t, Math.round(cx - size / 2f), Math.round(cy - size / 2f), sz, sz, argb);
 			return;
 		}
 		drawMask(g, cx, cy, size, argb);

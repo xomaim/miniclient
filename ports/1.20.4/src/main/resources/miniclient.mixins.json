@@ -5,8 +5,7 @@
   "client": [
     "LoadingOverlayMixin",
     "ButtonStyleMixin",
-    "SliderStyleMixin",
-    "ScreenBackgroundMixin"
+    "SliderStyleMixin"
   ],
   "injectors": {
     "defaultRequire": 1

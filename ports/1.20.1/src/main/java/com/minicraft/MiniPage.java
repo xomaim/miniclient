@@ -30,23 +30,23 @@ public abstract class MiniPage extends Screen {
 		return addRenderableWidget(new GlassButton(x, y, w, h, label, r));
 	}
 
-	@Override
 	public void renderBackground(GuiGraphics g, int mouseX, int mouseY, float delta) {
 		g.fillGradient(0, 0, this.width, this.height, 0xFF000000, 0xFF0E0E10);
 	}
 
 	@Override
 	public void render(GuiGraphics g, int mouseX, int mouseY, float delta) {
+		this.renderBackground(g, mouseX, mouseY, delta);
 		super.render(g, mouseX, mouseY, delta);
 		big(g, this.title.getString(), left, 16, 1.6f, 0xFFFFFFFF);
 	}
 
 	protected void big(GuiGraphics g, String s, int x, int y, float scale, int color) {
-		g.pose().pushMatrix();
-		g.pose().translate((float) x, (float) y);
-		g.pose().scale(scale, scale);
+		Gfx.push(g);
+		Gfx.translate(g, (float) x, (float) y);
+		Gfx.scale(g, scale, scale);
 		g.drawString(this.font, s, 0, 0, color, false);
-		g.pose().popMatrix();
+		Gfx.pop(g);
 	}
 
 	protected void card(GuiGraphics g, int x, int y, int w, int h, boolean hot) {

@@ -27,7 +27,7 @@ public class HudRenderer {
 			frames = 0;
 			lastFpsTime = now;
 		}
-		long window = mc.getWindow().getWindow();
+		long window = mc.getWindow().handle();
 		boolean l = GLFW.glfwGetMouseButton(window, GLFW.GLFW_MOUSE_BUTTON_LEFT) == GLFW.GLFW_PRESS;
 		boolean r = GLFW.glfwGetMouseButton(window, GLFW.GLFW_MOUSE_BUTTON_RIGHT) == GLFW.GLFW_PRESS;
 		if (l && !wasLeft) leftClicks.add(now);

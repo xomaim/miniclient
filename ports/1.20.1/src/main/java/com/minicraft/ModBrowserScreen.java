@@ -9,7 +9,6 @@ import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -249,9 +248,9 @@ public class ModBrowserScreen extends MiniPage {
 					this.minecraft.execute(() -> {
 						try {
 							NativeImage img = NativeImage.read(new ByteArrayInputStream(b));
-							DynamicTexture dt = new DynamicTexture(() -> "miniclient_modicon", img);
+							DynamicTexture dt = Gfx.dyn(img);
 							try { dt.getClass().getMethod("setFilter", boolean.class, boolean.class).invoke(dt, true, false); } catch (Throwable ignored) {}
-							ResourceLocation id = ResourceLocation.fromNamespaceAndPath("miniclient", "modicon/" + slug.toLowerCase().replaceAll("[^a-z0-9_.-]", "_"));
+							ResourceLocation id = Gfx.id("miniclient", "modicon/" + slug.toLowerCase().replaceAll("[^a-z0-9_.-]", "_"));
 							this.minecraft.getTextureManager().register(id, dt);
 							ICONS.put(slug, id);
 						} catch (Throwable t) {
@@ -290,7 +289,7 @@ public class ModBrowserScreen extends MiniPage {
 			card(g, left, y, pw, ROW - 4, hot);
 			// icon
 			ResourceLocation ic = tabInstalled ? null : icon(m);
-			if (ic != null) g.blit(RenderPipelines.GUI_TEXTURED, ic, left + 6, y + 6, 0f, 0f, 28, 28, 28, 28, 0xFFFFFFFF);
+			if (ic != null) Gfx.blit(g, ic, left + 6, y + 6, 28, 28, 0xFFFFFFFF);
 			else {
 				GlassButton.roundRect(g, left + 6, y + 6, 28, 28, 5, 0xFF222226);
 				String letter = m.title.isEmpty() ? "?" : m.title.substring(0, 1).toUpperCase();
@@ -363,7 +362,7 @@ public class ModBrowserScreen extends MiniPage {
 	}
 
 	@Override
-	public boolean mouseScrolled(double mx, double my, double sx, double sy) {
+	public boolean mouseScrolled(double mx, double my, double sy) {
 		scroll = Math.max(0, Math.min(maxScroll(), scroll - sy * 24));
 		return true;
 	}
